@@ -17,9 +17,9 @@ schema_flat__binding_names <- function(x) {
     vapply(x, schema_flat__binding_name, character(1L))
 }
 
-SchemaBindingFlat <- S7::new_class(
-    "SchemaBindingFlat",
-    parent = SchemaBinding,
+SchemaBindingExactFlat <- S7::new_class(
+    "SchemaBindingExactFlat",
+    parent = SchemaBindingExact,
     validator = function(self) {
         if (length(self@keys) != 1L) {
             return("@keys requires exactly one key.")
@@ -31,16 +31,31 @@ SchemaBindingFlat <- S7::new_class(
     }
 )
 
+SchemaBindingPatternFlat <- S7::new_class(
+    "SchemaBindingPatternFlat",
+    parent = SchemaBindingPattern,
+    validator = function(self) {
+        if (!schema_flat__node_is_flat(self@target)) {
+            return("@target must be a flat schema node.")
+        }
+    }
+)
+
 SchemaNodeContainerFlat <- S7::new_class(
     "SchemaNodeContainerFlat",
     parent = SchemaNodeContainer,
     properties = list(
-        bindings = schema_utils__prop_list(
-            "SchemaBindingFlat",
+        exact = schema_utils__prop_list(
+            "SchemaBindingExactFlat",
             names = "unnamed",
             default = list()
         ),
-        dynamic = S7::new_property(
+        patterns = schema_utils__prop_list(
+            "SchemaBindingPatternFlat",
+            names = "unnamed",
+            default = list()
+        ),
+        rest = S7::new_property(
             NULL | SchemaNode,
             default = NULL
         )
@@ -54,16 +69,20 @@ SchemaNodeContainerFlat <- S7::new_class(
             ))
         }
 
-        if (!is.null(self@dynamic) && !schema_flat__node_is_flat(self@dynamic)) {
-            return("@dynamic must be a flat schema node.")
+        if (!is.null(self@rest) && !schema_flat__node_is_flat(self@rest)) {
+            return("@rest must be a flat schema node.")
         }
 
-        if (length(self@bindings) > 0L) {
-            keys <- vapply(self@bindings, function(x) x@keys, character(1L))
-            msg <- schema_utils__checkmate_result(checkmate::check_character(keys, unique = TRUE), label = "@bindings")
+        if (length(self@exact) > 0L) {
+            keys <- vapply(self@exact, function(x) x@keys, character(1L))
+            msg <- schema_utils__checkmate_result(checkmate::check_character(keys, unique = TRUE), label = "@exact")
             if (!is.null(msg)) {
                 return(sprintf("%s ('%s')", msg, keys[duplicated(keys)][[1L]]))
             }
+        }
+
+        if (identical(schema_spec__name_type(self@name), "unnamed") && (length(self@exact) || length(self@patterns))) {
+            return("`keys$type = 'unnamed'` only allows `rest` constraints.")
         }
     }
 )
@@ -132,15 +151,21 @@ S7::method(as.list, SchemaNodeContainerFlat) <- function(x, ...) {
     if (!is.null(keys)) {
         out$keys <- keys
     }
-    if (length(x@bindings) || !is.null(x@dynamic)) {
+    if (length(x@exact)) {
         fields <- stats::setNames(
-            lapply(x@bindings, function(binding) as.list(binding@target)),
-            vapply(x@bindings, function(binding) binding@keys, character(1L))
+            lapply(x@exact, function(binding) as.list(binding@target)),
+            vapply(x@exact, function(binding) binding@keys, character(1L))
         )
-        if (!is.null(x@dynamic)) {
-            fields[["*"]] <- as.list(x@dynamic)
-        }
         out$fields <- fields
+    }
+    if (length(x@patterns)) {
+        out$patterns <- stats::setNames(
+            lapply(x@patterns, function(binding) as.list(binding@target)),
+            vapply(x@patterns, function(binding) binding@pattern, character(1L))
+        )
+    }
+    if (!is.null(x@rest)) {
+        out$rest <- as.list(x@rest)
     }
     schema_utils__as_list_add_desc(out, x)
 }
@@ -226,8 +251,9 @@ S7::method(schema_flat__overlay_desc, SchemaNodeContainerFlat) <- function(x, de
     SchemaNodeContainerFlat(
         value = x@value,
         name = x@name,
-        bindings = x@bindings,
-        dynamic = x@dynamic,
+        exact = x@exact,
+        patterns = x@patterns,
+        rest = x@rest,
         desc = desc
     )
 }
@@ -308,21 +334,21 @@ schema_flat__ref <- function(x, ctx) {
     schema_flat__overlay_desc(schema_flat__def(schema_flat__ref_name(x@ref), ctx), x@desc)
 }
 
-S7::method(schema_utils__convert, SchemaBindingCmpt) <- function(from, to, ...) {
-    if (!identical(to, SchemaBindingFlat)) {
-        stop("`SchemaBindingCmpt` can only be converted to `SchemaBindingFlat`.", call. = FALSE)
+S7::method(schema_utils__convert, SchemaBindingExactCmpt) <- function(from, to, ...) {
+    if (!identical(to, SchemaBindingExactFlat)) {
+        stop("`SchemaBindingExactCmpt` can only be converted to `SchemaBindingExactFlat`.", call. = FALSE)
     }
     if (length(from@keys) != 1L) {
-        stop("`SchemaBindingCmpt` must contain exactly one key to convert to `SchemaBindingFlat`.", call. = FALSE)
+        stop("`SchemaBindingExactCmpt` must contain exactly one key to convert to `SchemaBindingExactFlat`.", call. = FALSE)
     }
 
-    SchemaBindingFlat(keys = from@keys, target = from@target)
+    SchemaBindingExactFlat(keys = from@keys, target = from@target)
 }
 
 schema_flat__binding <- function(binding, ctx) {
     target <- schema_flat__node(binding@target, ctx)
     lapply(binding@keys, function(key) {
-        schema_utils__convert(SchemaBindingCmpt(keys = key, target = target), SchemaBindingFlat)
+        schema_utils__convert(SchemaBindingExactCmpt(keys = key, target = target), SchemaBindingExactFlat)
     })
 }
 
@@ -337,6 +363,17 @@ schema_flat__bindings <- function(bindings, ctx) {
     }
 
     compiled
+}
+
+schema_flat__pattern <- function(binding, ctx) {
+    SchemaBindingPatternFlat(
+        pattern = binding@pattern,
+        target = schema_flat__node(binding@target, ctx)
+    )
+}
+
+schema_flat__patterns <- function(patterns, ctx) {
+    lapply(patterns, schema_flat__pattern, ctx = ctx)
 }
 
 schema_flat__branches <- function(branches, ctx) {
@@ -368,14 +405,16 @@ S7::method(schema_flat__node, SchemaNodeLeaf) <- function(x, ctx) {
 }
 
 S7::method(schema_flat__node, SchemaNodeContainerCmpt) <- function(x, ctx) {
-    bindings <- schema_flat__bindings(x@bindings, ctx)
-    dynamic <- if (is.null(x@dynamic)) NULL else schema_flat__node(x@dynamic, ctx)
+    exact <- schema_flat__bindings(x@exact, ctx)
+    patterns <- schema_flat__patterns(x@patterns, ctx)
+    rest <- if (is.null(x@rest)) NULL else schema_flat__node(x@rest, ctx)
 
     SchemaNodeContainerFlat(
         value = schema_flat__rule_check(x@value),
         name = schema_flat__rule_names(x@name),
-        bindings = bindings,
-        dynamic = dynamic,
+        exact = exact,
+        patterns = patterns,
+        rest = rest,
         desc = x@desc
     )
 }

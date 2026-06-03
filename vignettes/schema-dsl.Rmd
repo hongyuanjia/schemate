@@ -74,15 +74,18 @@ The R helpers create the same JSON shapes documented below:
    - `data_frame`
    - `data_table`
    - `tibble`
-7. `fields`, `groups`, and `keys` are only valid on `check` nodes whose
-   `check.kind` is a container kind.
-8. `fields["*"]` is the wildcard child schema for otherwise unspecified keys.
-9. `groups` can batch-assign multiple field names to one shared child schema
+7. `fields`, `groups`, `patterns`, `rest`, and `keys` are only valid on `check`
+   nodes whose `check.kind` is a container kind.
+8. `rest` is the child schema for otherwise unspecified object fields or
+   unnamed list elements.
+9. `patterns` maps regular expressions to child schemas for otherwise
+   unspecified object fields whose names match those patterns.
+10. `groups` can batch-assign multiple field names to one shared child schema
    node.
-10. A top-level schema document may optionally declare `version` as a
+11. A top-level schema document may optionally declare `version` as a
     non-empty string representing the document version.
-11. Root-level `$defs` can store reusable schema nodes and `$ref` can reuse them.
-12. Inside `all` / `any` / `one` / `not`, a branch may use shorthand check
+12. Root-level `$defs` can store reusable schema nodes and `$ref` can reuse them.
+13. Inside `all` / `any` / `one` / `not`, a branch may use shorthand check
     syntax without an explicit `check` wrapper.
 
 ## Reserved schema DSL keys
@@ -401,9 +404,9 @@ Example:
   },
   "check": { "kind": "list" },
   "fields": {
-    "name": { "$ref": "#/$defs/scalar_text" },
-    "*": { "$ref": "#/$defs/scalar_text" }
-  }
+    "name": { "$ref": "#/$defs/scalar_text" }
+  },
+  "rest": { "$ref": "#/$defs/scalar_text" }
 }
 ```
 
@@ -421,6 +424,8 @@ Example:
 - `check.kind` is a container kind
 
 `fields` must be a JSON object whose values are complete schema nodes.
+The field name `"*"` has no special meaning; it is treated like any other
+literal field name. Use `rest` for otherwise unspecified fields.
 
 Example:
 
@@ -434,34 +439,53 @@ Example:
 }
 ```
 
-### Wildcard field
+### Pattern fields
 
-The reserved field name `"*"` is the wildcard child schema.
+`patterns` maps regular expressions to schema nodes. Patterns are applied only
+to fields that are not already covered by `fields` or `groups`.
 
 Example:
 
 ```json
 {
   "check": { "kind": "list" },
-  "fields": {
-    "*": { "check": { "kind": "string" } }
+  "patterns": {
+    "^meta_": { "check": { "kind": "string" } },
+    "_count$": { "check": { "kind": "int" } }
   }
 }
 ```
 
-This means that any otherwise unspecified field must satisfy the wildcard schema.
+If a field matches multiple patterns, it must satisfy every matching schema.
+
+### Rest schema
+
+`rest` is the child schema for otherwise unspecified fields.
+
+Example:
+
+```json
+{
+  "check": { "kind": "list" },
+  "rest": { "check": { "kind": "string" } }
+}
+```
+
+This means that any field not covered by `fields`, `groups`, or `patterns` must
+satisfy the `rest` schema.
 
 ### Closed schema rule
 
-If a container-check node has `fields` but no `fields["*"]`, then the node is treated
-as a closed schema: unspecified fields are not allowed.
+If a container-check node has `fields`, `groups`, or `patterns` but no `rest`,
+then the node is treated as a closed schema: unspecified fields are not allowed.
 
 ### Precedence rule
 
-If both explicit fields and `fields["*"]` are present:
+Container child schemas are applied in this order:
 
-- explicit fields use their own schema
-- all other keys use the wildcard schema
+1. exact `fields` and `groups`
+2. `patterns` for fields not covered by exact rules
+3. `rest` for fields not covered by exact or pattern rules
 
 ## `groups`
 
@@ -488,9 +512,8 @@ like entries written explicitly in `fields`.
 Rules:
 
 - group names must be unique within a group
-- group names must not contain `"*"`
 - group names must not overlap across groups
-- group names must not overlap with explicit `fields` (except `fields["*"]`)
+- group names must not overlap with explicit `fields`
 - each group item must contain exactly one primary operator in addition to `names`
 - a group item must not wrap its target node inside an anonymous nested list
 - a group item must not contain both `$ref` and `check` at the same level
@@ -549,9 +572,7 @@ Example:
       "description": "boolean control parameters"
     }
   ],
-  "fields": {
-    "*": { "$ref": "#/$defs/flag_param" }
-  }
+  "rest": { "$ref": "#/$defs/flag_param" }
 }
 ```
 
@@ -638,7 +659,8 @@ Validation of a `check` node proceeds in this order:
 
 1. run the primary `assert_<kind>()`
 2. apply optional `keys` handling
-3. if `check.kind` is a container kind, recursively validate child fields
+3. if `check.kind` is a container kind, recursively validate exact fields,
+   pattern fields, and rest fields
 
 ### `all`
 
@@ -755,14 +777,12 @@ When parsing the JSON DSL itself, the following should be enforced:
 }
 ```
 
-### Wildcard list schema
+### Rest list schema
 
 ```json
 {
   "check": { "kind": "list" },
-  "fields": {
-    "*": { "check": { "kind": "string" } }
-  }
+  "rest": { "check": { "kind": "string" } }
 }
 ```
 
@@ -775,32 +795,30 @@ When parsing the JSON DSL itself, the following should be enforced:
     "type": "unique",
     "subset.of": ["project", "activity_id", "experiment_id"]
   },
-  "fields": {
-    "*": {
-      "check": { "kind": "list" },
-      "keys": {
-        "type": "unique",
-        "must.include": ["kind", "value"],
-        "subset.of": ["kind", "value", "negate"]
+  "rest": {
+    "check": { "kind": "list" },
+    "keys": {
+      "type": "unique",
+      "must.include": ["kind", "value"],
+      "subset.of": ["kind", "value", "negate"]
+    },
+    "fields": {
+      "kind": {
+        "check": {
+          "kind": "choice",
+          "choices": ["facet", "datetime_start", "datetime_stop"]
+        }
       },
-      "fields": {
-        "kind": {
-          "check": {
-            "kind": "choice",
-            "choices": ["facet", "datetime_start", "datetime_stop"]
-          }
-        },
-        "value": {
-          "check": {
-            "kind": "atomic",
-            "any.missing": false
-          }
-        },
-        "negate": {
-          "check": {
-            "kind": "flag",
-            "null.ok": true
-          }
+      "value": {
+        "check": {
+          "kind": "atomic",
+          "any.missing": false
+        }
+      },
+      "negate": {
+        "check": {
+          "kind": "flag",
+          "null.ok": true
         }
       }
     }

@@ -84,9 +84,9 @@ test_that("schema_doc()", {
             list(names = c("name", "label"), `$ref` = "#/$defs/text")
         ),
         fields = list(
-            id = list(`$ref` = "#/$defs/code"),
-            `*` = list(check = list(kind = "string", null.ok = TRUE))
-        )
+            id = list(`$ref` = "#/$defs/code")
+        ),
+        rest = list(check = list(kind = "string", null.ok = TRUE))
     ))
 
     expect_true(S7::S7_inherits(doc, SchemaDoc))
@@ -95,13 +95,13 @@ test_that("schema_doc()", {
     expect_true(S7::S7_inherits(doc@root, SchemaNodeContainerCmpt))
     expect_equal(doc@root@desc, "query payload")
     expect_equal(doc@root@value, rule_check("data_frame"))
-    expect_length(doc@root@bindings, 2L)
-    expect_equal(doc@root@bindings[[1L]]@keys, "id")
-    expect_equal(doc@root@bindings[[1L]]@target, SchemaNodeRef(ref = "#/$defs/code"))
-    expect_equal(doc@root@bindings[[2L]]@keys, c("name", "label"))
-    expect_equal(doc@root@bindings[[2L]]@target, SchemaNodeRef(ref = "#/$defs/text"))
-    expect_true(S7::S7_inherits(doc@root@dynamic, SchemaNodeLeaf))
-    expect_equal(doc@root@dynamic@value, rule_check("string", list(null.ok = TRUE)))
+    expect_length(doc@root@exact, 2L)
+    expect_equal(doc@root@exact[[1L]]@keys, "id")
+    expect_equal(doc@root@exact[[1L]]@target, SchemaNodeRef(ref = "#/$defs/code"))
+    expect_equal(doc@root@exact[[2L]]@keys, c("name", "label"))
+    expect_equal(doc@root@exact[[2L]]@target, SchemaNodeRef(ref = "#/$defs/text"))
+    expect_true(S7::S7_inherits(doc@root@rest, SchemaNodeLeaf))
+    expect_equal(doc@root@rest@value, rule_check("string", list(null.ok = TRUE)))
 
     doc <- schema_doc(list(
         version = "v1",

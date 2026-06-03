@@ -222,11 +222,11 @@ test_that("schema edit verbs require SchemaDoc inputs", {
         quote(schema_set_keys(raw, "$", type = "named")),
         quote(schema_add_field(raw, "name", schema_check("string"))),
         quote(schema_add_group(raw, schema_group(c("name", "label"), schema_check("string")))),
-        quote(schema_set_dynamic(raw, schema_check("string"))),
+        quote(schema_set_rest(raw, schema_check("string"))),
         quote(schema_del_keys(raw, "$")),
         quote(schema_del_field(raw, "id")),
         quote(schema_del_group(raw, 1L)),
-        quote(schema_del_dynamic(raw)),
+        quote(schema_del_rest(raw)),
         quote(schema_add_def(raw, "text", schema_check("string"))),
         quote(schema_del_def(raw, "text"))
     )
@@ -286,10 +286,10 @@ test_that("schema_add_field()", {
     replaced <- schema_add_field(updated, "name", list(check = list(kind = "character")), overwrite = TRUE)
     expect_equal(as.list(replaced)$fields$name, list(check = list(kind = "character")))
 
-    dynamic <- schema_add_field(updated, "*", schema_check("string"))
-    expect_error(schema_add_field(dynamic, "*", schema_check("int")), "already exists")
-    dynamic_replaced <- schema_add_field(dynamic, "*", schema_check("int"), overwrite = TRUE)
-    expect_equal(as.list(dynamic_replaced)$fields$`*`, list(check = list(kind = "int")))
+    star <- schema_add_field(updated, "*", schema_check("string"))
+    expect_equal(as.list(star)$fields$`*`, list(check = list(kind = "string")))
+    star_replaced <- schema_add_field(star, "*", schema_check("int"), overwrite = TRUE)
+    expect_equal(as.list(star_replaced)$fields$`*`, list(check = list(kind = "int")))
 })
 
 test_that("schema edit paths support non-letter field starts", {
@@ -371,10 +371,10 @@ test_that("schema_add_group()", {
     )
 })
 
-test_that("schema_set_dynamic()", {
+test_that("schema_set_rest()", {
     doc <- schema_add_def(schema_infer(list(id = 1L)), "text", schema_check("string"))
-    updated <- schema_set_dynamic(doc, schema_check("string"))
-    replaced <- schema_set_dynamic(updated, schema_ref("text"))
+    updated <- schema_set_rest(doc, schema_check("string"))
+    replaced <- schema_set_rest(updated, schema_ref("text"))
 
     expect_equal(
         as.list(updated),
@@ -382,13 +382,13 @@ test_that("schema_set_dynamic()", {
             `$defs` = list(text = list(check = list(kind = "string"))),
             check = list(kind = "list"),
             fields = list(
-                id = list(check = list(kind = "int")),
-                `*` = list(check = list(kind = "string"))
-            )
+                id = list(check = list(kind = "int"))
+            ),
+            rest = list(check = list(kind = "string"))
         )
     )
-    expect_equal(as.list(replaced)$fields$`*`, list(`$ref` = "#/$defs/text"))
-    expect_schema_edit_error(schema_set_dynamic(doc, schema_check("missing_kind"), path = "$id"), "does not identify a container")
+    expect_equal(as.list(replaced)$rest, list(`$ref` = "#/$defs/text"))
+    expect_schema_edit_error(schema_set_rest(doc, schema_check("missing_kind"), path = "$id"), "does not identify a container")
 })
 
 test_that("schema_del_field()", {
@@ -434,9 +434,9 @@ test_that("schema_del_group()", {
     expect_identical(schema_del_group(updated, 2L, error_if_missing = FALSE), updated)
 })
 
-test_that("schema_del_dynamic()", {
-    doc <- schema_set_dynamic(schema_infer(list(id = 1L)), schema_check("string"))
-    updated <- schema_del_dynamic(doc)
+test_that("schema_del_rest()", {
+    doc <- schema_set_rest(schema_infer(list(id = 1L)), schema_check("string"))
+    updated <- schema_del_rest(doc)
 
     expect_equal(
         as.list(updated),
@@ -445,8 +445,8 @@ test_that("schema_del_dynamic()", {
             fields = list(id = list(check = list(kind = "int")))
         )
     )
-    expect_error(schema_del_dynamic(updated), "Wildcard field does not exist")
-    expect_identical(schema_del_dynamic(updated, error_if_missing = FALSE), updated)
+    expect_error(schema_del_rest(updated), "Rest schema does not exist")
+    expect_identical(schema_del_rest(updated, error_if_missing = FALSE), updated)
 })
 
 test_that("schema_add_def()", {

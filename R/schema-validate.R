@@ -63,8 +63,20 @@ schema_validate__field_path <- function(path, key) {
     paste0(path, "$", key)
 }
 
+schema_validate__item_path <- function(path, i) {
+    sprintf("%s[[%d]]", path, i)
+}
+
+schema_validate__keys_type <- function(schema) {
+    if (is.null(schema@name)) {
+        return(NULL)
+    }
+
+    schema@name@args$type
+}
+
 schema_validate__container_has_keyed_children <- function(schema) {
-    length(schema@bindings) || !is.null(schema@dynamic) || !is.null(schema@name)
+    length(schema@exact) || length(schema@patterns) || !is.null(schema@rest) || !is.null(schema@name)
 }
 
 schema_validate__rule <- function(value, x, path) {
@@ -108,6 +120,30 @@ S7::method(schema_validate__impl, SchemaNodeContainerFlat) <- function(schema, x
     }
 
     raw_names <- names(x)
+    if (identical(schema_validate__keys_type(schema), "unnamed")) {
+        res <- schema_validate__names_rule(schema@name, x, path)
+        if (!isTRUE(res)) {
+            return(res)
+        }
+
+        if (length(schema@exact) || length(schema@patterns)) {
+            return(sprintf("%s cannot use named field constraints with `keys$type = 'unnamed'`.", path))
+        }
+
+        if (is.null(schema@rest)) {
+            return(TRUE)
+        }
+
+        for (i in seq_along(x)) {
+            res <- schema_validate__impl(schema@rest, x[[i]], schema_validate__item_path(path, i))
+            if (!isTRUE(res)) {
+                return(res)
+            }
+        }
+
+        return(TRUE)
+    }
+
     if (length(x) && schema_validate__container_has_keyed_children(schema)) {
         if (is.null(raw_names) || anyNA(raw_names) || !all(nzchar(raw_names))) {
             return(sprintf(
@@ -125,9 +161,9 @@ S7::method(schema_validate__impl, SchemaNodeContainerFlat) <- function(schema, x
     }
 
     present <- schema_validate__or(raw_names, character())
-    declared <- schema_flat__binding_names(schema@bindings)
+    declared <- schema_flat__binding_names(schema@exact)
 
-    for (binding in schema@bindings) {
+    for (binding in schema@exact) {
         nm <- schema_flat__binding_name(binding)
         if (!nm %in% present) {
             next
@@ -140,16 +176,33 @@ S7::method(schema_validate__impl, SchemaNodeContainerFlat) <- function(schema, x
     }
 
     extra <- setdiff(present, declared)
+    pattern_matched <- character()
+    for (nm in extra) {
+        matched <- Filter(function(binding) grepl(binding@pattern, nm), schema@patterns)
+        if (!length(matched)) {
+            next
+        }
+
+        pattern_matched <- c(pattern_matched, nm)
+        for (binding in matched) {
+            res <- schema_validate__impl(binding@target, x[[nm]], schema_validate__field_path(path, nm))
+            if (!isTRUE(res)) {
+                return(res)
+            }
+        }
+    }
+
+    extra <- setdiff(extra, pattern_matched)
     if (!length(extra)) {
         return(TRUE)
     }
 
-    if (is.null(schema@dynamic)) {
+    if (is.null(schema@rest)) {
         return(sprintf("%s has unexpected field(s): %s.", path, paste(extra, collapse = ", ")))
     }
 
     for (nm in extra) {
-        res <- schema_validate__impl(schema@dynamic, x[[nm]], schema_validate__field_path(path, nm))
+        res <- schema_validate__impl(schema@rest, x[[nm]], schema_validate__field_path(path, nm))
         if (!isTRUE(res)) {
             return(res)
         }

@@ -49,6 +49,30 @@ test_that("schema_infer keeps unnamed lists generic and preserves document metad
     expect_equal(as.list(doc), list(version = "1.0.0", check = list(kind = "list")))
 })
 
+test_that("schema_infer does not infer unnamed list element schemas", {
+    expect_error(schema_infer(list(1L, "x"), keys = "unnamed"), "Must be element")
+    expect_error(schema_infer(list(1L, "x"), keys = "required"), "requires named elements")
+    expect_error(schema_infer(list(1L, "x"), keys = "exact"), "requires named elements")
+})
+
+test_that("schema_infer keeps nested unnamed lists conservative unless requested", {
+    doc <- schema_infer(
+        list(
+            id = "work",
+            author = list(
+                list(given = "Douglas", family = "Bates"),
+                list(given = "Ben", family = "Bolker")
+            )
+        ),
+        keys = "required"
+    )
+
+    expect_equal(
+        as.list(doc)$fields$author,
+        list(check = list(kind = "list"))
+    )
+})
+
 test_that("schema_infer optionally infers names rules", {
     named_list <- list(id = 1L, name = "alice")
     named_scalar <- c(id = "alice")

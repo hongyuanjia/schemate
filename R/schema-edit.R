@@ -10,6 +10,8 @@ SCHEMA_EDIT_RESERVED_TOKENS <- c(
     "one",
     "not",
     "groups",
+    "patterns",
+    "rest",
     "check",
     "keys",
     "description",
@@ -195,11 +197,12 @@ schema_edit__node_refs <- function(node) {
     }
     if (S7::S7_inherits(node, SchemaNodeContainerCmpt)) {
         refs <- unlist(
-            lapply(node@bindings, function(binding) schema_edit__node_refs(binding@target)),
+            lapply(node@exact, function(binding) schema_edit__node_refs(binding@target)),
             use.names = FALSE
         )
-        if (!is.null(node@dynamic)) {
-            refs <- c(refs, schema_edit__node_refs(node@dynamic))
+        refs <- c(refs, unlist(lapply(node@patterns, function(binding) schema_edit__node_refs(binding@target)), use.names = FALSE))
+        if (!is.null(node@rest)) {
+            refs <- c(refs, schema_edit__node_refs(node@rest))
         }
         return(refs)
     }
@@ -228,17 +231,8 @@ schema_edit__modify_container_child <- function(node, kind, key, tokens, fn, pat
         if (!is.character(key)) {
             schema_edit__path_not_found(path)
         }
-        if (identical(key, "*")) {
-            if (is.null(node@dynamic)) {
-                schema_edit__path_not_found(path)
-            }
-            return(schema_edit__update_node(
-                node,
-                dynamic = schema_edit__modify_tree(node@dynamic, tokens, fn, path)
-            ))
-        }
 
-        index <- schema_edit__field_binding_index(node@bindings, key)
+        index <- schema_edit__field_binding_index(node@exact, key)
         if (is.na(index)) {
             schema_edit__path_not_found(path)
         }
@@ -247,19 +241,19 @@ schema_edit__modify_container_child <- function(node, kind, key, tokens, fn, pat
             schema_edit__path_not_found(path)
         }
 
-        group_index <- which(vapply(node@bindings, function(binding) length(binding@keys) > 1L, logical(1L)))
+        group_index <- which(vapply(node@exact, function(binding) length(binding@keys) > 1L, logical(1L)))
         if (key < 1L || key > length(group_index)) {
             schema_edit__path_not_found(path)
         }
         index <- group_index[[key]]
     }
 
-    bindings <- node@bindings
-    bindings[[index]] <- SchemaBindingCmpt(
-        keys = bindings[[index]]@keys,
-        target = schema_edit__modify_tree(bindings[[index]]@target, tokens, fn, path)
+    exact <- node@exact
+    exact[[index]] <- SchemaBindingExactCmpt(
+        keys = exact[[index]]@keys,
+        target = schema_edit__modify_tree(exact[[index]]@target, tokens, fn, path)
     )
-    schema_edit__update_node(node, bindings = bindings)
+    schema_edit__update_node(node, exact = exact)
 }
 
 schema_edit__modify_tree <- S7::new_generic(
@@ -287,6 +281,16 @@ S7::method(schema_edit__modify_tree, SchemaNodeContainerCmpt) <- function(node, 
             schema_edit__path_not_found(path)
         }
         return(schema_edit__modify_container_child(node, kind, rest[[1L]], rest[-1L], fn, path))
+    }
+
+    if (is.character(token) && identical(token, "rest")) {
+        if (is.null(node@rest)) {
+            schema_edit__path_not_found(path)
+        }
+        return(schema_edit__update_node(
+            node,
+            rest = schema_edit__modify_tree(node@rest, rest, fn, path)
+        ))
     }
 
     if (is.character(token) && !schema_edit__is_reserved_token(token)) {
@@ -552,9 +556,6 @@ schema_not <- function(branch, description = NULL) {
 #' @export
 schema_group <- function(names, value, description = NULL) {
     checkmate::assert_character(names, any.missing = FALSE, min.len = 1L, unique = TRUE)
-    if ("*" %in% names) {
-        stop("`names` must not include `*`.", call. = FALSE)
-    }
 
     c(list(names = names), schema_edit__group_value(value, description = description))
 }
@@ -726,20 +727,7 @@ S7::method(schema_add_field, SchemaDoc) <- function(x, name, field, path = "$", 
             stop(sprintf("`path` does not identify a container node: %s", path), call. = FALSE)
         }
 
-        if (identical(name, "*")) {
-            if (!overwrite && !is.null(node@dynamic)) {
-                stop(sprintf("Field `%s` already exists at `%s`.", name, path), call. = FALSE)
-            }
-            field <- schema_edit__as_node(
-                field,
-                defs = names(doc@defs),
-                path = paste0(path, "$fields$*"),
-                context = sprintf("Invalid field schema `%s` at path `%s`.", name, path)
-            )
-            return(schema_edit__update_node(node, dynamic = field))
-        }
-
-        idx <- schema_edit__field_binding_index(node@bindings, name)
+        idx <- schema_edit__field_binding_index(node@exact, name)
         if (!overwrite && !is.na(idx)) {
             stop(sprintf("Field `%s` already exists at `%s`.", name, path), call. = FALSE)
         }
@@ -751,14 +739,14 @@ S7::method(schema_add_field, SchemaDoc) <- function(x, name, field, path = "$", 
             context = sprintf("Invalid field schema `%s` at path `%s`.", name, path)
         )
 
-        binding <- SchemaBindingCmpt(keys = name, target = field)
-        bindings <- node@bindings
+        binding <- SchemaBindingExactCmpt(keys = name, target = field)
+        exact <- node@exact
         if (is.na(idx)) {
-            bindings[[length(bindings) + 1L]] <- binding
+            exact[[length(exact) + 1L]] <- binding
         } else {
-            bindings[[idx]] <- binding
+            exact[[idx]] <- binding
         }
-        schema_edit__update_node(node, bindings = bindings)
+        schema_edit__update_node(node, exact = exact)
     })
 }
 
@@ -795,16 +783,16 @@ S7::method(schema_add_group, SchemaDoc) <- function(x, group, path = "$") {
             path = paste0(path, "$groups"),
             context = sprintf("Invalid group schema at path `%s`.", path)
         )
-        schema_edit__update_node(node, bindings = c(node@bindings, list(group)))
+        schema_edit__update_node(node, exact = c(node@exact, list(group)))
     })
 }
 
-#' Set or replace a container wildcard field schema
+#' Set or replace a container rest schema
 #'
 #' @param x A `SchemaDoc`.
 #' @param field Schema fragment using the same list syntax accepted by
 #'   `schema_doc()`, or a fragment produced by helpers such as `schema_check()`,
-#'   to store as the wildcard `"*"` field.
+#'   to store as the `rest` schema.
 #' @param path Path to the target container node. Use `$` for the root node.
 #'   Bare field segments such as `$id` implicitly traverse container `fields`. Use
 #'   `$fields$id` to write the explicit field path. Backtick-quote field names
@@ -812,15 +800,15 @@ S7::method(schema_add_group, SchemaDoc) <- function(x, group, path = "$") {
 #'
 #' @return A modified `SchemaDoc`.
 #' @export
-schema_set_dynamic <- S7::new_generic(
-    "schema_set_dynamic",
+schema_set_rest <- S7::new_generic(
+    "schema_set_rest",
     "x",
     function(x, field, path = "$") {
         S7::S7_dispatch()
     }
 )
 
-S7::method(schema_set_dynamic, SchemaDoc) <- function(x, field, path = "$") {
+S7::method(schema_set_rest, SchemaDoc) <- function(x, field, path = "$") {
     doc <- x
 
     schema_edit__modify_doc(doc, path, function(node) {
@@ -830,10 +818,10 @@ S7::method(schema_set_dynamic, SchemaDoc) <- function(x, field, path = "$") {
         field <- schema_edit__as_node(
             field,
             defs = names(doc@defs),
-            path = paste0(path, "$fields$*"),
-            context = sprintf("Invalid wildcard field schema at path `%s`.", path)
+            path = paste0(path, "$rest"),
+            context = sprintf("Invalid rest schema at path `%s`.", path)
         )
-        schema_edit__update_node(node, dynamic = field)
+        schema_edit__update_node(node, rest = field)
     })
 }
 
@@ -870,17 +858,7 @@ S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_i
             return(node)
         }
 
-        if (identical(name, "*")) {
-            if (is.null(node@dynamic)) {
-                if (error_if_missing) {
-                    stop(sprintf("Field `%s` does not exist at `%s`.", name, path), call. = FALSE)
-                }
-                return(node)
-            }
-            return(schema_edit__update_node(node, dynamic = NULL))
-        }
-
-        idx <- schema_edit__field_binding_index(node@bindings, name)
+        idx <- schema_edit__field_binding_index(node@exact, name)
         if (is.na(idx)) {
             if (error_if_missing) {
                 stop(sprintf("Field `%s` does not exist at `%s`.", name, path), call. = FALSE)
@@ -888,9 +866,9 @@ S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_i
             return(node)
         }
 
-        bindings <- node@bindings
-        bindings[[idx]] <- NULL
-        schema_edit__update_node(node, bindings = bindings)
+        exact <- node@exact
+        exact[[idx]] <- NULL
+        schema_edit__update_node(node, exact = exact)
     })
 }
 
@@ -927,7 +905,7 @@ S7::method(schema_del_group, SchemaDoc) <- function(x, index, path = "$", error_
             return(node)
         }
 
-        group_idx <- which(vapply(node@bindings, function(binding) length(binding@keys) > 1L, logical(1L)))
+        group_idx <- which(vapply(node@exact, function(binding) length(binding@keys) > 1L, logical(1L)))
         if (index > length(group_idx)) {
             if (error_if_missing) {
                 stop(sprintf("Group %d does not exist at `%s`.", index, path), call. = FALSE)
@@ -935,44 +913,44 @@ S7::method(schema_del_group, SchemaDoc) <- function(x, index, path = "$", error_
             return(node)
         }
 
-        bindings <- node@bindings
-        bindings[[group_idx[[index]]]] <- NULL
-        schema_edit__update_node(node, bindings = bindings)
+        exact <- node@exact
+        exact[[group_idx[[index]]]] <- NULL
+        schema_edit__update_node(node, exact = exact)
     })
 }
 
-#' Delete a container wildcard field schema
+#' Delete a container rest schema
 #'
 #' @param x A `SchemaDoc`.
 #' @param path Path to the target container node. Use `$` for the root node.
 #'   Bare field segments such as `$id` implicitly traverse container `fields`. Use
 #'   `$fields$id` to write the explicit field path. Backtick-quote field names
 #'   that contain path operators, for example ``$`a$b` ``.
-#' @param error_if_missing Logical flag indicating whether a missing wildcard
-#'   field should raise an error.
+#' @param error_if_missing Logical flag indicating whether a missing `rest`
+#'   schema should raise an error.
 #'
 #' @return A modified `SchemaDoc`.
 #' @export
-schema_del_dynamic <- S7::new_generic(
-    "schema_del_dynamic",
+schema_del_rest <- S7::new_generic(
+    "schema_del_rest",
     "x",
     function(x, path = "$", error_if_missing = TRUE) {
         S7::S7_dispatch()
     }
 )
 
-S7::method(schema_del_dynamic, SchemaDoc) <- function(x, path = "$", error_if_missing = TRUE) {
+S7::method(schema_del_rest, SchemaDoc) <- function(x, path = "$", error_if_missing = TRUE) {
     checkmate::assert_flag(error_if_missing)
 
     schema_edit__modify_doc(x, path, function(node) {
-        if (!S7::S7_inherits(node, SchemaNodeContainerCmpt) || is.null(node@dynamic)) {
+        if (!S7::S7_inherits(node, SchemaNodeContainerCmpt) || is.null(node@rest)) {
             if (error_if_missing) {
-                stop(sprintf("Wildcard field does not exist at `%s`.", path), call. = FALSE)
+                stop(sprintf("Rest schema does not exist at `%s`.", path), call. = FALSE)
             }
             return(node)
         }
 
-        schema_edit__update_node(node, dynamic = NULL)
+        schema_edit__update_node(node, rest = NULL)
     })
 }
 

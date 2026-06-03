@@ -1,6 +1,6 @@
-test_that("SchemaBindingFlat", {
+test_that("SchemaBindingExactFlat", {
     expect_error(
-        SchemaBindingFlat(
+        SchemaBindingExactFlat(
             keys = c("a", "b"),
             target = SchemaNodeRef(ref = "#/$defs/value")
         ),
@@ -8,7 +8,7 @@ test_that("SchemaBindingFlat", {
     )
 
     expect_error(
-        SchemaBindingFlat(
+        SchemaBindingExactFlat(
             keys = "a",
             target = SchemaNodeRef(ref = "#/$defs/value")
         ),
@@ -16,11 +16,11 @@ test_that("SchemaBindingFlat", {
     )
 
     expect_s7_class(
-        SchemaBindingFlat(
+        SchemaBindingExactFlat(
             keys = "a",
             target = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"))
         ),
-        SchemaBindingFlat
+        SchemaBindingExactFlat
     )
 })
 
@@ -28,14 +28,14 @@ test_that("SchemaNodeContainerFlat", {
     expect_error(
         SchemaNodeContainerFlat(
             value = SchemaRuleCheck(kind = "string"),
-            bindings = NULL
+            exact = NULL
         ),
         "container kind"
     )
     expect_error(
         SchemaNodeContainerFlat(
             value = SchemaRuleCheck(kind = "list"),
-            dynamic = SchemaNodeContainerCmpt(value = SchemaRuleCheck(kind = "list"))
+            rest = SchemaNodeContainerCmpt(value = SchemaRuleCheck(kind = "list"))
         ),
         "flat schema"
     )
@@ -43,7 +43,7 @@ test_that("SchemaNodeContainerFlat", {
     expect_error(
         SchemaNodeContainerFlat(
             value = SchemaRuleCheck(kind = "list"),
-            bindings = SchemaBindingFlat(
+            exact = SchemaBindingExactFlat(
                 keys = "a",
                 target = SchemaNodeRef(ref = "#/$defs/value")
             )
@@ -55,11 +55,11 @@ test_that("SchemaNodeContainerFlat", {
         SchemaNodeContainerFlat(
             value = SchemaRuleCheck(kind = "list", args = list()),
             name = SchemaRuleNames(args = list(type = "named")),
-            bindings = list(SchemaBindingFlat(
+            exact = list(SchemaBindingExactFlat(
                 "a",
                 SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"))
             )),
-            dynamic = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE)))
+            rest = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE)))
         ),
         SchemaNodeContainerFlat
     )
@@ -97,9 +97,12 @@ test_that("schema_flat__compile()", {
             list(names = c("name", "label"), `$ref` = "#/$defs/text")
         ),
         fields = list(
-            id = list(check = list(kind = "int")),
-            `*` = list(check = list(kind = "string", null.ok = TRUE))
-        )
+            id = list(check = list(kind = "int"))
+        ),
+        patterns = list(
+            "^meta_" = list(`$ref` = "#/$defs/text")
+        ),
+        rest = list(check = list(kind = "string", null.ok = TRUE))
     ))
 
     flat <- schema_flat__compile(doc)
@@ -109,23 +112,25 @@ test_that("schema_flat__compile()", {
     expect_equal(root@value, SchemaRuleCheck(kind = "data_frame"))
     expect_equal(root@name, SchemaRuleNames(args = list(type = "unique", must.include = c("id", "name"))))
     expect_equal(
-        vapply(root@bindings, function(binding) binding@keys, character(1L)),
+        vapply(root@exact, function(binding) binding@keys, character(1L)),
         c("id", "name", "label")
     )
     expect_equal(
-        root@bindings[[1L]],
-        SchemaBindingFlat("id", SchemaNodeLeaf(value = SchemaRuleCheck(kind = "int")))
+        root@exact[[1L]],
+        SchemaBindingExactFlat("id", SchemaNodeLeaf(value = SchemaRuleCheck(kind = "int")))
     )
     expect_equal(
-        root@bindings[[2L]],
-        SchemaBindingFlat("name", SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string")))
+        root@exact[[2L]],
+        SchemaBindingExactFlat("name", SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string")))
     )
     expect_equal(
-        root@bindings[[3L]],
-        SchemaBindingFlat("label", SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string")))
+        root@exact[[3L]],
+        SchemaBindingExactFlat("label", SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string")))
     )
-    expect_true(S7::S7_inherits(root@dynamic, SchemaNodeLeaf))
-    expect_equal(root@dynamic@value, SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE)))
+    expect_true(S7::S7_inherits(root@rest, SchemaNodeLeaf))
+    expect_equal(root@rest@value, SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE)))
+    expect_length(root@patterns, 1L)
+    expect_equal(root@patterns[[1L]], SchemaBindingPatternFlat("^meta_", SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"))))
 
     doc <- schema_doc(list(
         `$defs` = list(
@@ -206,21 +211,23 @@ test_that("as.list()", {
     rule_names <- SchemaRuleNames(args = list(type = "unique", must.include = c("id", "label")))
     leaf <- SchemaNodeLeaf(value = rule_check, name = rule_names, desc = "leaf")
     int_leaf <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "int"))
-    dynamic_leaf <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE)))
+    rest_leaf <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE)))
+    pattern_leaf <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "flag"))
     container <- SchemaNodeContainerFlat(
         value = SchemaRuleCheck(kind = "list"),
         name = rule_names,
-        bindings = list(
-            SchemaBindingFlat(
+        exact = list(
+            SchemaBindingExactFlat(
                 keys = "id",
                 target = int_leaf
             ),
-            SchemaBindingFlat(
+            SchemaBindingExactFlat(
                 keys = "label",
                 target = leaf
             )
         ),
-        dynamic = dynamic_leaf,
+        patterns = list(SchemaBindingPatternFlat(pattern = "_flag$", target = pattern_leaf)),
+        rest = rest_leaf,
         desc = "container"
     )
     all_schema <- SchemaNodeAllFlat(branches = list(leaf, container), desc = "all schema")
@@ -235,12 +242,15 @@ test_that("as.list()", {
         keys = list(type = "unique", must.include = c("id", "label"))
     )
     int_leaf_list <- list(check = list(kind = "int"))
-    dynamic_leaf_list <- list(check = list(kind = "string", null.ok = TRUE))
+    rest_leaf_list <- list(check = list(kind = "string", null.ok = TRUE))
+    pattern_leaf_list <- list(check = list(kind = "flag"))
     container_list <- list(
         description = "container",
         check = list(kind = "list"),
         keys = list(type = "unique", must.include = c("id", "label")),
-        fields = list(id = int_leaf_list, label = leaf_list, `*` = dynamic_leaf_list)
+        fields = list(id = int_leaf_list, label = leaf_list),
+        patterns = list(`_flag$` = pattern_leaf_list),
+        rest = rest_leaf_list
     )
 
     expect_equal(as.list(rule_check), list(kind = "string", min.chars = 1L))
@@ -252,7 +262,7 @@ test_that("as.list()", {
     expect_equal(as.list(one_schema), list(description = "one schema", one = list(leaf_list, container_list)))
     expect_equal(as.list(not_schema), list(description = "not schema", not = leaf_list))
     expect_equal(as.list(flat), c(list(version = "1.0.0"), container_list))
-    expect_equal(names(as.list(flat)), c("version", "description", "check", "keys", "fields"))
+    expect_equal(names(as.list(flat)), c("version", "description", "check", "keys", "fields", "patterns", "rest"))
     expect_false("path" %in% names(as.list(flat)))
 })
 
@@ -263,13 +273,13 @@ test_that("schema_utils__as_json()", {
     container <- SchemaNodeContainerFlat(
         value = SchemaRuleCheck(kind = "list"),
         name = rule_names,
-        bindings = list(
-            SchemaBindingFlat(
+        exact = list(
+            SchemaBindingExactFlat(
                 keys = "id",
                 target = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "int"))
             )
         ),
-        dynamic = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE))),
+        rest = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE))),
         desc = "container"
     )
     all_schema <- SchemaNodeAllFlat(branches = list(leaf, container), desc = "all schema")
@@ -304,8 +314,8 @@ test_that("print()", {
         root = SchemaNodeContainerFlat(
             value = SchemaRuleCheck(kind = "list"),
             name = rule_names,
-            bindings = list(
-                SchemaBindingFlat(
+            exact = list(
+                SchemaBindingExactFlat(
                     keys = "id",
                     target = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "int"))
                 )

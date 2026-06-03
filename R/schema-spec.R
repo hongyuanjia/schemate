@@ -3,13 +3,13 @@
 SCHEMA_SPEC_KINDS <- sort(sub("^check_", "", grep("^check_", getNamespaceExports("checkmate"), value = TRUE)))
 SCHEMA_SPEC_KINDS_CONTAINER <- c("list", "data_frame", "data_table", "tibble")
 SCHEMA_SPEC_OPERATORS <- c("check", "$ref", "all", "any", "one", "not")
-SCHEMA_SPEC_KEYWORDS <- c(SCHEMA_SPEC_OPERATORS, "fields", "groups", "keys", "description", "$defs", "version")
+SCHEMA_SPEC_KEYWORDS <- c(SCHEMA_SPEC_OPERATORS, "fields", "groups", "patterns", "rest", "keys", "description", "$defs", "version")
 
 # SchemaSpec {{{
 # - node variants become distinct classes instead of a single tagged union
 # - rule payload is represented by shared `SchemaRule*` classes
-# - compact bindings and flat bindings share one abstract `SchemaBinding`
-# - wildcard / dynamic child is made explicit
+# - exact and pattern bindings are represented by separate classes
+# - rest child is made explicit
 # - n-ary combinators share common abstract parents
 schema_spec__kind_is_container <- function(kind) {
     kind %in% SCHEMA_SPEC_KINDS_CONTAINER
@@ -62,6 +62,14 @@ SchemaRuleNames <- S7::new_class(
     }
 )
 
+schema_spec__name_type <- function(x) {
+    if (is.null(x)) {
+        return(NULL)
+    }
+
+    x@args$type
+}
+
 SchemaNode <- S7::new_class(
     "SchemaNode",
     parent = SchemaSpec,
@@ -69,24 +77,43 @@ SchemaNode <- S7::new_class(
     abstract = TRUE
 )
 
-SchemaBinding <- S7::new_class(
-    "SchemaBinding",
+SchemaBindingExact <- S7::new_class(
+    "SchemaBindingExact",
     parent = SchemaSpec,
     abstract = TRUE,
     properties = list(
         keys = schema_utils__prop_character(any.missing = FALSE, min.len = 1L, unique = TRUE),
         target = S7::new_property(SchemaNode)
+    )
+)
+
+SchemaBindingExactCmpt <- S7::new_class(
+    "SchemaBindingExactCmpt",
+    parent = SchemaBindingExact
+)
+
+SchemaBindingPattern <- S7::new_class(
+    "SchemaBindingPattern",
+    parent = SchemaSpec,
+    abstract = TRUE,
+    properties = list(
+        pattern = schema_utils__prop_string(null.ok = FALSE, min.chars = 1L),
+        target = S7::new_property(SchemaNode)
     ),
     validator = function(self) {
-        if ("*" %in% self@keys) {
-            return("`keys` must not include `*`.")
+        ok <- tryCatch({
+            grepl(self@pattern, "")
+            TRUE
+        }, error = function(e) FALSE)
+        if (!ok) {
+            return(sprintf("`pattern` must be a valid regular expression: %s", self@pattern))
         }
     }
 )
 
-SchemaBindingCmpt <- S7::new_class(
-    "SchemaBindingCmpt",
-    parent = SchemaBinding
+SchemaBindingPatternCmpt <- S7::new_class(
+    "SchemaBindingPatternCmpt",
+    parent = SchemaBindingPattern
 )
 
 SchemaNodeCheck <- S7::new_class(
@@ -126,8 +153,9 @@ SchemaNodeContainerCmpt <- S7::new_class(
     "SchemaNodeContainerCmpt",
     parent = SchemaNodeContainer,
     properties = list(
-        bindings = schema_utils__prop_list("SchemaBindingCmpt", names = "unnamed", default = list()),
-        dynamic = S7::new_property(NULL | SchemaNode, default = NULL)
+        exact = schema_utils__prop_list("SchemaBindingExactCmpt", names = "unnamed", default = list()),
+        patterns = schema_utils__prop_list("SchemaBindingPatternCmpt", names = "unnamed", default = list()),
+        rest = S7::new_property(NULL | SchemaNode, default = NULL)
     ),
     validator = function(self) {
         if (!schema_spec__kind_is_container(self@value@kind)) {
@@ -138,12 +166,16 @@ SchemaNodeContainerCmpt <- S7::new_class(
             ))
         }
 
-        if (length(self@bindings)) {
-            keys <- unlist(lapply(self@bindings, function(x) x@keys), use.names = FALSE)
-            msg <- schema_utils__checkmate_result(checkmate::check_character(keys, unique = TRUE), label = "@bindings")
+        if (length(self@exact)) {
+            keys <- unlist(lapply(self@exact, function(x) x@keys), use.names = FALSE)
+            msg <- schema_utils__checkmate_result(checkmate::check_character(keys, unique = TRUE), label = "@exact")
             if (!is.null(msg)) {
                 return(sprintf("%s ('%s')", msg, keys[duplicated(keys)][[1L]]))
             }
+        }
+
+        if (identical(schema_spec__name_type(self@name), "unnamed") && (length(self@exact) || length(self@patterns))) {
+            return("`keys$type = 'unnamed'` only allows `rest` constraints.")
         }
     }
 )
@@ -248,7 +280,7 @@ schema_spec__node_check <- function(x, path, defs, root = FALSE) {
         "'check'",
         x,
         must.include = "check",
-        subset.of = c("check", "keys", "fields", "groups", "description")
+        subset.of = c("check", "keys", "fields", "groups", "patterns", "rest", "description")
     )
 
     parts <- list(desc = x$description)
@@ -264,17 +296,24 @@ schema_spec__node_check <- function(x, path, defs, root = FALSE) {
         if (!is.null(x$groups)) {
             schema_spec__error(path, "'groups' is only allowed on container 'check' nodes.")
         }
+        if (!is.null(x$patterns)) {
+            schema_spec__error(path, "'patterns' is only allowed on container 'check' nodes.")
+        }
+        if (!is.null(x$rest)) {
+            schema_spec__error(path, "'rest' is only allowed on container 'check' nodes.")
+        }
 
         return(do.call(SchemaNodeLeaf, parts))
     }
 
-    parts$bindings <- c(
+    parts$exact <- c(
         schema_spec__binding_fields(x$fields, paste0(path, "$fields"), defs),
         schema_spec__binding_groups(x$groups, paste0(path, "$groups"), defs)
     )
+    parts$patterns <- schema_spec__binding_patterns(x$patterns, paste0(path, "$patterns"), defs)
 
-    if ("*" %in% names(x$fields)) {
-        parts$dynamic <- schema_spec__node(x$fields$`*`, paste0(path, "$fields$*"), defs)
+    if (!is.null(x$rest)) {
+        parts$rest <- schema_spec__node(x$rest, paste0(path, "$rest"), defs)
     }
 
     do.call(SchemaNodeContainerCmpt, parts)
@@ -317,8 +356,8 @@ schema_spec__binding_fields <- function(fields, path, defs) {
 
     schema_spec__assert_list(path, "'fields'", fields, types = "list")
 
-    lapply(setdiff(names(fields), "*"), function(name) {
-        SchemaBindingCmpt(
+    lapply(names(fields), function(name) {
+        SchemaBindingExactCmpt(
             keys = name,
             target = schema_spec__node(
                 x = fields[[name]],
@@ -352,11 +391,31 @@ schema_spec__binding_groups <- function(groups, path, defs) {
             subset.of = c("names", "description", SCHEMA_SPEC_OPERATORS)
         )
 
-        SchemaBindingCmpt(
+        SchemaBindingExactCmpt(
             keys = group$names,
             target = schema_spec__node(
                 x = group[names(group) %in% c("description", SCHEMA_SPEC_OPERATORS)],
                 path = loc,
+                defs = defs,
+                root = FALSE
+            )
+        )
+    })
+}
+
+schema_spec__binding_patterns <- function(patterns, path, defs) {
+    if (is.null(patterns)) {
+        return(NULL)
+    }
+
+    schema_spec__assert_list(path, "'patterns'", patterns, types = "list", names = "unique")
+
+    lapply(names(patterns), function(pattern) {
+        SchemaBindingPatternCmpt(
+            pattern = pattern,
+            target = schema_spec__node(
+                x = patterns[[pattern]],
+                path = paste0(path, "$", pattern),
                 defs = defs,
                 root = FALSE
             )
@@ -511,7 +570,7 @@ schema_spec__node <- function(x, path = "$", defs = character(), root = FALSE) {
 # }}}
 
 # as.list.SchemaSpec {{{
-S7::method(as.list, SchemaBinding) <- function(x, ...) {
+S7::method(as.list, SchemaBindingExact) <- function(x, ...) {
     out <- list()
     if (length(x@keys) == 1L) {
         out$fields <- list()
@@ -519,6 +578,12 @@ S7::method(as.list, SchemaBinding) <- function(x, ...) {
     } else {
         out$groups <- c(list(names = x@keys), as.list(x@target))
     }
+    out
+}
+
+S7::method(as.list, SchemaBindingPattern) <- function(x, ...) {
+    out <- list(patterns = list())
+    out$patterns[[x@pattern]] <- as.list(x@target)
     out
 }
 
@@ -546,18 +611,22 @@ S7::method(as.list, SchemaNodeContainerCmpt) <- function(x, ...) {
         out$keys <- keys
     }
 
-    bindings <- lapply(x@bindings, as.list)
+    bindings <- lapply(x@exact, as.list)
     fields <- unlist(lapply(bindings, "[[", "fields"), recursive = FALSE)
     groups <- lapply(bindings, "[[", "groups")
     groups <- groups[!vapply(groups, is.null, logical(1L))]
-    if (!is.null(x@dynamic)) {
-        fields[["*"]] <- as.list(x@dynamic)
-    }
     if (length(fields)) {
         out$fields <- fields
     }
     if (length(groups)) {
         out$groups <- groups
+    }
+    patterns <- unlist(lapply(lapply(x@patterns, as.list), "[[", "patterns"), recursive = FALSE)
+    if (length(patterns)) {
+        out$patterns <- patterns
+    }
+    if (!is.null(x@rest)) {
+        out$rest <- as.list(x@rest)
     }
 
     schema_utils__as_list_add_desc(out, x)

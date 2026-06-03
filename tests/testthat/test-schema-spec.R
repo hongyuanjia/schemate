@@ -21,16 +21,9 @@ test_that("SchemaRuleCheck", {
     )
 })
 
-test_that("SchemaBindingCmpt", {
+test_that("SchemaBindingExactCmpt", {
     expect_error(
-        SchemaBindingCmpt(
-            keys = c("*", "b"),
-            target = SchemaNodeRef(ref = "#/$defs/value")
-        ),
-        "*"
-    )
-    expect_error(
-        SchemaBindingCmpt(
+        SchemaBindingExactCmpt(
             keys = c("*", "b"),
             target = SchemaRuleCheck("string")
         ),
@@ -39,26 +32,36 @@ test_that("SchemaBindingCmpt", {
 
     expect_true(
         S7::S7_inherits(
-            SchemaBindingCmpt(
+            SchemaBindingExactCmpt(
                 keys = "a",
                 target = SchemaNodeRef(ref = "#/$defs/value")
             ),
-            SchemaBindingCmpt
+            SchemaBindingExactCmpt
         )
     )
 
     expect_true(
         S7::S7_inherits(
-            SchemaBindingCmpt(
+            SchemaBindingExactCmpt(
+                keys = "*",
+                target = SchemaNodeRef(ref = "#/$defs/value")
+            ),
+            SchemaBindingExactCmpt
+        )
+    )
+
+    expect_true(
+        S7::S7_inherits(
+            SchemaBindingExactCmpt(
                 keys = c("a", "b"),
                 target = SchemaNodeRef(ref = "#/$defs/value")
             ),
-            SchemaBindingCmpt
+            SchemaBindingExactCmpt
         )
     )
 
     expect_equal(
-        as.list(SchemaBindingCmpt(
+        as.list(SchemaBindingExactCmpt(
             keys = "a",
             target = SchemaNodeRef(ref = "#/$defs/value")
         )),
@@ -66,7 +69,7 @@ test_that("SchemaBindingCmpt", {
     )
 
     expect_equal(
-        as.list(SchemaBindingCmpt(
+        as.list(SchemaBindingExactCmpt(
             keys = c("a", "b"),
             target = SchemaNodeRef(ref = "#/$defs/value")
         )),
@@ -136,9 +139,9 @@ test_that("SchemaNodeContainerCmpt", {
         SchemaNodeContainerCmpt(
             value = SchemaRuleCheck("data_frame", list(ncols = 10)),
             name = SchemaRuleNames(list(subset.of = c("a", "b"))),
-            bindings = list(
-                SchemaBindingCmpt(keys = "id", target = SchemaNodeRef(ref = "#/$defs/id")),
-                SchemaBindingCmpt(keys = "id", target = SchemaNodeLeaf(value = SchemaRuleCheck("string")))
+            exact = list(
+                SchemaBindingExactCmpt(keys = "id", target = SchemaNodeRef(ref = "#/$defs/id")),
+                SchemaBindingExactCmpt(keys = "id", target = SchemaNodeLeaf(value = SchemaRuleCheck("string")))
             )
         ),
         "duplicated values"
@@ -167,9 +170,9 @@ test_that("SchemaNodeContainerCmpt", {
             SchemaNodeContainerCmpt(
                 value = SchemaRuleCheck("data_frame", list(ncols = 10)),
                 name = SchemaRuleNames(list(subset.of = c("a", "b"))),
-                bindings = list(
-                    SchemaBindingCmpt(keys = "id", target = SchemaNodeRef(ref = "#/$defs/id")),
-                    SchemaBindingCmpt(
+                exact = list(
+                    SchemaBindingExactCmpt(keys = "id", target = SchemaNodeRef(ref = "#/$defs/id")),
+                    SchemaBindingExactCmpt(
                         keys = c("name", "value"),
                         target = SchemaNodeLeaf(value = SchemaRuleCheck("string"))
                     )
@@ -335,9 +338,12 @@ test_that("schema_spec__node() dispatches by primary operator", {
           "fields": {
             "format": {"$ref": "#/$defs/param_format"},
             "type": {"$ref": "#/$defs/param_type"},
-            "fields": {"$ref": "#/$defs/param_character_vector"},
-            "*": {"$ref": "#/$defs/param_generic"}
-          }
+            "fields": {"$ref": "#/$defs/param_character_vector"}
+          },
+          "patterns": {
+            "^meta_": {"$ref": "#/$defs/param_character_vector"}
+          },
+          "rest": {"$ref": "#/$defs/param_generic"}
         }
       }
     }
@@ -346,10 +352,10 @@ test_that("schema_spec__node() dispatches by primary operator", {
     expect_equal(node@desc, "this is a full check node")
     expect_equal(node@value, SchemaRuleCheck("list"))
     expect_equal(node@name, SchemaRuleNames(list(type = "unique", `must.include` = c("index_node", "parameter"))))
-    expect_equal(length(node@bindings), 2L)
+    expect_equal(length(node@exact), 2L)
     expect_equal(
-        node@bindings[[1L]],
-        SchemaBindingCmpt(keys = "index_node", target = SchemaNodeLeaf(value = SchemaRuleCheck("string")))
+        node@exact[[1L]],
+        SchemaBindingExactCmpt(keys = "index_node", target = SchemaNodeLeaf(value = SchemaRuleCheck("string")))
     )
     expect_error(
         schema_spec__node(
@@ -362,6 +368,14 @@ test_that("schema_spec__node() dispatches by primary operator", {
     expect_error(
         schema_spec__node(
             schema_json__read_json('{"check":{"kind":"data_frame"},"fields":{"*":{"$ref":"#/$defs/missing"}}}'),
+            defs = "value",
+            root = FALSE
+        ),
+        "missing"
+    )
+    expect_error(
+        schema_spec__node(
+            schema_json__read_json('{"check":{"kind":"data_frame"},"rest":{"$ref":"#/$defs/missing"}}'),
             defs = "value",
             root = FALSE
         ),

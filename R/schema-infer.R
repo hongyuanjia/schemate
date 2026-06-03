@@ -32,6 +32,10 @@ schema_infer <- function(x, version = NULL, keys = c("none", "named", "required"
         return(x)
     }
 
+    if (keys %in% c("required", "exact") && schema_infer__has_unnamed_list(x)) {
+        stop(sprintf("`keys = '%s'` requires named elements.", keys), call. = FALSE)
+    }
+
     root <- schema_infer__node(x, keys = keys)
     doc <- list()
     if (!is.null(version)) {
@@ -58,7 +62,11 @@ schema_infer__kind <- function(kind, label = kind) {
 }
 
 schema_infer__keys_rule <- function(x, keys) {
-    if (identical(keys, "none") || !schema_infer__has_named_elements(x)) {
+    if (identical(keys, "none")) {
+        return(NULL)
+    }
+
+    if (!schema_infer__has_named_elements(x)) {
         return(NULL)
     }
 
@@ -87,13 +95,21 @@ schema_infer__has_named_elements <- function(x) {
     length(x) > 0L && isTRUE(checkmate::check_names(names(x), type = "named"))
 }
 
+schema_infer__has_unnamed_elements <- function(x) {
+    length(x) > 0L && is.null(names(x))
+}
+
+schema_infer__has_unnamed_list <- function(x) {
+    is.list(x) && schema_infer__has_unnamed_elements(x)
+}
+
 schema_infer__fields <- function(x, keys) {
-    if (!schema_infer__has_named_elements(x)) {
-        return(NULL)
+    if (schema_infer__has_named_elements(x)) {
+        nms <- names(x)
+        return(stats::setNames(lapply(nms, function(name) schema_infer__node(x[[name]], keys = keys)), nms))
     }
 
-    nms <- names(x)
-    stats::setNames(lapply(nms, function(name) schema_infer__node(x[[name]], keys = keys)), nms)
+    NULL
 }
 
 schema_infer__atomic_kind <- function(x) {

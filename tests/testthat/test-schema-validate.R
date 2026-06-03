@@ -22,9 +22,9 @@ test_that("schema_validate()", {
         check = list(kind = "data_frame"),
         keys = list(type = "unique", must.include = "id"),
         fields = list(
-            id = list(check = list(kind = "int")),
-            `*` = list(check = list(kind = "string"))
-        )
+            id = list(check = list(kind = "int"))
+        ),
+        rest = list(check = list(kind = "string"))
     ))
     closed_doc <- schema_doc(list(
         check = list(kind = "data_frame"),
@@ -105,4 +105,72 @@ test_that("schema_validate()", {
         schema_validate(flat, list(child = list(leaf = 1L)), mode = "check", name = "payload"),
         "payload\\$child\\$leaf"
     )
+})
+
+test_that("schema_validate applies rest to unnamed list elements", {
+    doc <- schema_doc(list(
+        check = list(kind = "list"),
+        keys = list(type = "unnamed"),
+        rest = list(
+            check = list(kind = "list"),
+            keys = list(type = "named", must.include = "family"),
+            fields = list(
+                family = list(check = list(kind = "string")),
+                given = list(check = list(kind = "string"))
+            )
+        )
+    ))
+
+    x <- list(
+        list(given = "Douglas", family = "Bates"),
+        list(given = "Ben", family = "Bolker")
+    )
+    bad <- x
+    bad[[2L]]$family <- 1L
+
+    expect_true(isTRUE(schema_validate(doc, x, mode = "check", name = "payload")))
+    expect_match(
+        schema_validate(doc, bad, mode = "check", name = "payload"),
+        "payload\\[\\[2\\]\\]\\$family"
+    )
+    expect_match(
+        schema_validate(doc, stats::setNames(x, c("a", "b")), mode = "check", name = "payload"),
+        "May not have names"
+    )
+    expect_error(
+        schema_doc(list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            fields = list(id = list(check = list(kind = "int")))
+        )),
+        "only allows `rest`"
+    )
+})
+
+test_that("schema_validate applies patterns before rest", {
+    doc <- schema_doc(list(
+        check = list(kind = "list"),
+        fields = list(
+            id = list(check = list(kind = "int")),
+            meta_exact = list(check = list(kind = "int"))
+        ),
+        patterns = list(
+            "^meta_" = list(check = list(kind = "string")),
+            "_flag$" = list(check = list(kind = "flag"))
+        ),
+        rest = list(check = list(kind = "number"))
+    ))
+
+    ok <- list(id = 1L, meta_exact = 2L, meta_name = "x", valid_flag = TRUE, score = 1)
+    bad_pattern <- ok
+    bad_pattern$meta_name <- 1L
+    bad_multi <- ok
+    bad_multi$meta_flag <- "yes"
+    bad_rest <- ok
+    bad_rest$score <- "high"
+
+    expect_true(isTRUE(schema_validate(doc, ok, mode = "check", name = "payload")))
+    expect_match(schema_validate(doc, bad_pattern, mode = "check", name = "payload"), "payload\\$meta_name")
+    expect_match(schema_validate(doc, bad_multi, mode = "check", name = "payload"), "payload\\$meta_flag")
+    expect_match(schema_validate(doc, bad_rest, mode = "check", name = "payload"), "payload\\$score")
 })
