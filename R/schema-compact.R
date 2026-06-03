@@ -48,7 +48,7 @@ schema_compact__normalize_schema_list <- function(x) {
     out
 }
 
-schema_compact__dedupe_nodes <- function(x) {
+schema_compact__dedupe_equivalent_nodes <- function(x) {
     if (!length(x)) {
         return(x)
     }
@@ -152,7 +152,7 @@ schema_compact__binding_field_map <- function(exact) {
 }
 
 schema_compact__merge_node_options <- function(nodes, arrays, groups) {
-    nodes <- schema_compact__dedupe_nodes(nodes)
+    nodes <- schema_compact__dedupe_equivalent_nodes(nodes)
     if (!length(nodes)) {
         return(NULL)
     }
@@ -212,6 +212,7 @@ schema_compact__merge_containers <- function(x, arrays, groups) {
         patterns = first@patterns,
         positions = first@positions,
         rest = schema_compact__merge_rest(x, arrays = arrays, groups = groups),
+        # Descriptions are not part of merge compatibility; keep the first one.
         desc = first@desc
     )
 
@@ -256,10 +257,10 @@ schema_compact__merge_compatible_containers <- function(branches, arrays, groups
 }
 
 schema_compact__compact_any <- function(branches, desc, arrays, groups) {
-    branches <- schema_compact__dedupe_nodes(branches)
+    branches <- schema_compact__dedupe_equivalent_nodes(branches)
     if (arrays) {
         branches <- schema_compact__merge_compatible_containers(branches, arrays = arrays, groups = groups)
-        branches <- schema_compact__dedupe_nodes(branches)
+        branches <- schema_compact__dedupe_equivalent_nodes(branches)
     }
 
     if (length(branches) == 1L && is.null(desc)) {
@@ -300,69 +301,83 @@ schema_compact__compact_container_groups <- function(node, groups) {
     S7::set_props(node, exact = exact)
 }
 
-schema_compact__node <- function(node, arrays, groups) {
-    if (S7::S7_inherits(node, SchemaNodeLeaf) || S7::S7_inherits(node, SchemaNodeRef)) {
-        return(node)
-    }
+schema_compact__node <- S7::new_generic(
+    "schema_compact__node",
+    "node",
+    function(node, arrays, groups) S7::S7_dispatch()
+)
 
-    if (S7::S7_inherits(node, SchemaNodeContainerCmpt)) {
-        exact <- lapply(node@exact, function(binding) {
-            SchemaBindingExactCmpt(
-                keys = binding@keys,
-                target = schema_compact__node(binding@target, arrays = arrays, groups = groups)
-            )
-        })
-        patterns <- lapply(node@patterns, function(binding) {
-            SchemaBindingPatternCmpt(
-                pattern = binding@pattern,
-                target = schema_compact__node(binding@target, arrays = arrays, groups = groups)
-            )
-        })
-        positions <- lapply(node@positions, schema_compact__node, arrays = arrays, groups = groups)
-        rest <- if (is.null(node@rest)) {
-            NULL
-        } else {
-            schema_compact__node(node@rest, arrays = arrays, groups = groups)
-        }
+S7::method(schema_compact__node, SchemaNodeLeaf) <- function(node, arrays, groups) {
+    node
+}
 
-        compacted <- SchemaNodeContainerCmpt(
-            value = node@value,
-            name = node@name,
-            exact = exact,
-            patterns = patterns,
-            positions = positions,
-            rest = rest,
-            desc = node@desc
+S7::method(schema_compact__node, SchemaNodeRef) <- function(node, arrays, groups) {
+    node
+}
+
+S7::method(schema_compact__node, SchemaNodeContainerCmpt) <- function(node, arrays, groups) {
+    exact <- lapply(node@exact, function(binding) {
+        SchemaBindingExactCmpt(
+            keys = binding@keys,
+            target = schema_compact__node(binding@target, arrays = arrays, groups = groups)
         )
-        return(schema_compact__compact_container_groups(compacted, groups = groups))
+    })
+    patterns <- lapply(node@patterns, function(binding) {
+        SchemaBindingPatternCmpt(
+            pattern = binding@pattern,
+            target = schema_compact__node(binding@target, arrays = arrays, groups = groups)
+        )
+    })
+    positions <- lapply(node@positions, schema_compact__node, arrays = arrays, groups = groups)
+    rest <- if (is.null(node@rest)) {
+        NULL
+    } else {
+        schema_compact__node(node@rest, arrays = arrays, groups = groups)
     }
 
-    if (S7::S7_inherits(node, SchemaNodeAllCmpt)) {
-        return(SchemaNodeAllCmpt(
-            branches = lapply(node@branches, schema_compact__node, arrays = arrays, groups = groups),
-            desc = node@desc
-        ))
-    }
+    compacted <- SchemaNodeContainerCmpt(
+        value = node@value,
+        name = node@name,
+        exact = exact,
+        patterns = patterns,
+        positions = positions,
+        rest = rest,
+        desc = node@desc
+    )
+    schema_compact__compact_container_groups(compacted, groups = groups)
+}
 
-    if (S7::S7_inherits(node, SchemaNodeAnyCmpt)) {
-        branches <- lapply(node@branches, schema_compact__node, arrays = arrays, groups = groups)
-        return(schema_compact__compact_any(branches, desc = node@desc, arrays = arrays, groups = groups))
-    }
+S7::method(schema_compact__node, SchemaNodeAllCmpt) <- function(node, arrays, groups) {
+    SchemaNodeAllCmpt(
+        branches = lapply(node@branches, schema_compact__node, arrays = arrays, groups = groups),
+        desc = node@desc
+    )
+}
 
-    if (S7::S7_inherits(node, SchemaNodeOneCmpt)) {
-        return(SchemaNodeOneCmpt(
-            branches = lapply(node@branches, schema_compact__node, arrays = arrays, groups = groups),
-            desc = node@desc
-        ))
-    }
+S7::method(schema_compact__node, SchemaNodeAnyCmpt) <- function(node, arrays, groups) {
+    branches <- lapply(node@branches, schema_compact__node, arrays = arrays, groups = groups)
+    schema_compact__compact_any(branches, desc = node@desc, arrays = arrays, groups = groups)
+}
 
-    if (S7::S7_inherits(node, SchemaNodeNotCmpt)) {
-        return(SchemaNodeNotCmpt(
-            branch = schema_compact__node(node@branch, arrays = arrays, groups = groups),
-            desc = node@desc
-        ))
-    }
+S7::method(schema_compact__node, SchemaNodeOneCmpt) <- function(node, arrays, groups) {
+    SchemaNodeOneCmpt(
+        branches = lapply(node@branches, schema_compact__node, arrays = arrays, groups = groups),
+        desc = node@desc
+    )
+}
 
+S7::method(schema_compact__node, SchemaNodeNotCmpt) <- function(node, arrays, groups) {
+    SchemaNodeNotCmpt(
+        branch = schema_compact__node(node@branch, arrays = arrays, groups = groups),
+        desc = node@desc
+    )
+}
+
+S7::method(schema_compact__node, SchemaNode) <- function(node, arrays, groups) {
+    stop("Unsupported schema node.", call. = FALSE)
+}
+
+S7::method(schema_compact__node, S7::class_any) <- function(node, arrays, groups) {
     stop("Unsupported schema node.", call. = FALSE)
 }
 

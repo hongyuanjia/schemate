@@ -16,3 +16,4 @@
 - Allow `groups` entries to contain complete schema nodes for JSON round-trips.
 - Treat `jsonlite` as optional; JSON IO requires it at runtime, while printing
   has a base R fallback.
+- Refactor schema compaction internals to use S7 dispatch.
