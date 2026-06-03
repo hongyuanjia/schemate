@@ -181,7 +181,7 @@ schema_edit__as_group_binding <- function(
 schema_edit__field_binding_index <- function(bindings, name) {
     idx <- which(vapply(
         bindings,
-        function(binding) length(binding@keys) == 1L && identical(binding@keys[[1L]], name),
+        function(binding) name %in% binding@keys,
         logical(1L)
     ))
 
@@ -190,6 +190,57 @@ schema_edit__field_binding_index <- function(bindings, name) {
     }
 
     idx[[1L]]
+}
+
+schema_edit__exact_slice <- function(bindings, from, to) {
+    if (from > to) {
+        return(list())
+    }
+
+    bindings[from:to]
+}
+
+schema_edit__exact_binding <- function(keys, target) {
+    if (!length(keys)) {
+        return(NULL)
+    }
+
+    list(SchemaBindingExactCmpt(keys = keys, target = target))
+}
+
+schema_edit__replace_field_binding <- function(bindings, index, name, target) {
+    binding <- bindings[[index]]
+    pos <- match(name, binding@keys)
+    if (is.na(pos)) {
+        stop(sprintf("Field `%s` does not exist.", name), call. = FALSE)
+    }
+
+    remaining <- binding@keys[-pos]
+    shared <- schema_edit__exact_binding(remaining, binding@target)
+    field <- schema_edit__exact_binding(name, target)
+
+    c(
+        schema_edit__exact_slice(bindings, 1L, index - 1L),
+        shared,
+        field,
+        schema_edit__exact_slice(bindings, index + 1L, length(bindings))
+    )
+}
+
+schema_edit__delete_field_binding <- function(bindings, index, name) {
+    binding <- bindings[[index]]
+    pos <- match(name, binding@keys)
+    if (is.na(pos)) {
+        stop(sprintf("Field `%s` does not exist.", name), call. = FALSE)
+    }
+
+    remaining <- binding@keys[-pos]
+    replacement <- schema_edit__exact_binding(remaining, binding@target)
+    c(
+        schema_edit__exact_slice(bindings, 1L, index - 1L),
+        replacement,
+        schema_edit__exact_slice(bindings, index + 1L, length(bindings))
+    )
 }
 
 schema_edit__node_refs <- function(node) {
@@ -251,10 +302,16 @@ schema_edit__modify_container_child <- function(node, kind, key, tokens, fn, pat
     }
 
     exact <- node@exact
-    exact[[index]] <- SchemaBindingExactCmpt(
-        keys = exact[[index]]@keys,
-        target = schema_edit__modify_tree(exact[[index]]@target, tokens, fn, path)
-    )
+    target <- schema_edit__modify_tree(exact[[index]]@target, tokens, fn, path)
+    exact <- if (identical(kind, "field")) {
+        schema_edit__replace_field_binding(exact, index, key, target)
+    } else {
+        exact[[index]] <- SchemaBindingExactCmpt(
+            keys = exact[[index]]@keys,
+            target = target
+        )
+        exact
+    }
     schema_edit__update_node(node, exact = exact)
 }
 
@@ -760,7 +817,7 @@ S7::method(schema_add_field, SchemaDoc) <- function(x, name, field, path = "$", 
         if (is.na(idx)) {
             exact[[length(exact) + 1L]] <- binding
         } else {
-            exact[[idx]] <- binding
+            exact <- schema_edit__replace_field_binding(exact, idx, name, field)
         }
         schema_edit__update_node(node, exact = exact)
     })
@@ -930,7 +987,7 @@ S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_i
         }
 
         exact <- node@exact
-        exact[[idx]] <- NULL
+        exact <- schema_edit__delete_field_binding(exact, idx, name)
         schema_edit__update_node(node, exact = exact)
     })
 }

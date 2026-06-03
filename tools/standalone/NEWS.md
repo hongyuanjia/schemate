@@ -12,3 +12,4 @@
   `schema_add_position()` and `schema_del_position()`.
 - Add `schema_infer(arrays = "rest")` and `schema_compact()` for compacting
   inferred JSON array schemas.
+- Allow logical field edit paths to traverse grouped schema fields.

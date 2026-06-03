@@ -292,6 +292,16 @@ test_that("schema_add_field()", {
     expect_equal(as.list(star)$fields$`*`, list(check = list(kind = "string")))
     star_replaced <- schema_add_field(star, "*", schema_check("int"), overwrite = TRUE)
     expect_equal(as.list(star_replaced)$fields$`*`, list(check = list(kind = "int")))
+
+    grouped <- schema_doc(list(
+        check = list(kind = "list"),
+        groups = list(list(names = c("name", "label"), check = list(kind = "string")))
+    ))
+    expect_error(schema_add_field(grouped, "name", schema_check("int")), "already exists")
+    grouped_replaced <- schema_add_field(grouped, "name", schema_check("int"), overwrite = TRUE)
+    expect_equal(as.list(grouped_replaced)$fields$name, list(check = list(kind = "int")))
+    expect_equal(as.list(grouped_replaced)$fields$label, list(check = list(kind = "string")))
+    expect_false("groups" %in% names(as.list(grouped_replaced)))
 })
 
 test_that("schema edit paths support non-letter field starts", {
@@ -373,6 +383,63 @@ test_that("schema_add_group()", {
     )
 })
 
+test_that("logical field paths traverse schema groups", {
+    doc <- schema_compact(schema_infer(list(
+        issued = list(`date-parts` = list(list(2024L))),
+        created = list(`date-parts` = list(list(2024L))),
+        `published-print` = list(`date-parts` = list(list(2024L)))
+    ), arrays = "rest"))
+
+    expect_equal(
+        as.list(doc)$groups[[1L]]$names,
+        c("issued", "created", "published-print")
+    )
+    expect_equal(
+        as.list(doc)$groups[[1L]]$fields$`date-parts`$rest,
+        list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            rest = list(check = list(kind = "int"))
+        )
+    )
+
+    date_part <- list(
+        check = list(kind = "list", min.len = 1L, max.len = 3L),
+        keys = list(type = "unnamed"),
+        positions = list(
+            schema_check("int", lower = 0),
+            schema_check("int", lower = 1, upper = 12),
+            schema_check("int", lower = 1, upper = 31)
+        )
+    )
+    updated <- schema_replace(doc, "$issued$`date-parts`$rest", date_part)
+    described <- schema_set_desc(doc, "$fields$created$`date-parts`", "created date")
+
+    expect_equal(
+        as.list(updated)$fields$issued$fields$`date-parts`$rest,
+        list(
+            check = list(kind = "list", min.len = 1L, max.len = 3L),
+            keys = list(type = "unnamed"),
+            positions = list(
+                list(check = list(kind = "int", lower = 0)),
+                list(check = list(kind = "int", lower = 1, upper = 12)),
+                list(check = list(kind = "int", lower = 1, upper = 31))
+            )
+        )
+    )
+    expect_equal(as.list(updated)$groups[[1L]]$names, c("created", "published-print"))
+    expect_equal(
+        as.list(updated)$groups[[1L]]$fields$`date-parts`$rest,
+        list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            rest = list(check = list(kind = "int"))
+        )
+    )
+    expect_equal(as.list(described)$fields$created$fields$`date-parts`$description, "created date")
+    expect_equal(as.list(described)$groups[[1L]]$names, c("issued", "published-print"))
+})
+
 test_that("schema_set_rest()", {
     doc <- schema_add_def(schema_infer(list(id = 1L)), "text", schema_check("string"))
     updated <- schema_set_rest(doc, schema_check("string"))
@@ -433,6 +500,17 @@ test_that("schema_del_field()", {
     )
     expect_error(schema_del_field(updated, "name"), "does not exist")
     expect_identical(schema_del_field(updated, "name", error_if_missing = FALSE), updated)
+
+    grouped <- schema_doc(list(
+        check = list(kind = "list"),
+        groups = list(list(names = c("name", "label", "alias"), check = list(kind = "string")))
+    ))
+    without_label <- schema_del_field(grouped, "label")
+    without_name <- schema_del_field(without_label, "name")
+
+    expect_equal(as.list(without_label)$groups[[1L]]$names, c("name", "alias"))
+    expect_equal(as.list(without_name)$fields$alias, list(check = list(kind = "string")))
+    expect_false("groups" %in% names(as.list(without_name)))
 })
 
 test_that("schema_del_group()", {
