@@ -59,13 +59,13 @@ test_that("SchemaDoc", {
         as.list(doc),
         list(
             version = "1.0.0",
+            description = "root string",
             `$defs` = list(
                 text = list(
                     description = "text def",
                     check = list(kind = "string", min.chars = 1L)
                 )
             ),
-            description = "root string",
             check = list(kind = "string")
         )
     )
@@ -116,7 +116,7 @@ test_that("schema_doc()", {
     expect_equal(doc@version, "v1")
     expect_equal(doc@root@ref, "#/$defs/value")
     expect_equal(doc@root@desc, "root alias")
-    expect_equal(names(as.list(doc)), c("version", "$defs", "description", "$ref"))
+    expect_equal(names(as.list(doc)), c("version", "description", "$defs", "$ref"))
 
     expect_error(
         schema_doc(list(`$defs` = list(value = list(check = list(kind = "string"))))),
@@ -161,8 +161,80 @@ test_that("schema_doc()", {
     )
 })
 
+test_that("schema_doc() supports positions", {
+    doc <- schema_doc(list(
+        `$defs` = list(text = list(check = list(kind = "string"))),
+        description = "tuple payload",
+        check = list(kind = "list", min.len = 2L),
+        keys = list(type = "unnamed"),
+        positions = list(
+            list(`$ref` = "#/$defs/text"),
+            list(check = list(kind = "int"))
+        ),
+        rest = list(check = list(kind = "number"))
+    ))
+
+    expect_true(S7::S7_inherits(doc@root, SchemaNodeContainerCmpt))
+    expect_length(doc@root@positions, 2L)
+    expect_equal(doc@root@positions[[1L]], SchemaNodeRef(ref = "#/$defs/text"))
+    expect_equal(doc@root@positions[[2L]], SchemaNodeLeaf(value = rule_check("int")))
+    expect_equal(
+        as.list(doc),
+        list(
+            description = "tuple payload",
+            `$defs` = list(text = list(check = list(kind = "string"))),
+            check = list(kind = "list", min.len = 2L),
+            keys = list(type = "unnamed"),
+            positions = list(
+                list(`$ref` = "#/$defs/text"),
+                list(check = list(kind = "int"))
+            ),
+            rest = list(check = list(kind = "number"))
+        )
+    )
+
+    expect_error(
+        schema_doc(list(
+            check = list(kind = "list"),
+            positions = list(list(check = list(kind = "string")))
+        )),
+        "requires `keys\\$type = 'unnamed'`"
+    )
+    expect_error(
+        schema_doc(list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            positions = list(first = list(check = list(kind = "string")))
+        )),
+        "May not have names"
+    )
+    expect_error(
+        schema_doc(list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            fields = list(id = list(check = list(kind = "int")))
+        )),
+        "only allows `positions` and `rest`"
+    )
+    expect_error(
+        schema_doc(list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            patterns = list("^id" = list(check = list(kind = "int")))
+        )),
+        "only allows `positions` and `rest`"
+    )
+    expect_error(
+        schema_doc(list(
+            check = list(kind = "string"),
+            positions = list(list(check = list(kind = "string")))
+        )),
+        "'positions' is only allowed"
+    )
+})
+
 test_that("as.list.SchemaDoc())", {
-    # Contract: top-level order is version -> $defs -> root node entries.
+    # Contract: top-level order is version -> root description -> $defs -> root entries.
     doc <- schema_doc(list(
         version = "1.2.3",
         `$defs` = list(
@@ -180,10 +252,10 @@ test_that("as.list.SchemaDoc())", {
 
     out <- as.list(doc)
 
-    expect_equal(names(out), c("version", "$defs", "description", "any"))
+    expect_equal(names(out), c("version", "description", "$defs", "any"))
     expect_equal(out$version, "1.2.3")
     expect_equal(names(out$`$defs`$text), c("description", "check"))
-    expect_equal(names(out)[seq_len(2L)], c("version", "$defs"))
+    expect_equal(names(out)[seq_len(3L)], c("version", "description", "$defs"))
     expect_equal(out$any[[1L]], list(check = list(kind = "string")))
     expect_equal(out$any[[2L]], list(`$ref` = "#/$defs/text"))
 

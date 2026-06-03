@@ -55,6 +55,11 @@ SchemaNodeContainerFlat <- S7::new_class(
             names = "unnamed",
             default = list()
         ),
+        positions = schema_utils__prop_list(
+            "SchemaNode",
+            names = "unnamed",
+            default = list()
+        ),
         rest = S7::new_property(
             NULL | SchemaNode,
             default = NULL
@@ -73,6 +78,13 @@ SchemaNodeContainerFlat <- S7::new_class(
             return("@rest must be a flat schema node.")
         }
 
+        if (length(self@positions)) {
+            bad <- !vapply(self@positions, schema_flat__node_is_flat, logical(1L))
+            if (any(bad)) {
+                return("@positions must all be flat schema nodes.")
+            }
+        }
+
         if (length(self@exact) > 0L) {
             keys <- vapply(self@exact, function(x) x@keys, character(1L))
             msg <- schema_utils__checkmate_result(checkmate::check_character(keys, unique = TRUE), label = "@exact")
@@ -81,8 +93,12 @@ SchemaNodeContainerFlat <- S7::new_class(
             }
         }
 
+        if (length(self@positions) && !identical(schema_spec__name_type(self@name), "unnamed")) {
+            return("`positions` requires `keys$type = 'unnamed'`.")
+        }
+
         if (identical(schema_spec__name_type(self@name), "unnamed") && (length(self@exact) || length(self@patterns))) {
-            return("`keys$type = 'unnamed'` only allows `rest` constraints.")
+            return("`keys$type = 'unnamed'` only allows `positions` and `rest` constraints.")
         }
     }
 )
@@ -164,6 +180,9 @@ S7::method(as.list, SchemaNodeContainerFlat) <- function(x, ...) {
             vapply(x@patterns, function(binding) binding@pattern, character(1L))
         )
     }
+    if (length(x@positions)) {
+        out$positions <- lapply(x@positions, as.list)
+    }
     if (!is.null(x@rest)) {
         out$rest <- as.list(x@rest)
     }
@@ -189,8 +208,9 @@ S7::method(as.list, SchemaNodeNotFlat) <- function(x, ...) {
 S7::method(as.list, SchemaFlat) <- function(x, ...) {
     # Top-level serialization contract for SchemaFlat:
     # 1. `version` first when present
-    # 2. serialized root schema entries last
-    # 3. `path` is compile metadata and is intentionally excluded
+    # 2. root `description` next when present
+    # 3. serialized root operator-specific entries last
+    # 4. `path` is compile metadata and is intentionally excluded
     # Root node serialization itself follows the shared contract that
     # `description` appears before all operator-specific entries.
     out <- list()
@@ -253,6 +273,7 @@ S7::method(schema_flat__overlay_desc, SchemaNodeContainerFlat) <- function(x, de
         name = x@name,
         exact = x@exact,
         patterns = x@patterns,
+        positions = x@positions,
         rest = x@rest,
         desc = desc
     )
@@ -376,6 +397,10 @@ schema_flat__patterns <- function(patterns, ctx) {
     lapply(patterns, schema_flat__pattern, ctx = ctx)
 }
 
+schema_flat__positions <- function(positions, ctx) {
+    lapply(positions, schema_flat__node, ctx = ctx)
+}
+
 schema_flat__branches <- function(branches, ctx) {
     lapply(branches, schema_flat__node, ctx = ctx)
 }
@@ -407,6 +432,7 @@ S7::method(schema_flat__node, SchemaNodeLeaf) <- function(x, ctx) {
 S7::method(schema_flat__node, SchemaNodeContainerCmpt) <- function(x, ctx) {
     exact <- schema_flat__bindings(x@exact, ctx)
     patterns <- schema_flat__patterns(x@patterns, ctx)
+    positions <- schema_flat__positions(x@positions, ctx)
     rest <- if (is.null(x@rest)) NULL else schema_flat__node(x@rest, ctx)
 
     SchemaNodeContainerFlat(
@@ -414,6 +440,7 @@ S7::method(schema_flat__node, SchemaNodeContainerCmpt) <- function(x, ctx) {
         name = schema_flat__rule_names(x@name),
         exact = exact,
         patterns = patterns,
+        positions = positions,
         rest = rest,
         desc = x@desc
     )

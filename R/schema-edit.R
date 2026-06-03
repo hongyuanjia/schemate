@@ -11,6 +11,7 @@ SCHEMA_EDIT_RESERVED_TOKENS <- c(
     "not",
     "groups",
     "patterns",
+    "positions",
     "rest",
     "check",
     "keys",
@@ -201,6 +202,7 @@ schema_edit__node_refs <- function(node) {
             use.names = FALSE
         )
         refs <- c(refs, unlist(lapply(node@patterns, function(binding) schema_edit__node_refs(binding@target)), use.names = FALSE))
+        refs <- c(refs, unlist(lapply(node@positions, schema_edit__node_refs), use.names = FALSE))
         if (!is.null(node@rest)) {
             refs <- c(refs, schema_edit__node_refs(node@rest))
         }
@@ -291,6 +293,20 @@ S7::method(schema_edit__modify_tree, SchemaNodeContainerCmpt) <- function(node, 
             node,
             rest = schema_edit__modify_tree(node@rest, rest, fn, path)
         ))
+    }
+
+    if (is.character(token) && identical(token, "positions")) {
+        if (!length(rest) || !is.numeric(rest[[1L]])) {
+            schema_edit__path_not_found(path)
+        }
+        index <- rest[[1L]]
+        if (index < 1L || index > length(node@positions)) {
+            schema_edit__path_not_found(path)
+        }
+
+        positions <- node@positions
+        positions[[index]] <- schema_edit__modify_tree(positions[[index]], rest[-1L], fn, path)
+        return(schema_edit__update_node(node, positions = positions))
     }
 
     if (is.character(token) && !schema_edit__is_reserved_token(token)) {
@@ -825,6 +841,53 @@ S7::method(schema_set_rest, SchemaDoc) <- function(x, field, path = "$") {
     })
 }
 
+#' Add a position schema to an unnamed container node
+#'
+#' @param x A `SchemaDoc`.
+#' @param index 1-based insertion index. `1` inserts at the front and
+#'   `length(positions) + 1` appends.
+#' @param value Schema fragment using the same list syntax accepted by
+#'   `schema_doc()`, or a fragment produced by helpers such as `schema_check()`.
+#' @param path Path to the target unnamed container node. Use `$` for the root
+#'   node.
+#'
+#' @return A modified `SchemaDoc`.
+#' @export
+schema_add_position <- S7::new_generic(
+    "schema_add_position",
+    "x",
+    function(x, index, value, path = "$") {
+        S7::S7_dispatch()
+    }
+)
+
+S7::method(schema_add_position, SchemaDoc) <- function(x, index, value, path = "$") {
+    checkmate::assert_count(index, positive = TRUE)
+    doc <- x
+
+    schema_edit__modify_doc(doc, path, function(node) {
+        if (!S7::S7_inherits(node, SchemaNodeContainerCmpt)) {
+            stop(sprintf("`path` does not identify a container node: %s", path), call. = FALSE)
+        }
+        if (!identical(schema_spec__name_type(node@name), "unnamed")) {
+            stop("`positions` requires `keys$type = 'unnamed'`.", call. = FALSE)
+        }
+        if (index > length(node@positions) + 1L) {
+            stop(sprintf("`index` must be at most %d at `%s`.", length(node@positions) + 1L, path), call. = FALSE)
+        }
+
+        value <- schema_edit__as_node(
+            value,
+            defs = names(doc@defs),
+            path = sprintf("%s$positions[%d]", path, index),
+            context = sprintf("Invalid position schema %d at path `%s`.", index, path)
+        )
+
+        positions <- append(node@positions, list(value), after = index - 1L)
+        schema_edit__update_node(node, positions = positions)
+    })
+}
+
 #' Delete a field schema from a container node
 #'
 #' @param x A `SchemaDoc`.
@@ -951,6 +1014,43 @@ S7::method(schema_del_rest, SchemaDoc) <- function(x, path = "$", error_if_missi
         }
 
         schema_edit__update_node(node, rest = NULL)
+    })
+}
+
+#' Delete a position schema from an unnamed container node
+#'
+#' @param x A `SchemaDoc`.
+#' @param index 1-based position index to remove.
+#' @param path Path to the target unnamed container node. Use `$` for the root
+#'   node.
+#' @param error_if_missing Logical flag indicating whether a missing position
+#'   schema should raise an error.
+#'
+#' @return A modified `SchemaDoc`.
+#' @export
+schema_del_position <- S7::new_generic(
+    "schema_del_position",
+    "x",
+    function(x, index, path = "$", error_if_missing = TRUE) {
+        S7::S7_dispatch()
+    }
+)
+
+S7::method(schema_del_position, SchemaDoc) <- function(x, index, path = "$", error_if_missing = TRUE) {
+    checkmate::assert_count(index, positive = TRUE)
+    checkmate::assert_flag(error_if_missing)
+
+    schema_edit__modify_doc(x, path, function(node) {
+        if (!S7::S7_inherits(node, SchemaNodeContainerCmpt) || index > length(node@positions)) {
+            if (error_if_missing) {
+                stop(sprintf("Position %d does not exist at `%s`.", index, path), call. = FALSE)
+            }
+            return(node)
+        }
+
+        positions <- node@positions
+        positions[[index]] <- NULL
+        schema_edit__update_node(node, positions = positions)
     })
 }
 

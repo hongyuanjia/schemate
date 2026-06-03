@@ -86,13 +86,20 @@ schema_doc <- function(x, path = NULL) {
 S7::method(as.list, SchemaDoc) <- function(x, ...) {
     # Top-level serialization contract for SchemaDoc:
     # 1. `version` first when present
-    # 2. `$defs` second when present
-    # 3. serialized root node entries last
+    # 2. root `description` next when present
+    # 3. `$defs` next when present
+    # 4. serialized root operator-specific entries last
     # `path` is runtime metadata and is intentionally excluded.
     out <- list()
+    root <- as.list(x@root)
 
     if (!is.null(x@version)) {
         out$version <- x@version
+    }
+
+    if ("description" %in% names(root)) {
+        out$description <- root$description
+        root$description <- NULL
     }
 
     if (length(x@defs)) {
@@ -100,7 +107,7 @@ S7::method(as.list, SchemaDoc) <- function(x, ...) {
         out$`$defs` <- defs
     }
 
-    out <- c(out, as.list(x@root))
+    out <- c(out, root)
 
     out
 }

@@ -74,18 +74,19 @@ The R helpers create the same JSON shapes documented below:
    - `data_frame`
    - `data_table`
    - `tibble`
-7. `fields`, `groups`, `patterns`, `rest`, and `keys` are only valid on `check`
-   nodes whose `check.kind` is a container kind.
-8. `rest` is the child schema for otherwise unspecified object fields or
+7. `fields`, `groups`, `patterns`, `positions`, `rest`, and `keys` are only
+   valid on `check` nodes whose `check.kind` is a container kind.
+8. `positions` maps 1-based positions to child schemas for unnamed lists.
+9. `rest` is the child schema for otherwise unspecified object fields or
    unnamed list elements.
-9. `patterns` maps regular expressions to child schemas for otherwise
+10. `patterns` maps regular expressions to child schemas for otherwise
    unspecified object fields whose names match those patterns.
-10. `groups` can batch-assign multiple field names to one shared child schema
+11. `groups` can batch-assign multiple field names to one shared child schema
    node.
-11. A top-level schema document may optionally declare `version` as a
+12. A top-level schema document may optionally declare `version` as a
     non-empty string representing the document version.
-12. Root-level `$defs` can store reusable schema nodes and `$ref` can reuse them.
-13. Inside `all` / `any` / `one` / `not`, a branch may use shorthand check
+13. Root-level `$defs` can store reusable schema nodes and `$ref` can reuse them.
+14. Inside `all` / `any` / `one` / `not`, a branch may use shorthand check
     syntax without an explicit `check` wrapper.
 
 ## Reserved schema DSL keys
@@ -99,6 +100,9 @@ The following keys are reserved by the schema DSL:
 - `not`
 - `fields`
 - `groups`
+- `patterns`
+- `positions`
+- `rest`
 - `keys`
 - `description`
 - `$defs`
@@ -109,11 +113,12 @@ The following keys are reserved by the schema DSL:
 top-level schema document and must not appear inside nested schema nodes or
 shorthand combinator branches.
 
-Field names from the validated data do **not** appear at the node top level.
-They only appear inside:
+Field names and field-name rules from the validated data do **not** appear at
+the node top level. They appear inside:
 
 - `fields`
 - `groups[].names`
+- `patterns`
 - `$defs` definition names
 
 ## Top-level schema document
@@ -487,6 +492,52 @@ Container child schemas are applied in this order:
 2. `patterns` for fields not covered by exact rules
 3. `rest` for fields not covered by exact or pattern rules
 
+## `positions`
+
+`positions` is only valid on unnamed container nodes:
+
+- the primary operator is `check`
+- `check.kind` is a container kind
+- `keys.type` is `"unnamed"`
+
+`positions` is an unnamed array of schema nodes. It follows JSON Schema
+`prefixItems` semantics: a declared position is validated only when the input
+actually has that position. Missing positions do not fail by themselves; use
+`len`, `min.len`, or `max.len` inside the `check` rule when length matters.
+
+Example, similar to a CrossRef `date-parts` item:
+
+```json
+{
+  "check": { "kind": "list", "min.len": 1, "max.len": 3 },
+  "keys": { "type": "unnamed" },
+  "positions": [
+    { "check": { "kind": "int", "lower": 0 } },
+    { "check": { "kind": "int", "lower": 1, "upper": 12 } },
+    { "check": { "kind": "int", "lower": 1, "upper": 31 } }
+  ]
+}
+```
+
+When `positions` is combined with `rest`, declared positions are validated first
+and all remaining positions are validated with `rest`:
+
+```json
+{
+  "check": { "kind": "list" },
+  "keys": { "type": "unnamed" },
+  "positions": [
+    { "check": { "kind": "string" } },
+    { "check": { "kind": "int" } }
+  ],
+  "rest": { "check": { "kind": "number" } }
+}
+```
+
+With `keys.type = "unnamed"`, `positions` and `rest` are allowed. `fields`,
+`groups`, and `patterns` are named-object constraints and must not be mixed with
+unnamed array semantics.
+
 ## `groups`
 
 `groups` is an optional array available only on nodes where:
@@ -646,8 +697,9 @@ pretty-printing.
 
 `description` may appear on any full schema node and on `$ref` nodes.
 
-For canonical serialization via `as.list()`, `description` is emitted in the
-first position when present.
+For canonical serialization via `as.list()`, `description` is emitted first
+inside ordinary schema nodes. At the top-level document, `version` remains first
+when present, then root `description`, then `$defs`, then the root operator keys.
 
 ## Validation order for one node
 
@@ -659,8 +711,10 @@ Validation of a `check` node proceeds in this order:
 
 1. run the primary `assert_<kind>()`
 2. apply optional `keys` handling
-3. if `check.kind` is a container kind, recursively validate exact fields,
+3. if `check.kind` is a named container, recursively validate exact fields,
    pattern fields, and rest fields
+4. if `check.kind` is an unnamed container, recursively validate positions, then
+   rest positions
 
 ### `all`
 
@@ -719,22 +773,27 @@ When parsing the JSON DSL itself, the following should be enforced:
     `check.kind` is a container kind.
 14. `fields` must be an object when present.
 15. `groups` must be an array when present.
-16. `keys` is only allowed on container `check` nodes.
-17. `keys` must be either a scalar or an object.
-18. If `keys` is an object, all of its arguments are forwarded to
+16. `patterns` must be an object when present.
+17. `positions` must be an unnamed array when present.
+18. `positions` requires `keys.type = "unnamed"`.
+19. If `keys.type = "unnamed"`, `fields`, `groups`, and `patterns` must not be
+    present.
+20. `keys` is only allowed on container `check` nodes.
+21. `keys` must be either a scalar or an object.
+22. If `keys` is an object, all of its arguments are forwarded to
     `checkmate::check_names()`.
-19. `keys.check` is invalid.
-20. Each `groups[]` item must contain `names` plus exactly one primary operator.
-21. `groups[]` items must not wrap the target node inside an anonymous nested
+23. `keys.check` is invalid.
+24. Each `groups[]` item must contain `names` plus exactly one primary operator.
+25. `groups[]` items must not wrap the target node inside an anonymous nested
     list.
-22. `version` is only allowed at the root schema document.
-23. `version` must be a non-empty string when present.
-24. `$defs` is only allowed at the root schema document.
-25. `$defs` must be an object whose values are complete schema nodes.
-26. `$ref` must be a local string reference of the form `#/$defs/name`.
-27. A `$ref` target must exist in the current document's `$defs`.
-28. A `$ref` node must not contain other schema keys except `description`.
-29. `description` must be a non-empty string when present.
+26. `version` is only allowed at the root schema document.
+27. `version` must be a non-empty string when present.
+28. `$defs` is only allowed at the root schema document.
+29. `$defs` must be an object whose values are complete schema nodes.
+30. `$ref` must be a local string reference of the form `#/$defs/name`.
+31. A `$ref` target must exist in the current document's `$defs`.
+32. A `$ref` node must not contain other schema keys except `description`.
+33. `description` must be a non-empty string when present.
 
 ## Examples
 

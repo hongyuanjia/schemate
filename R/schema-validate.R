@@ -76,7 +76,7 @@ schema_validate__keys_type <- function(schema) {
 }
 
 schema_validate__container_has_keyed_children <- function(schema) {
-    length(schema@exact) || length(schema@patterns) || !is.null(schema@rest) || !is.null(schema@name)
+    length(schema@exact) || length(schema@patterns) || length(schema@positions) || !is.null(schema@rest) || !is.null(schema@name)
 }
 
 schema_validate__rule <- function(value, x, path) {
@@ -130,11 +130,31 @@ S7::method(schema_validate__impl, SchemaNodeContainerFlat) <- function(schema, x
             return(sprintf("%s cannot use named field constraints with `keys$type = 'unnamed'`.", path))
         }
 
-        if (is.null(schema@rest)) {
+        n_positions <- length(schema@positions)
+        n_present <- min(length(x), n_positions)
+
+        if (n_present) {
+            for (i in seq_len(n_present)) {
+                res <- schema_validate__impl(schema@positions[[i]], x[[i]], schema_validate__item_path(path, i))
+                if (!isTRUE(res)) {
+                    return(res)
+                }
+            }
+        }
+
+        if (length(x) <= n_positions) {
             return(TRUE)
         }
 
-        for (i in seq_along(x)) {
+        extra <- seq.int(n_positions + 1L, length(x))
+        if (is.null(schema@rest)) {
+            if (n_positions > 0L) {
+                return(sprintf("%s has unexpected position(s): %s.", path, paste(extra, collapse = ", ")))
+            }
+            return(TRUE)
+        }
+
+        for (i in extra) {
             res <- schema_validate__impl(schema@rest, x[[i]], schema_validate__item_path(path, i))
             if (!isTRUE(res)) {
                 return(res)

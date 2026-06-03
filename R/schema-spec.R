@@ -3,12 +3,13 @@
 SCHEMA_SPEC_KINDS <- sort(sub("^check_", "", grep("^check_", getNamespaceExports("checkmate"), value = TRUE)))
 SCHEMA_SPEC_KINDS_CONTAINER <- c("list", "data_frame", "data_table", "tibble")
 SCHEMA_SPEC_OPERATORS <- c("check", "$ref", "all", "any", "one", "not")
-SCHEMA_SPEC_KEYWORDS <- c(SCHEMA_SPEC_OPERATORS, "fields", "groups", "patterns", "rest", "keys", "description", "$defs", "version")
+SCHEMA_SPEC_KEYWORDS <- c(SCHEMA_SPEC_OPERATORS, "fields", "groups", "patterns", "positions", "rest", "keys", "description", "$defs", "version")
 
 # SchemaSpec {{{
 # - node variants become distinct classes instead of a single tagged union
 # - rule payload is represented by shared `SchemaRule*` classes
 # - exact and pattern bindings are represented by separate classes
+# - positions child list represents unnamed prefixItems semantics
 # - rest child is made explicit
 # - n-ary combinators share common abstract parents
 schema_spec__kind_is_container <- function(kind) {
@@ -155,6 +156,7 @@ SchemaNodeContainerCmpt <- S7::new_class(
     properties = list(
         exact = schema_utils__prop_list("SchemaBindingExactCmpt", names = "unnamed", default = list()),
         patterns = schema_utils__prop_list("SchemaBindingPatternCmpt", names = "unnamed", default = list()),
+        positions = schema_utils__prop_list("SchemaNode", names = "unnamed", default = list()),
         rest = S7::new_property(NULL | SchemaNode, default = NULL)
     ),
     validator = function(self) {
@@ -174,8 +176,12 @@ SchemaNodeContainerCmpt <- S7::new_class(
             }
         }
 
+        if (length(self@positions) && !identical(schema_spec__name_type(self@name), "unnamed")) {
+            return("`positions` requires `keys$type = 'unnamed'`.")
+        }
+
         if (identical(schema_spec__name_type(self@name), "unnamed") && (length(self@exact) || length(self@patterns))) {
-            return("`keys$type = 'unnamed'` only allows `rest` constraints.")
+            return("`keys$type = 'unnamed'` only allows `positions` and `rest` constraints.")
         }
     }
 )
@@ -280,7 +286,7 @@ schema_spec__node_check <- function(x, path, defs, root = FALSE) {
         "'check'",
         x,
         must.include = "check",
-        subset.of = c("check", "keys", "fields", "groups", "patterns", "rest", "description")
+        subset.of = c("check", "keys", "fields", "groups", "patterns", "positions", "rest", "description")
     )
 
     parts <- list(desc = x$description)
@@ -299,6 +305,9 @@ schema_spec__node_check <- function(x, path, defs, root = FALSE) {
         if (!is.null(x$patterns)) {
             schema_spec__error(path, "'patterns' is only allowed on container 'check' nodes.")
         }
+        if (!is.null(x$positions)) {
+            schema_spec__error(path, "'positions' is only allowed on container 'check' nodes.")
+        }
         if (!is.null(x$rest)) {
             schema_spec__error(path, "'rest' is only allowed on container 'check' nodes.")
         }
@@ -311,6 +320,7 @@ schema_spec__node_check <- function(x, path, defs, root = FALSE) {
         schema_spec__binding_groups(x$groups, paste0(path, "$groups"), defs)
     )
     parts$patterns <- schema_spec__binding_patterns(x$patterns, paste0(path, "$patterns"), defs)
+    parts$positions <- schema_spec__positions(x$positions, paste0(path, "$positions"), defs)
 
     if (!is.null(x$rest)) {
         parts$rest <- schema_spec__node(x$rest, paste0(path, "$rest"), defs)
@@ -419,6 +429,23 @@ schema_spec__binding_patterns <- function(patterns, path, defs) {
                 defs = defs,
                 root = FALSE
             )
+        )
+    })
+}
+
+schema_spec__positions <- function(positions, path, defs) {
+    if (is.null(positions)) {
+        return(NULL)
+    }
+
+    schema_spec__assert_list(path, "'positions'", positions, types = "list", names = "unnamed")
+
+    lapply(seq_along(positions), function(i) {
+        schema_spec__node(
+            x = positions[[i]],
+            path = paste0(path, "[", i, "]"),
+            defs = defs,
+            root = FALSE
         )
     })
 }
@@ -624,6 +651,9 @@ S7::method(as.list, SchemaNodeContainerCmpt) <- function(x, ...) {
     patterns <- unlist(lapply(lapply(x@patterns, as.list), "[[", "patterns"), recursive = FALSE)
     if (length(patterns)) {
         out$patterns <- patterns
+    }
+    if (length(x@positions)) {
+        out$positions <- lapply(x@positions, as.list)
     }
     if (!is.null(x@rest)) {
         out$rest <- as.list(x@rest)

@@ -223,10 +223,12 @@ test_that("schema edit verbs require SchemaDoc inputs", {
         quote(schema_add_field(raw, "name", schema_check("string"))),
         quote(schema_add_group(raw, schema_group(c("name", "label"), schema_check("string")))),
         quote(schema_set_rest(raw, schema_check("string"))),
+        quote(schema_add_position(raw, 1L, schema_check("string"))),
         quote(schema_del_keys(raw, "$")),
         quote(schema_del_field(raw, "id")),
         quote(schema_del_group(raw, 1L)),
         quote(schema_del_rest(raw)),
+        quote(schema_del_position(raw, 1L)),
         quote(schema_add_def(raw, "text", schema_check("string"))),
         quote(schema_del_def(raw, "text"))
     )
@@ -391,6 +393,33 @@ test_that("schema_set_rest()", {
     expect_schema_edit_error(schema_set_rest(doc, schema_check("missing_kind"), path = "$id"), "does not identify a container")
 })
 
+test_that("schema_add_position()", {
+    doc <- schema_doc(list(
+        `$defs` = list(text = list(check = list(kind = "string"))),
+        check = list(kind = "list"),
+        keys = list(type = "unnamed")
+    ))
+
+    updated <- schema_add_position(doc, 1L, schema_check("string"))
+    appended <- schema_add_position(updated, 2L, schema_ref("text"))
+    inserted <- schema_add_position(appended, 2L, schema_check("int"))
+    replaced <- schema_replace(inserted, "$positions[2]", schema_check("number"))
+    described <- schema_set_desc(replaced, "$positions[2]", "numeric slot")
+
+    expect_equal(
+        as.list(inserted)$positions,
+        list(
+            list(check = list(kind = "string")),
+            list(check = list(kind = "int")),
+            list(`$ref` = "#/$defs/text")
+        )
+    )
+    expect_equal(as.list(replaced)$positions[[2L]], list(check = list(kind = "number")))
+    expect_equal(as.list(described)$positions[[2L]], list(description = "numeric slot", check = list(kind = "number")))
+    expect_error(schema_add_position(doc, 2L, schema_check("string")), "at most 1")
+    expect_error(schema_add_position(schema_infer(list(id = 1L)), 1L, schema_check("string")), "requires `keys\\$type = 'unnamed'`")
+})
+
 test_that("schema_del_field()", {
     doc <- schema_infer(list(id = 1L, name = "alice"))
     updated <- schema_del_field(doc, "name")
@@ -447,6 +476,30 @@ test_that("schema_del_rest()", {
     )
     expect_error(schema_del_rest(updated), "Rest schema does not exist")
     expect_identical(schema_del_rest(updated, error_if_missing = FALSE), updated)
+})
+
+test_that("schema_del_position()", {
+    doc <- schema_doc(list(
+        check = list(kind = "list"),
+        keys = list(type = "unnamed"),
+        positions = list(
+            list(check = list(kind = "string")),
+            list(check = list(kind = "int")),
+            list(check = list(kind = "number"))
+        )
+    ))
+
+    updated <- schema_del_position(doc, 2L)
+
+    expect_equal(
+        as.list(updated)$positions,
+        list(
+            list(check = list(kind = "string")),
+            list(check = list(kind = "number"))
+        )
+    )
+    expect_error(schema_del_position(updated, 3L), "does not exist")
+    expect_identical(schema_del_position(updated, 3L, error_if_missing = FALSE), updated)
 })
 
 test_that("schema_add_def()", {

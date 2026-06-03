@@ -202,6 +202,27 @@ test_that("schema_flat__compile()", {
     expect_equal(second@desc, "second text")
     expect_equal(first@value, cached@value)
     expect_equal(second@value, cached@value)
+
+    doc <- schema_doc(list(
+        `$defs` = list(
+            text = list(check = list(kind = "string")),
+            numeric = list(check = list(kind = "number"))
+        ),
+        check = list(kind = "list"),
+        keys = list(type = "unnamed"),
+        positions = list(
+            list(`$ref` = "#/$defs/text"),
+            list(check = list(kind = "int"))
+        ),
+        rest = list(`$ref` = "#/$defs/numeric")
+    ))
+
+    flat <- schema_flat__compile(doc)
+    expect_true(S7::S7_inherits(flat@root, SchemaNodeContainerFlat))
+    expect_length(flat@root@positions, 2L)
+    expect_equal(flat@root@positions[[1L]], SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string")))
+    expect_equal(flat@root@positions[[2L]], SchemaNodeLeaf(value = SchemaRuleCheck(kind = "int")))
+    expect_equal(flat@root@rest, SchemaNodeLeaf(value = SchemaRuleCheck(kind = "number")))
 })
 
 test_that("as.list()", {
@@ -213,6 +234,7 @@ test_that("as.list()", {
     int_leaf <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "int"))
     rest_leaf <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string", args = list(null.ok = TRUE)))
     pattern_leaf <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "flag"))
+    position_leaf <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "number"))
     container <- SchemaNodeContainerFlat(
         value = SchemaRuleCheck(kind = "list"),
         name = rule_names,
@@ -230,6 +252,13 @@ test_that("as.list()", {
         rest = rest_leaf,
         desc = "container"
     )
+    array_container <- SchemaNodeContainerFlat(
+        value = SchemaRuleCheck(kind = "list"),
+        name = SchemaRuleNames(args = list(type = "unnamed")),
+        positions = list(leaf, position_leaf),
+        rest = rest_leaf,
+        desc = "array container"
+    )
     all_schema <- SchemaNodeAllFlat(branches = list(leaf, container), desc = "all schema")
     any_schema <- SchemaNodeAnyFlat(branches = list(leaf, container))
     one_schema <- SchemaNodeOneFlat(branches = list(leaf, container), desc = "one schema")
@@ -244,6 +273,7 @@ test_that("as.list()", {
     int_leaf_list <- list(check = list(kind = "int"))
     rest_leaf_list <- list(check = list(kind = "string", null.ok = TRUE))
     pattern_leaf_list <- list(check = list(kind = "flag"))
+    position_leaf_list <- list(check = list(kind = "number"))
     container_list <- list(
         description = "container",
         check = list(kind = "list"),
@@ -252,11 +282,19 @@ test_that("as.list()", {
         patterns = list(`_flag$` = pattern_leaf_list),
         rest = rest_leaf_list
     )
+    array_container_list <- list(
+        description = "array container",
+        check = list(kind = "list"),
+        keys = list(type = "unnamed"),
+        positions = list(leaf_list, position_leaf_list),
+        rest = rest_leaf_list
+    )
 
     expect_equal(as.list(rule_check), list(kind = "string", min.chars = 1L))
     expect_equal(as.list(rule_names), list(type = "unique", must.include = c("id", "label")))
     expect_equal(as.list(leaf), leaf_list)
     expect_equal(as.list(container), container_list)
+    expect_equal(as.list(array_container), array_container_list)
     expect_equal(as.list(all_schema), list(description = "all schema", all = list(leaf_list, container_list)))
     expect_equal(as.list(any_schema), list(any = list(leaf_list, container_list)))
     expect_equal(as.list(one_schema), list(description = "one schema", one = list(leaf_list, container_list)))

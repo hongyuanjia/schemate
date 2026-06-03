@@ -143,7 +143,48 @@ test_that("schema_validate applies rest to unnamed list elements", {
             keys = list(type = "unnamed"),
             fields = list(id = list(check = list(kind = "int")))
         )),
-        "only allows `rest`"
+        "only allows `positions` and `rest`"
+    )
+})
+
+test_that("schema_validate applies positions before rest", {
+    doc <- schema_doc(list(
+        check = list(kind = "list", min.len = 2L),
+        keys = list(type = "unnamed"),
+        positions = list(
+            list(check = list(kind = "string")),
+            list(check = list(kind = "int"))
+        ),
+        rest = list(check = list(kind = "number"))
+    ))
+    closed_doc <- schema_doc(list(
+        check = list(kind = "list"),
+        keys = list(type = "unnamed"),
+        positions = list(
+            list(check = list(kind = "string")),
+            list(check = list(kind = "int"))
+        )
+    ))
+    exact_len_doc <- schema_doc(list(
+        check = list(kind = "list", len = 3L),
+        keys = list(type = "unnamed"),
+        positions = list(
+            list(check = list(kind = "string")),
+            list(check = list(kind = "int")),
+            list(check = list(kind = "number"))
+        )
+    ))
+
+    expect_true(isTRUE(schema_validate(doc, list("x", 1L, 2.5), mode = "check", name = "payload")))
+    expect_match(schema_validate(doc, list("x", "bad"), mode = "check", name = "payload"), "payload\\[\\[2\\]\\]")
+    expect_match(schema_validate(doc, list("x", 1L, "bad"), mode = "check", name = "payload"), "payload\\[\\[3\\]\\]")
+    expect_match(schema_validate(doc, list("x"), mode = "check", name = "payload"), "length >= 2")
+    expect_true(isTRUE(schema_validate(closed_doc, list("x"), mode = "check", name = "payload")))
+    expect_match(schema_validate(closed_doc, list("x", 1L, 2), mode = "check", name = "payload"), "unexpected position")
+    expect_match(schema_validate(exact_len_doc, list("x", 1L), mode = "check", name = "payload"), "length 3")
+    expect_match(
+        schema_validate(doc, stats::setNames(list("x", 1L), c("a", "b")), mode = "check", name = "payload"),
+        "May not have names"
     )
 })
 
