@@ -27,14 +27,16 @@ The imported file contains the same core `schema_` API used by the package:
 `schema_infer()`, the edit helpers, `schema_write()`, `schema_read()`, and
 `schema_validate()`.
 
-The target package must still declare the standalone imports:
+The target package must still declare the standalone imports. JSON reading and
+writing are available when `jsonlite` is installed, so packages that use
+`schema_read()` or `schema_write()` should list it in `Suggests` or `Imports`.
 
 ```r
 Imports:
     checkmate (>= 2.0.0),
-    jsonlite,
-    methods,
     S7
+Suggests:
+    jsonlite
 ```
 
 ## Generated Branch

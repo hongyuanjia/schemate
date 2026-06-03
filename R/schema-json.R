@@ -1,12 +1,14 @@
 #' @include schema-doc.R
 schema_json__read_json <- function(txt) {
+    schema_utils__require_namespace("jsonlite", "read schema JSON")
     jsonlite::fromJSON(txt, simplifyVector = TRUE, simplifyDataFrame = FALSE, simplifyMatrix = FALSE)
 }
 
 #' Read and write schema JSON
 #'
 #' `schema_read()` reads schema JSON into a `SchemaDoc`. `schema_write()`
-#' serializes schema objects to schema JSON.
+#' serializes schema objects to schema JSON. Both functions require the
+#' suggested package `jsonlite`.
 #'
 #' @param txt JSON text, local file path, or URL accepted by
 #'   `jsonlite::fromJSON()`.
@@ -28,6 +30,7 @@ schema_json__read_json <- function(txt) {
 #' @rdname schema-json
 #' @export
 schema_write <- function(x, path, overwrite = FALSE, pretty = TRUE, auto_unbox = TRUE) {
+    schema_utils__require_namespace("jsonlite", "write schema JSON")
     checkmate::assert_string(path, min.chars = 1L)
     checkmate::assert_flag(overwrite)
     if (!overwrite && file.exists(path)) {

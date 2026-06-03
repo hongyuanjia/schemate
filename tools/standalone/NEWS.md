@@ -14,3 +14,5 @@
   inferred JSON array schemas.
 - Allow logical field edit paths to traverse grouped schema fields.
 - Allow `groups` entries to contain complete schema nodes for JSON round-trips.
+- Treat `jsonlite` as optional; JSON IO requires it at runtime, while printing
+  has a base R fallback.

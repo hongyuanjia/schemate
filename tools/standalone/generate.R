@@ -65,7 +65,8 @@ header <- c(
     "# file: standalone-schema.R",
     paste0("# last-updated: ", Sys.Date()),
     "# license: MIT",
-    "# imports: [S7, checkmate (>= 2.0.0), jsonlite, methods]",
+    "# imports: [S7, checkmate (>= 2.0.0)]",
+    "# optional: [jsonlite]",
     paste0("# source-commit: ", source_commit[[1L]]),
     "# ---",
     "#",
@@ -99,9 +100,9 @@ writeLines(c(
     "Encoding: UTF-8",
     "Imports:",
     "    checkmate (>= 2.0.0),",
-    "    jsonlite,",
-    "    methods,",
-    "    S7"
+    "    S7",
+    "Suggests:",
+    "    jsonlite"
 ), file.path(out_dir, "DESCRIPTION"))
 
 writeLines(c(

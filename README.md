@@ -55,7 +55,8 @@ schema_validate(schema, list(id = "bad"), mode = "test", name = "candidate")
 
 Schemas are stored as a compact JSON DSL. The DSL is not JSON Schema; it
 is a thin representation of checkmate checks, field schemas, local
-definitions, and combinators.
+definitions, and combinators. `schema_read()` and `schema_write()`
+require the suggested package `jsonlite`.
 
 ``` r
 path <- tempfile(fileext = ".json")

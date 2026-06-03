@@ -21,6 +21,22 @@ schema_utils__formal_args <- function(def) {
     names(formals(def, envir = parent.frame()))
 }
 
+schema_utils__require_namespace <- function(pkg, reason) {
+    if (requireNamespace(pkg, quietly = TRUE)) {
+        return(invisible(TRUE))
+    }
+
+    stop(
+        sprintf(
+            "Package `%s` is required to %s. Install it with `install.packages(\"%s\")`.",
+            pkg,
+            reason,
+            pkg
+        ),
+        call. = FALSE
+    )
+}
+
 schema_utils__checkmate_fun <- function(kind) {
     checkmate::assert_string(kind)
     utils::getFromNamespace(paste0("check_", kind), asNamespace("checkmate"))
@@ -293,7 +309,116 @@ schema_utils__keys_as_list <- function(x, empty_as_null = TRUE) {
     schema_utils__as_list_rule_names(x, drop_kind = TRUE, empty_as_null = empty_as_null)
 }
 
+schema_utils__json_indent <- function(depth, pretty) {
+    if (!pretty) {
+        return("")
+    }
+
+    paste(rep("  ", depth), collapse = "")
+}
+
+schema_utils__json_quote <- function(x) {
+    out <- encodeString(x, quote = "\"", justify = "none")
+    out[is.na(x)] <- "null"
+    out
+}
+
+schema_utils__json_convert <- function(x, depth = 0L, pretty = TRUE, auto_unbox = TRUE) {
+    if (is.list(x)) {
+        return(schema_utils__json_convert_list(x, depth = depth, pretty = pretty, auto_unbox = auto_unbox))
+    }
+
+    schema_utils__json_convert_atom(x, depth = depth, pretty = pretty, auto_unbox = auto_unbox)
+}
+
+schema_utils__json_convert_list <- function(x, depth, pretty, auto_unbox) {
+    nms <- names(x)
+    named <- !is.null(nms)
+    indent <- schema_utils__json_indent(depth, pretty = pretty)
+    child_indent <- schema_utils__json_indent(depth + 1L, pretty = pretty)
+    newline <- if (pretty) "\n" else ""
+    space <- if (pretty) " " else ""
+
+    if (!length(x)) {
+        return(if (named) "{}" else "[]")
+    }
+
+    values <- vapply(
+        x,
+        schema_utils__json_convert,
+        character(1L),
+        depth = depth + 1L,
+        pretty = pretty,
+        auto_unbox = auto_unbox,
+        USE.NAMES = FALSE
+    )
+
+    if (!named) {
+        if (!pretty) {
+            return(paste0("[", paste(values, collapse = ","), "]"))
+        }
+
+        return(paste0("[", newline, child_indent, paste(values, collapse = paste0(",", newline, child_indent)), newline, indent, "]"))
+    }
+
+    keys <- schema_utils__json_quote(nms)
+    entries <- paste0(keys, ":", space, values)
+    if (!pretty) {
+        return(paste0("{", paste(entries, collapse = ","), "}"))
+    }
+
+    paste0("{", newline, child_indent, paste(entries, collapse = paste0(",", newline, child_indent)), newline, indent, "}")
+}
+
+schema_utils__json_convert_atom <- function(x, depth, pretty, auto_unbox) {
+    if (is.null(x)) {
+        return("null")
+    }
+
+    if (!length(x)) {
+        return("[]")
+    }
+
+    if (is.character(x)) {
+        values <- schema_utils__json_quote(x)
+    } else if (is.logical(x)) {
+        values <- ifelse(x, "true", "false")
+        values[is.na(x)] <- "null"
+    } else if (is.numeric(x)) {
+        values <- as.character(x)
+        values[is.na(x) | !is.finite(x)] <- "null"
+    } else {
+        stop(sprintf("Cannot serialize object of type `%s` with base R JSON fallback.", typeof(x)), call. = FALSE)
+    }
+
+    if (auto_unbox && length(values) == 1L) {
+        return(values[[1L]])
+    }
+
+    indent <- schema_utils__json_indent(depth, pretty = pretty)
+    child_indent <- schema_utils__json_indent(depth + 1L, pretty = pretty)
+    newline <- if (pretty) "\n" else ""
+
+    if (!pretty) {
+        return(paste0("[", paste(values, collapse = ","), "]"))
+    }
+
+    paste0("[", newline, child_indent, paste(values, collapse = paste0(",", newline, child_indent)), newline, indent, "]")
+}
+
+schema_utils__to_json_fallback <- function(x, pretty = TRUE, auto_unbox = TRUE) {
+    if (is.object(x) && !is.list(x)) {
+        x <- as.list(x)
+    }
+
+    schema_utils__json_convert(x, depth = 0L, pretty = pretty, auto_unbox = auto_unbox)
+}
+
 schema_utils__as_json_impl <- function(x, pretty = TRUE, auto_unbox = TRUE) {
+    if (!requireNamespace("jsonlite", quietly = TRUE)) {
+        return(schema_utils__to_json_fallback(x, pretty = pretty, auto_unbox = auto_unbox))
+    }
+
     jsonlite::toJSON(
         as.list(x),
         pretty = pretty,

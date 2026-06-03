@@ -33,10 +33,14 @@ schema <- schema_infer(list(id = 1L, name = "alice"))
 schema <- schema_set_desc(schema, "$id", "Identifier")
 schema_validate(schema, list(id = 2L, name = "bob"))
 
-json_path <- tempfile(fileext = ".json")
-schema_write(schema, json_path)
-restored <- schema_read(json_path)
-schema_validate(restored, list(id = 3L, name = "carol"))
+if (requireNamespace("jsonlite", quietly = TRUE)) {
+    json_path <- tempfile(fileext = ".json")
+    schema_write(schema, json_path)
+    restored <- schema_read(json_path)
+    schema_validate(restored, list(id = 3L, name = "carol"))
+} else {
+    restored <- schema
+}
 
 failed <- schema_validate(restored, list(id = "bad", name = "carol"), mode = "test")
 if (isTRUE(failed)) {
@@ -55,8 +59,9 @@ writeLines(c(
     "Encoding: UTF-8",
     "Imports:",
     "    checkmate (>= 2.0.0),",
-    "    jsonlite,",
-    "    S7"
+    "    S7",
+    "Suggests:",
+    "    jsonlite"
 ), file.path(target_pkg, "DESCRIPTION"))
 
 if (requireNamespace("devtools", quietly = TRUE)) {

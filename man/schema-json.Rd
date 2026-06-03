@@ -29,7 +29,8 @@ returns \code{path}.
 }
 \description{
 \code{schema_read()} reads schema JSON into a \code{SchemaDoc}. \code{schema_write()}
-serializes schema objects to schema JSON.
+serializes schema objects to schema JSON. Both functions require the
+suggested package \code{jsonlite}.
 }
 \examples{
 schema <- schema_infer(list(id = 1L))

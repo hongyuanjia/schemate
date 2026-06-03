@@ -344,6 +344,34 @@ test_that("schema_utils__as_json()", {
     }
 })
 
+test_that("base JSON fallback serializes schema-shaped values", {
+    expect_equal(schema_utils__to_json_fallback("x", pretty = FALSE), '"x"')
+    expect_equal(schema_utils__to_json_fallback("x", pretty = FALSE, auto_unbox = FALSE), '["x"]')
+    expect_equal(schema_utils__to_json_fallback(c("x", "y"), pretty = FALSE), '["x","y"]')
+    expect_equal(schema_utils__to_json_fallback(c(1L, 2L), pretty = FALSE), "[1,2]")
+    expect_equal(schema_utils__to_json_fallback(c(TRUE, FALSE, NA), pretty = FALSE), "[true,false,null]")
+    expect_equal(schema_utils__to_json_fallback(NULL, pretty = FALSE), "null")
+    expect_equal(schema_utils__to_json_fallback(list(), pretty = FALSE), "[]")
+    expect_equal(schema_utils__to_json_fallback(structure(list(), names = character()), pretty = FALSE), "{}")
+
+    value <- list(
+        description = "quote \" slash \\ newline\n tab\t",
+        check = list(kind = "list"),
+        fields = list(
+            id = list(check = list(kind = "int")),
+            missing = NULL
+        ),
+        groups = list(list(names = c("name", "label"), check = list(kind = "string")))
+    )
+    json <- schema_utils__to_json_fallback(value, pretty = FALSE)
+    pretty_json <- schema_utils__to_json_fallback(value)
+
+    expect_true(jsonlite::validate(json))
+    expect_equal(schema_json__read_json(json), value)
+    expect_true(jsonlite::validate(pretty_json))
+    expect_gt(length(strsplit(pretty_json, "\n", fixed = TRUE)[[1L]]), 1L)
+})
+
 test_that("print()", {
     rule_check <- SchemaRuleCheck(kind = "string", args = list(min.chars = 1L))
     rule_names <- SchemaRuleNames(args = list(type = "unique"))

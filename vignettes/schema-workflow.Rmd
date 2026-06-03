@@ -51,6 +51,8 @@ the corresponding field under a container node.
 
 ## Write And Read
 
+`schema_read()` and `schema_write()` require the suggested package `jsonlite`.
+
 ```{r}
 path <- tempfile(fileext = ".json")
 schema_write(schema, path)
