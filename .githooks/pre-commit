@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+Rscript tools/standalone/check-news.R

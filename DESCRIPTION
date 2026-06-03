@@ -1,0 +1,43 @@
+Package: schemate
+Title: Checkmate-First Schema Inference, Editing, JSON IO, and Validation
+Version: 0.0.0.9000
+Authors@R: c(
+    person(
+        given = "Hongyuan",
+        family = "Jia",
+        role = c("aut", "cre"),
+        email = "hongyuanjia@cqust.edu.cn",
+        comment = c(ORCID = "0000-0002-0075-8183")
+    )
+    )
+Author: Hongyuan Jia [aut, cre] (ORCID:
+    <https://orcid.org/0000-0002-0075-8183>)
+Maintainer: Hongyuan Jia <hongyuanjia@cqust.edu.cn>
+Description:
+    Provides a small checkmate-first schema DSL for inferring, editing,
+    serializing, and validating R data structures, with a generated standalone
+    distribution file for vendoring into other R packages.
+License: MIT + file LICENSE
+Encoding: UTF-8
+URL: https://github.com/hongyuanjia/schemate
+BugReports: https://github.com/hongyuanjia/schemate/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    checkmate (>= 2.0.0),
+    jsonlite,
+    S7
+Suggests:
+    testthat (>= 3.0.0)
+Collate:
+    'schema-utils.R'
+    'schema-spec.R'
+    'schema-doc.R'
+    'schema-edit.R'
+    'schema-flat.R'
+    'schema-infer.R'
+    'schema-json.R'
+    'schema-validate.R'
+    'schemate-package.R'
+    'zzz.R'
+Config/testthat/edition: 3

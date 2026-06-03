@@ -1,0 +1,13 @@
+{
+  "description": "Invalid because a node may contain only one primary operator.",
+  "check": {
+    "kind": "string"
+  },
+  "all": [
+    {
+      "check": {
+        "kind": "number"
+      }
+    }
+  ]
+}

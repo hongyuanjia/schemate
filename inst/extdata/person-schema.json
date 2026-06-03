@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "description": "Person-like named list schema.",
+  "check": {
+    "kind": "list"
+  },
+  "keys": {
+    "type": "named",
+    "must.include": ["id", "name"]
+  },
+  "fields": {
+    "id": {
+      "description": "Stable integer identifier.",
+      "check": {
+        "kind": "integerish",
+        "len": 1
+      }
+    },
+    "name": {
+      "description": "Display name.",
+      "check": {
+        "kind": "string",
+        "min.chars": 1
+      }
+    },
+    "email": {
+      "description": "Optional email address.",
+      "check": {
+        "kind": "string",
+        "min.chars": 3,
+        "null.ok": true
+      }
+    }
+  }
+}

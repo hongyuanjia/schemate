@@ -1,0 +1,40 @@
+url: https://hongyuanjia.github.io/schemate/
+template:
+  bootstrap: 5
+
+reference:
+  - title: Infer
+    contents:
+      - schema_infer
+  - title: Author Fragments
+    contents:
+      - schema_check
+      - schema_ref
+      - schema_all
+      - schema_group
+  - title: Parse And Inspect
+    contents:
+      - schema_doc
+  - title: Edit
+    contents:
+      - schema_replace
+      - schema_add_field
+      - schema_set_desc
+      - schema_add_def
+  - title: JSON IO
+    contents:
+      - schema_read
+  - title: Validate
+    contents:
+      - schema_validate
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [github]
+
+articles:
+  - title: Workflows
+    contents:
+      - schema-workflow
+      - schema-dsl
+      - standalone
