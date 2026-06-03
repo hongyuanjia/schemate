@@ -18,25 +18,34 @@ NULL
 #'   Use `"none"` to skip names-rule inference, `"named"` to require named
 #'   inputs, `"required"` to require the observed names to be present, or
 #'   `"exact"` to require the observed names in the observed order.
+#' @param arrays Strategy for inferring unnamed lists. Use `"none"` to keep
+#'   unnamed lists generic, or `"rest"` to infer them as unnamed containers whose
+#'   observed element schemas are stored in `rest`.
 #'
 #' @return A `SchemaDoc` inferred from `x`.
 #' @export
-schema_infer <- function(x, version = NULL, keys = c("none", "named", "required", "exact")) {
+schema_infer <- function(
+    x,
+    version = NULL,
+    keys = c("none", "named", "required", "exact"),
+    arrays = c("none", "rest")
+) {
     checkmate::assert_string(version, null.ok = TRUE)
     keys <- checkmate::matchArg(keys, c("none", "named", "required", "exact"))
+    arrays <- checkmate::matchArg(arrays, c("none", "rest"))
 
     if (S7::S7_inherits(x, SchemaDoc)) {
-        if (!is.null(version) || !identical(keys, "none")) {
-            stop("`version` and `keys` cannot be supplied when `x` is already a `SchemaDoc`.", call. = FALSE)
+        if (!is.null(version) || !identical(keys, "none") || !identical(arrays, "none")) {
+            stop("`version`, `keys`, and `arrays` cannot be supplied when `x` is already a `SchemaDoc`.", call. = FALSE)
         }
         return(x)
     }
 
-    if (keys %in% c("required", "exact") && schema_infer__has_unnamed_list(x)) {
+    if (identical(arrays, "none") && keys %in% c("required", "exact") && schema_infer__has_unnamed_list(x)) {
         stop(sprintf("`keys = '%s'` requires named elements.", keys), call. = FALSE)
     }
 
-    root <- schema_infer__node(x, keys = keys)
+    root <- schema_infer__node(x, keys = keys, arrays = arrays)
     doc <- list()
     if (!is.null(version)) {
         doc$version <- version
@@ -80,13 +89,16 @@ schema_infer__keys_rule <- function(x, keys) {
     )
 }
 
-schema_infer__check_node <- function(kind, fields = NULL, keys_rule = NULL) {
+schema_infer__check_node <- function(kind, fields = NULL, keys_rule = NULL, rest = NULL) {
     out <- list(check = list(kind = schema_infer__kind(kind)))
     if (!is.null(keys_rule) && length(keys_rule)) {
         out$keys <- keys_rule
     }
     if (!is.null(fields) && length(fields)) {
         out$fields <- fields
+    }
+    if (!is.null(rest) && length(rest)) {
+        out$rest <- rest
     }
     out
 }
@@ -103,10 +115,35 @@ schema_infer__has_unnamed_list <- function(x) {
     is.list(x) && schema_infer__has_unnamed_elements(x)
 }
 
-schema_infer__fields <- function(x, keys) {
+schema_infer__is_unnamed_list <- function(x) {
+    is.list(x) && is.null(names(x))
+}
+
+schema_infer__dedupe_nodes <- function(x) {
+    if (!length(x)) {
+        return(x)
+    }
+
+    x[!duplicated(x)]
+}
+
+schema_infer__array_rest <- function(x, keys, arrays) {
+    if (!length(x)) {
+        return(NULL)
+    }
+
+    nodes <- schema_infer__dedupe_nodes(lapply(x, schema_infer__node, keys = keys, arrays = arrays))
+    if (length(nodes) == 1L) {
+        return(nodes[[1L]])
+    }
+
+    list(any = nodes)
+}
+
+schema_infer__fields <- function(x, keys, arrays) {
     if (schema_infer__has_named_elements(x)) {
         nms <- names(x)
-        return(stats::setNames(lapply(nms, function(name) schema_infer__node(x[[name]], keys = keys)), nms))
+        return(stats::setNames(lapply(nms, function(name) schema_infer__node(x[[name]], keys = keys, arrays = arrays)), nms))
     }
 
     NULL
@@ -152,11 +189,11 @@ schema_infer__atomic_kind <- function(x) {
     NULL
 }
 
-schema_infer__node <- function(x, keys = "none") {
+schema_infer__node <- function(x, keys = "none", arrays = "none") {
     if (inherits(x, "data.table")) {
         return(schema_infer__check_node(
             "data_table",
-            fields = schema_infer__fields(x, keys = keys),
+            fields = schema_infer__fields(x, keys = keys, arrays = arrays),
             keys_rule = schema_infer__keys_rule(x, keys)
         ))
     }
@@ -164,7 +201,7 @@ schema_infer__node <- function(x, keys = "none") {
     if (inherits(x, c("tbl_df", "tbl"))) {
         return(schema_infer__check_node(
             "tibble",
-            fields = schema_infer__fields(x, keys = keys),
+            fields = schema_infer__fields(x, keys = keys, arrays = arrays),
             keys_rule = schema_infer__keys_rule(x, keys)
         ))
     }
@@ -172,7 +209,7 @@ schema_infer__node <- function(x, keys = "none") {
     if (is.data.frame(x)) {
         return(schema_infer__check_node(
             "data_frame",
-            fields = schema_infer__fields(x, keys = keys),
+            fields = schema_infer__fields(x, keys = keys, arrays = arrays),
             keys_rule = schema_infer__keys_rule(x, keys)
         ))
     }
@@ -182,9 +219,17 @@ schema_infer__node <- function(x, keys = "none") {
     }
 
     if (is.list(x)) {
+        if (identical(arrays, "rest") && schema_infer__is_unnamed_list(x)) {
+            return(schema_infer__check_node(
+                "list",
+                keys_rule = list(type = "unnamed"),
+                rest = schema_infer__array_rest(x, keys = keys, arrays = arrays)
+            ))
+        }
+
         return(schema_infer__check_node(
             "list",
-            fields = schema_infer__fields(x, keys = keys),
+            fields = schema_infer__fields(x, keys = keys, arrays = arrays),
             keys_rule = schema_infer__keys_rule(x, keys)
         ))
     }

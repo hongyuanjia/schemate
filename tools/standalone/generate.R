@@ -22,6 +22,7 @@ source_files <- file.path(
         "schema-utils.R",
         "schema-spec.R",
         "schema-doc.R",
+        "schema-compact.R",
         "schema-edit.R",
         "schema-flat.R",
         "schema-infer.R",

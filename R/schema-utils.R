@@ -21,9 +21,13 @@ schema_utils__formal_args <- function(def) {
     names(formals(def, envir = parent.frame()))
 }
 
-schema_utils__checkmate_args <- function(kind) {
+schema_utils__checkmate_fun <- function(kind) {
     checkmate::assert_string(kind)
-    schema_utils__formal_args(utils::getFromNamespace(paste0("check_", kind), asNamespace("checkmate")))[-1L]
+    utils::getFromNamespace(paste0("check_", kind), asNamespace("checkmate"))
+}
+
+schema_utils__checkmate_args <- function(kind) {
+    schema_utils__formal_args(schema_utils__checkmate_fun(kind))[-1L]
 }
 
 schema_utils__checkmate_validator <- function(check, ..., label = NULL) {

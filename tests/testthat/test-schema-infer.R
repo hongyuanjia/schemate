@@ -4,6 +4,7 @@ test_that("schema_infer is idempotent for SchemaDoc", {
     expect_identical(schema_infer(doc), doc)
     expect_error(schema_infer(doc, version = "1.0.0"), "cannot be supplied")
     expect_error(schema_infer(doc, keys = "named"), "cannot be supplied")
+    expect_error(schema_infer(doc, arrays = "rest"), "cannot be supplied")
 })
 
 test_that("schema_infer infers conservative atomic schemas", {
@@ -55,6 +56,57 @@ test_that("schema_infer does not infer unnamed list element schemas", {
     expect_error(schema_infer(list(1L, "x"), keys = "exact"), "requires named elements")
 })
 
+test_that("schema_infer can infer unnamed lists as rest schemas", {
+    expect_equal(
+        as.list(schema_infer(list(), arrays = "rest")),
+        list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed")
+        )
+    )
+    expect_equal(
+        as.list(schema_infer(list(1L, 2L), arrays = "rest")),
+        list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            rest = list(check = list(kind = "int"))
+        )
+    )
+    expect_equal(
+        as.list(schema_infer(list(1L, "x"), arrays = "rest")),
+        list(
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            rest = list(any = list(
+                list(check = list(kind = "int")),
+                list(check = list(kind = "string"))
+            ))
+        )
+    )
+    expect_equal(
+        as.list(schema_infer(list(list(id = 1L), list(name = "alice")), arrays = "rest"))$rest,
+        list(any = list(
+            list(check = list(kind = "list"), fields = list(id = list(check = list(kind = "int")))),
+            list(check = list(kind = "list"), fields = list(name = list(check = list(kind = "string"))))
+        ))
+    )
+    expect_equal(
+        as.list(schema_infer(list(list(1L, 2L), list("x")), arrays = "rest"))$rest,
+        list(any = list(
+            list(
+                check = list(kind = "list"),
+                keys = list(type = "unnamed"),
+                rest = list(check = list(kind = "int"))
+            ),
+            list(
+                check = list(kind = "list"),
+                keys = list(type = "unnamed"),
+                rest = list(check = list(kind = "string"))
+            )
+        ))
+    )
+})
+
 test_that("schema_infer keeps nested unnamed lists conservative unless requested", {
     doc <- schema_infer(
         list(
@@ -70,6 +122,30 @@ test_that("schema_infer keeps nested unnamed lists conservative unless requested
     expect_equal(
         as.list(doc)$fields$author,
         list(check = list(kind = "list"))
+    )
+
+    doc <- schema_infer(
+        list(
+            id = "work",
+            author = list(
+                list(given = "Douglas", family = "Bates"),
+                list(given = "Ben", family = "Bolker")
+            )
+        ),
+        keys = "required",
+        arrays = "rest"
+    )
+
+    expect_equal(
+        as.list(doc)$fields$author$rest,
+        list(
+            check = list(kind = "list"),
+            keys = list(type = "named", must.include = c("given", "family")),
+            fields = list(
+                given = list(check = list(kind = "string")),
+                family = list(check = list(kind = "string"))
+            )
+        )
     )
 })
 

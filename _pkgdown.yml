@@ -6,6 +6,7 @@ reference:
   - title: Infer
     contents:
       - schema_infer
+      - schema_compact
   - title: Author Fragments
     contents:
       - schema_check

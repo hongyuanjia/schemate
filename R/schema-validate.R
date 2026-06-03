@@ -82,7 +82,7 @@ schema_validate__container_has_keyed_children <- function(schema) {
 schema_validate__rule <- function(value, x, path) {
     schema_validate__prefix_message(
         schema_validate__call_check(
-            utils::getFromNamespace(paste0("check_", value@kind), asNamespace("checkmate")),
+            schema_utils__checkmate_fun(value@kind),
             x,
             args = value@args
         ),

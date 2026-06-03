@@ -4,7 +4,12 @@
 \alias{schema_infer}
 \title{Infer a conservative schema from example data}
 \usage{
-schema_infer(x, version = NULL, keys = c("none", "named", "required", "exact"))
+schema_infer(
+  x,
+  version = NULL,
+  keys = c("none", "named", "required", "exact"),
+  arrays = c("none", "rest")
+)
 }
 \arguments{
 \item{x}{Example data to infer from.}
@@ -15,6 +20,10 @@ schema_infer(x, version = NULL, keys = c("none", "named", "required", "exact"))
 Use \code{"none"} to skip names-rule inference, \code{"named"} to require named
 inputs, \code{"required"} to require the observed names to be present, or
 \code{"exact"} to require the observed names in the observed order.}
+
+\item{arrays}{Strategy for inferring unnamed lists. Use \code{"none"} to keep
+unnamed lists generic, or \code{"rest"} to infer them as unnamed containers whose
+observed element schemas are stored in \code{rest}.}
 }
 \value{
 A \code{SchemaDoc} inferred from \code{x}.

@@ -10,3 +10,5 @@
   `schema_del_rest()`.
 - Add `positions` schema support for unnamed list prefix validation, including
   `schema_add_position()` and `schema_del_position()`.
+- Add `schema_infer(arrays = "rest")` and `schema_compact()` for compacting
+  inferred JSON array schemas.
