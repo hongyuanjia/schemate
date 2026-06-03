@@ -4,7 +4,7 @@
 \alias{schema_compact}
 \title{Compact a schema document}
 \usage{
-schema_compact(x, arrays = TRUE, groups = TRUE, defs = FALSE)
+schema_compact(x, arrays = TRUE, groups = TRUE)
 }
 \arguments{
 \item{x}{A \code{SchemaDoc} or raw schema DSL list.}
@@ -14,8 +14,6 @@ observed element alternatives produced by \code{schema_infer(arrays = "rest")}.}
 
 \item{groups}{Whether to combine sibling fields with identical schemas into
 \code{groups}.}
-
-\item{defs}{Reserved for future \verb{$defs} extraction. \code{TRUE} is not implemented.}
 }
 \value{
 A compacted \code{SchemaDoc}.

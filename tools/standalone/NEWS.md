@@ -17,3 +17,4 @@
 - Treat `jsonlite` as optional; JSON IO requires it at runtime, while printing
   has a base R fallback.
 - Refactor schema compaction internals to use S7 dispatch.
+- Remove the unimplemented `defs` argument from `schema_compact()`.

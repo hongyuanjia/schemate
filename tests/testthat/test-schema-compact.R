@@ -134,7 +134,7 @@ test_that("schema_compact() groups identical sibling fields", {
     )
 })
 
-test_that("schema_compact() is idempotent and rejects defs extraction", {
+test_that("schema_compact() is idempotent and accepts raw DSL input", {
     schema <- schema_infer(
         list(items = list(list(id = 1L), list(id = 2L))),
         arrays = "rest"
@@ -143,7 +143,6 @@ test_that("schema_compact() is idempotent and rejects defs extraction", {
 
     expect_equal(as.list(schema_compact(compact)), as.list(compact))
     expect_equal(as.list(schema_compact(as.list(schema))), as.list(compact))
-    expect_error(schema_compact(schema, defs = TRUE), "not implemented")
 })
 
 test_that("schema_compact() container groups round-trip through DSL and JSON", {

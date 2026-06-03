@@ -127,6 +127,6 @@ schema_validate(crossref_schema, crossref_payload, mode = "test")
 schema_validate(crossref_schema, bad_crossref, mode = "check", name = "crossref")
 ```
 
-Automatic `$defs` extraction is a natural future compaction pass, but it is not
-part of `schema_compact()` yet because reusable definition names should be stable
-and meaningful.
+When a reusable component has a clear domain name, author it explicitly with
+`$defs` and `$ref`. `schema_compact()` deliberately avoids inventing reusable
+definition names for you.

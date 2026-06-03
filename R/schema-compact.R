@@ -392,17 +392,12 @@ S7::method(schema_compact__node, S7::class_any) <- function(node, arrays, groups
 #'   observed element alternatives produced by `schema_infer(arrays = "rest")`.
 #' @param groups Whether to combine sibling fields with identical schemas into
 #'   `groups`.
-#' @param defs Reserved for future `$defs` extraction. `TRUE` is not implemented.
 #'
 #' @return A compacted `SchemaDoc`.
 #' @export
-schema_compact <- function(x, arrays = TRUE, groups = TRUE, defs = FALSE) {
+schema_compact <- function(x, arrays = TRUE, groups = TRUE) {
     checkmate::assert_flag(arrays)
     checkmate::assert_flag(groups)
-    checkmate::assert_flag(defs)
-    if (defs) {
-        stop("Automatic `$defs` extraction is not implemented yet.", call. = FALSE)
-    }
 
     doc <- schema_doc(x)
     defs <- lapply(doc@defs, schema_compact__node, arrays = arrays, groups = groups)
