@@ -548,14 +548,7 @@ unnamed array semantics.
 Each group item must be a named object with:
 
 - `names`: a non-empty character vector of field names
-- optional `description`: metadata applied to each expanded field
-- exactly one primary operator from:
-  - `check`
-  - `all`
-  - `any`
-  - `one`
-  - `not`
-  - `$ref`
+- a complete schema node written directly beside `names`
 
 `groups` is expanded during parsing into ordinary named fields that behave exactly
 like entries written explicitly in `fields`.
@@ -589,6 +582,27 @@ Valid examples:
     { "$ref": "#/$defs/text" },
     { "check": { "kind": "string" } }
   ]
+}
+```
+
+Groups can also share a container schema. This is useful after compacting API
+payload schemas where several fields have the same nested structure:
+
+```json
+{
+  "names": ["issued", "created", "published-print"],
+  "check": { "kind": "list" },
+  "fields": {
+    "date-parts": {
+      "check": { "kind": "list" },
+      "keys": { "type": "unnamed" },
+      "rest": {
+        "check": { "kind": "list" },
+        "keys": { "type": "unnamed" },
+        "rest": { "check": { "kind": "int" } }
+      }
+    }
+  }
 }
 ```
 
@@ -783,17 +797,19 @@ When parsing the JSON DSL itself, the following should be enforced:
 22. If `keys` is an object, all of its arguments are forwarded to
     `checkmate::check_names()`.
 23. `keys.check` is invalid.
-24. Each `groups[]` item must contain `names` plus exactly one primary operator.
-25. `groups[]` items must not wrap the target node inside an anonymous nested
+24. Each `groups[]` item must contain `names` plus a complete schema node.
+25. The schema node inside `groups[]` follows the same primary-operator and
+    keyword rules as any other schema node.
+26. `groups[]` items must not wrap the target node inside an anonymous nested
     list.
-26. `version` is only allowed at the root schema document.
-27. `version` must be a non-empty string when present.
-28. `$defs` is only allowed at the root schema document.
-29. `$defs` must be an object whose values are complete schema nodes.
-30. `$ref` must be a local string reference of the form `#/$defs/name`.
-31. A `$ref` target must exist in the current document's `$defs`.
-32. A `$ref` node must not contain other schema keys except `description`.
-33. `description` must be a non-empty string when present.
+27. `version` is only allowed at the root schema document.
+28. `version` must be a non-empty string when present.
+29. `$defs` is only allowed at the root schema document.
+30. `$defs` must be an object whose values are complete schema nodes.
+31. `$ref` must be a local string reference of the form `#/$defs/name`.
+32. A `$ref` target must exist in the current document's `$defs`.
+33. A `$ref` node must not contain other schema keys except `description`.
+34. `description` must be a non-empty string when present.
 
 ## Examples
 

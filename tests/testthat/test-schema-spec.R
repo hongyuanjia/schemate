@@ -130,6 +130,86 @@ test_that("SchemaNodeContainerCmpt", {
         list(names = c("name", "label"), description = "shared names", check = list(kind = "string"))
     )
 
+    grouped_container <- schema_spec__node(
+        list(
+            check = list(kind = "list"),
+            groups = list(list(
+                names = c("issued", "created"),
+                check = list(kind = "list"),
+                fields = list(
+                    `date-parts` = list(
+                        check = list(kind = "list"),
+                        keys = list(type = "unnamed"),
+                        rest = list(check = list(kind = "int"))
+                    )
+                )
+            ))
+        ),
+        root = FALSE
+    )
+
+    expect_equal(
+        as.list(grouped_container)$groups[[1L]],
+        list(
+            names = c("issued", "created"),
+            check = list(kind = "list"),
+            fields = list(
+                `date-parts` = list(
+                    check = list(kind = "list"),
+                    keys = list(type = "unnamed"),
+                    rest = list(check = list(kind = "int"))
+                )
+            )
+        )
+    )
+
+    grouped_rest <- schema_spec__node(
+        list(
+            check = list(kind = "list"),
+            groups = list(list(
+                names = c("title", "container-title"),
+                check = list(kind = "list"),
+                keys = list(type = "unnamed"),
+                rest = list(check = list(kind = "string"))
+            ))
+        ),
+        root = FALSE
+    )
+
+    expect_equal(
+        as.list(grouped_rest)$groups[[1L]],
+        list(
+            names = c("title", "container-title"),
+            check = list(kind = "list"),
+            keys = list(type = "unnamed"),
+            rest = list(check = list(kind = "string"))
+        )
+    )
+
+    grouped_positions <- schema_spec__node(
+        list(
+            check = list(kind = "list"),
+            groups = list(list(
+                names = c("date1", "date2"),
+                check = list(kind = "list"),
+                keys = list(type = "unnamed"),
+                positions = list(
+                    list(check = list(kind = "int")),
+                    list(check = list(kind = "int"))
+                )
+            ))
+        ),
+        root = FALSE
+    )
+
+    expect_equal(
+        as.list(grouped_positions)$groups[[1L]]$positions,
+        list(
+            list(check = list(kind = "int")),
+            list(check = list(kind = "int"))
+        )
+    )
+
     expect_error(
         SchemaNodeContainerCmpt(value = SchemaRuleCheck("string")),
         "container kind"

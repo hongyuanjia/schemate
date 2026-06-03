@@ -398,13 +398,14 @@ schema_spec__binding_groups <- function(groups, path, defs) {
             group,
             type = "unique",
             must.include = "names",
-            subset.of = c("names", "description", SCHEMA_SPEC_OPERATORS)
+            subset.of = c("names", setdiff(SCHEMA_SPEC_KEYWORDS, c("version", "$defs")))
         )
 
+        target <- group[names(group) != "names"]
         SchemaBindingExactCmpt(
             keys = group$names,
             target = schema_spec__node(
-                x = group[names(group) %in% c("description", SCHEMA_SPEC_OPERATORS)],
+                x = target,
                 path = loc,
                 defs = defs,
                 root = FALSE

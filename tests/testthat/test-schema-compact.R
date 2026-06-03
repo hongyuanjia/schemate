@@ -146,3 +146,37 @@ test_that("schema_compact() is idempotent and rejects defs extraction", {
     expect_error(schema_compact(schema, defs = TRUE), "not implemented")
 })
 
+test_that("schema_compact() container groups round-trip through DSL and JSON", {
+    schema <- schema_compact(schema_infer(list(
+        issued = list(`date-parts` = list(list(2024L))),
+        created = list(`date-parts` = list(list(2024L))),
+        `published-print` = list(`date-parts` = list(list(2024L)))
+    ), arrays = "rest"))
+
+    serialized <- as.list(schema)
+    restored <- schema_doc(serialized)
+    path <- tempfile(fileext = ".json")
+    schema_write(schema, path)
+    read <- schema_read(path)
+
+    expect_equal(
+        serialized$groups[[1L]],
+        list(
+            names = c("issued", "created", "published-print"),
+            check = list(kind = "list"),
+            fields = list(
+                `date-parts` = list(
+                    check = list(kind = "list"),
+                    keys = list(type = "unnamed"),
+                    rest = list(
+                        check = list(kind = "list"),
+                        keys = list(type = "unnamed"),
+                        rest = list(check = list(kind = "int"))
+                    )
+                )
+            )
+        )
+    )
+    expect_equal(as.list(restored), serialized)
+    expect_equal(as.list(read), serialized)
+})

@@ -13,3 +13,4 @@
 - Add `schema_infer(arrays = "rest")` and `schema_compact()` for compacting
   inferred JSON array schemas.
 - Allow logical field edit paths to traverse grouped schema fields.
+- Allow `groups` entries to contain complete schema nodes for JSON round-trips.
