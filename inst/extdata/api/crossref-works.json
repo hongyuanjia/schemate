@@ -1,0 +1,157 @@
+{
+  "status": "ok",
+  "message-type": "work-list",
+  "message-version": "1.0.0",
+  "message": {
+    "total-results": 13146,
+    "items-per-page": 2,
+    "query": {
+      "start-index": 0,
+      "search-terms": null
+    },
+    "items": [
+      {
+        "DOI": "10.33115/udg_bib/msr.v17i0.22300",
+        "type": "journal-article",
+        "publisher": "Edicions A Peticio",
+        "title": "Schema saffico e schema zaglialesco",
+        "container-title": "Mot so razo",
+        "short-container-title": "MSR",
+        "volume": "17",
+        "ISSN": [
+          "2385-4359",
+          "1575-5568"
+        ],
+        "score": 15.4821,
+        "URL": "https://doi.org/10.33115/udg_bib/msr.v17i0.22300",
+        "reference-count": 0,
+        "is-referenced-by-count": 0,
+        "references-count": 0,
+        "issued": {
+          "date-parts": [
+            [
+              2019,
+              9,
+              5
+            ]
+          ]
+        },
+        "created": {
+          "date-parts": [
+            [
+              2019,
+              9,
+              6
+            ]
+          ],
+          "date-time": "2019-09-06T03:43:13Z",
+          "timestamp": 1567741393000
+        },
+        "published": {
+          "date-parts": [
+            [
+              2019,
+              9,
+              5
+            ]
+          ]
+        },
+        "published-online": {
+          "date-parts": [
+            [
+              2019,
+              9,
+              5
+            ]
+          ]
+        },
+        "deposited": {
+          "date-parts": [
+            [
+              2019,
+              9,
+              6
+            ]
+          ],
+          "date-time": "2019-09-06T03:43:15Z",
+          "timestamp": 1567741395000
+        },
+        "author": [
+          {
+            "given": "Lorenzo",
+            "family": "Mainini",
+            "sequence": "first",
+            "affiliation": []
+          }
+        ],
+        "link": [
+          {
+            "URL": "https://revistes.udg.edu/mot-so-razo/article/viewFile/22300/26052",
+            "content-type": "application/pdf",
+            "content-version": "vor",
+            "intended-application": "text-mining"
+          },
+          {
+            "URL": "https://revistes.udg.edu/mot-so-razo/article/viewFile/22300/26052",
+            "content-type": "unspecified",
+            "content-version": "vor",
+            "intended-application": "similarity-checking"
+          }
+        ]
+      },
+      {
+        "DOI": "10.5040/9780567678393.177",
+        "type": "other",
+        "publisher": "Bloomsbury Publishing Plc",
+        "title": "Schema",
+        "container-title": "The Dictionary of the Bible and Ancient Media",
+        "ISBN": [
+          "9780567678393",
+          "9780567222497"
+        ],
+        "score": 15.337,
+        "URL": "https://doi.org/10.5040/9780567678393.177",
+        "reference-count": 0,
+        "is-referenced-by-count": 0,
+        "references-count": 0,
+        "issued": {
+          "date-parts": [
+            2017
+          ]
+        },
+        "created": {
+          "date-parts": [
+            [
+              2020,
+              2,
+              28
+            ]
+          ],
+          "date-time": "2020-02-28T14:26:46Z",
+          "timestamp": 1582900006000
+        },
+        "published": {
+          "date-parts": [
+            2017
+          ]
+        },
+        "published-print": {
+          "date-parts": [
+            2017
+          ]
+        },
+        "deposited": {
+          "date-parts": [
+            [
+              2020,
+              9,
+              2
+            ]
+          ],
+          "date-time": "2020-09-02T18:28:58Z",
+          "timestamp": 1599071338000
+        }
+      }
+    ]
+  }
+}
