@@ -1,0 +1,73 @@
+# Standalone Use
+
+Some packages want `schemate` functionality without taking a runtime
+dependency on `schemate`. For that use case, the project publishes a
+generated standalone bundle on the `standalone` branch.
+
+## Import
+
+Run this from the target package:
+
+``` r
+
+usethis::use_standalone("hongyuanjia/schemate", "schema", ref = "standalone")
+```
+
+The imported file contains the same core `schema_` API used by the
+package:
+[`schema_infer()`](https://hongyuanjia.github.io/schemate/reference/schema_infer.md),
+the edit helpers,
+[`schema_write()`](https://hongyuanjia.github.io/schemate/reference/schema-json.md),
+[`schema_read()`](https://hongyuanjia.github.io/schemate/reference/schema-json.md),
+and
+[`schema_validate()`](https://hongyuanjia.github.io/schemate/reference/schema_validate.md).
+
+The target package must still declare the standalone imports. Core
+schema inference, editing, printing, and validation need `checkmate` and
+`S7`.
+[`schema_read()`](https://hongyuanjia.github.io/schemate/reference/schema-json.md)
+and
+[`schema_write()`](https://hongyuanjia.github.io/schemate/reference/schema-json.md)
+use `jsonlite` at runtime, so packages that call those functions should
+list `jsonlite` in `Suggests` or `Imports`.
+
+``` r
+Imports:
+    checkmate (>= 2.0.0),
+    S7
+Suggests:
+    jsonlite
+```
+
+When `jsonlite` is not installed, JSON IO fails with an installation
+hint. Printing still works through a small base R fallback.
+
+## Generated Branch
+
+The `standalone` branch is an artifact branch. Its
+`R/standalone-schema.R` file is generated from package source files by:
+
+``` r
+Rscript tools/standalone/generate.R
+```
+
+Use the local smoke test before publishing updates:
+
+``` r
+Rscript tools/standalone/test-local.R
+```
+
+## Changelog
+
+The generated standalone file includes a commented changelog header from
+`tools/standalone/NEWS.md`, plus the source commit. Keep that file
+current when the standalone API or behavior changes.
+
+Install the repository hook to receive a commit-time reminder:
+
+``` r
+Rscript tools/install-git-hooks.R
+```
+
+The hook runs `tools/standalone/check-news.R` before commits and reminds
+you to update the standalone changelog when source files have changed.

@@ -1,0 +1,12 @@
+pandoc: 3.8.3
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  api-examples: api-examples.html
+  schema-dsl: schema-dsl.html
+  schema-workflow: schema-workflow.html
+  standalone: standalone.html
+last_built: 2026-06-04T06:18Z
+urls:
+  reference: https://hongyuanjia.github.io/schemate/reference
+  article: https://hongyuanjia.github.io/schemate/articles
