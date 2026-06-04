@@ -4,6 +4,11 @@ output: github_document
 
 # schemate
 
+> A small, [checkmate](https://mllg.github.io/checkmate/)-first schema DSL for R data.
+
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/schemate)](http://cran.r-project.org/package=schemate)
+[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/schemate)](http://cran.r-project.org/web/packages/schemate/index.html)
+
 `schemate` provides a small, [checkmate](https://mllg.github.io/checkmate/)-first
 schema DSL for R data. It can infer schemas from example objects, edit schema
 documents, save them as JSON, read them back, and validate new inputs against
@@ -21,9 +26,12 @@ typical workflow is:
 
 ## Installation
 
-```{r install, eval = FALSE}
+Currently, you can install the development version from GitHub.
+
+```{r gh-install, eval = FALSE}
 pak::pak("hongyuanjia/schemate")
 ```
+
 
 ## Quick Start
 
@@ -35,19 +43,21 @@ something easier to edit and review.
 library(schemate)
 
 payload <- list(
-  items = list(
-    list(id = 1L, owner = list(login = "alice", id = 10L), topics = list("r", "schema")),
-    list(id = 2L, owner = list(login = "bob", id = 20L), topics = list("validation"))
-  )
+    items = list(
+        list(id = 1L, owner = list(login = "alice", id = 10L), topics = list("r", "schema")),
+        list(id = 2L, owner = list(login = "bob", id = 20L), topics = list("validation"))
+    )
 )
 
 schema <- payload |>
-  schema_infer(keys = "named", arrays = "rest") |>
-  schema_compact() |>
-  schema_set_desc("$items", "Repository-like result items")
+    schema_infer(keys = "named", arrays = "rest") |>
+    schema_compact() |>
+    schema_set_desc("$items", "Repository-like result items")
+
+schema
 
 schema |>
-  schema_validate(payload, mode = "test")
+    schema_validate(payload, mode = "test")
 ```
 
 `schema_validate()` defaults to assert mode: invalid input raises an error and
@@ -59,9 +69,9 @@ bad_payload <- payload
 bad_payload$items[[1L]]$owner$id <- "bad"
 
 schema |>
-  schema_validate(bad_payload, mode = "check", name = "payload")
+    schema_validate(bad_payload, mode = "check", name = "payload")
 schema |>
-  schema_validate(bad_payload, mode = "test", name = "payload")
+    schema_validate(bad_payload, mode = "test", name = "payload")
 ```
 
 ## Data Frame Inputs
@@ -72,22 +82,24 @@ edited, saved, and reused.
 
 ```{r data-frame}
 scores <- data.frame(
-  id = 1:3,
-  name = c("alice", "bob", "carol"),
-  score = c(9.5, 8.0, 7.5)
+    id = 1:3,
+    name = c("alice", "bob", "carol"),
+    score = c(9.5, 8.0, 7.5)
 )
 
 score_schema <- scores |>
-  schema_infer(keys = "required") |>
-  schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
-  schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
+    schema_infer(keys = "required") |>
+    schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
+    schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
+
+score_schema
 
 score_schema |>
-  schema_validate(scores, mode = "test")
+    schema_validate(scores, mode = "test")
 
 bad_scores <- transform(scores, score = as.character(score))
 score_schema |>
-  schema_validate(bad_scores, mode = "check", name = "scores")
+    schema_validate(bad_scores, mode = "check", name = "scores")
 ```
 
 ## JSON Workflow
@@ -95,7 +107,7 @@ score_schema |>
 Schemas are stored as a compact JSON DSL. The DSL is not JSON Schema; it is a
 thin representation of checkmate checks, field schemas, local definitions, and
 combinators. `schema_read()` and `schema_write()` require the suggested package
-`jsonlite`.
+[jsonlite](https://github.com/jeroen/jsonlite).
 
 ```{r json-workflow}
 path <- tempfile(fileext = ".json")
@@ -103,7 +115,7 @@ schema_write(schema, path)
 
 restored <- schema_read(path)
 restored |>
-  schema_validate(payload)
+    schema_validate(payload)
 ```
 
 Example schema files are installed under `inst/extdata`:
@@ -134,10 +146,6 @@ the schema features without depending on `schemate` at runtime.
 ```{r standalone, eval = FALSE}
 usethis::use_standalone("hongyuanjia/schemate", "schema", ref = "standalone")
 ```
-
-The standalone branch is generated from the development package. Do not edit the
-generated standalone file by hand; update the package source and regenerate it.
-The standalone changelog lives in `tools/standalone/NEWS.md`.
 
 ## Relation to Other Tools
 

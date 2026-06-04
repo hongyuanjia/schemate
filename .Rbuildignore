@@ -3,3 +3,4 @@
 ^vignettes$
 ^tools/standalone/.*$
 ^tools/install-git-hooks\.R$
+^\.github$

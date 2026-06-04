@@ -1,6 +1,13 @@
 
 # schemate
 
+> A small, [checkmate](https://mllg.github.io/checkmate/)-first schema
+> DSL for R data.
+
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/schemate)](http://cran.r-project.org/package=schemate)
+[![CRAN RStudio mirror
+downloads](https://cranlogs.r-pkg.org/badges/schemate)](http://cran.r-project.org/web/packages/schemate/index.html)
+
 `schemate` provides a small,
 [checkmate](https://mllg.github.io/checkmate/)-first schema DSL for R
 data. It can infer schemas from example objects, edit schema documents,
@@ -19,6 +26,8 @@ vocabulary. A typical workflow is:
 
 ## Installation
 
+Currently, you can install the development version from GitHub.
+
 ``` r
 pak::pak("hongyuanjia/schemate")
 ```
@@ -33,19 +42,91 @@ then compact it into something easier to edit and review.
 library(schemate)
 
 payload <- list(
-  items = list(
-    list(id = 1L, owner = list(login = "alice", id = 10L), topics = list("r", "schema")),
-    list(id = 2L, owner = list(login = "bob", id = 20L), topics = list("validation"))
-  )
+    items = list(
+        list(id = 1L, owner = list(login = "alice", id = 10L), topics = list("r", "schema")),
+        list(id = 2L, owner = list(login = "bob", id = 20L), topics = list("validation"))
+    )
 )
 
 schema <- payload |>
-  schema_infer(keys = "named", arrays = "rest") |>
-  schema_compact() |>
-  schema_set_desc("$items", "Repository-like result items")
+    schema_infer(keys = "named", arrays = "rest") |>
+    schema_compact() |>
+    schema_set_desc("$items", "Repository-like result items")
 
+schema
+```
+
+    ## {
+    ##   "check": {
+    ##     "kind": "list"
+    ##   },
+    ##   "keys": {
+    ##     "type": "named"
+    ##   },
+    ##   "fields": {
+    ##     "items": {
+    ##       "description": "Repository-like result items",
+    ##       "check": {
+    ##         "kind": "list"
+    ##       },
+    ##       "keys": {
+    ##         "type": "unnamed"
+    ##       },
+    ##       "rest": {
+    ##         "check": {
+    ##           "kind": "list"
+    ##         },
+    ##         "keys": {
+    ##           "type": "named"
+    ##         },
+    ##         "fields": {
+    ##           "id": {
+    ##             "check": {
+    ##               "kind": "int"
+    ##             }
+    ##           },
+    ##           "owner": {
+    ##             "check": {
+    ##               "kind": "list"
+    ##             },
+    ##             "keys": {
+    ##               "type": "named"
+    ##             },
+    ##             "fields": {
+    ##               "login": {
+    ##                 "check": {
+    ##                   "kind": "string"
+    ##                 }
+    ##               },
+    ##               "id": {
+    ##                 "check": {
+    ##                   "kind": "int"
+    ##                 }
+    ##               }
+    ##             }
+    ##           },
+    ##           "topics": {
+    ##             "check": {
+    ##               "kind": "list"
+    ##             },
+    ##             "keys": {
+    ##               "type": "unnamed"
+    ##             },
+    ##             "rest": {
+    ##               "check": {
+    ##                 "kind": "string"
+    ##               }
+    ##             }
+    ##           }
+    ##         }
+    ##       }
+    ##     }
+    ##   }
+    ## }
+
+``` r
 schema |>
-  schema_validate(payload, mode = "test")
+    schema_validate(payload, mode = "test")
 ```
 
     ## [1] TRUE
@@ -59,14 +140,14 @@ bad_payload <- payload
 bad_payload$items[[1L]]$owner$id <- "bad"
 
 schema |>
-  schema_validate(bad_payload, mode = "check", name = "payload")
+    schema_validate(bad_payload, mode = "check", name = "payload")
 ```
 
     ## [1] "payload$items[[1]]$owner$id: Must be of type 'single integerish value', not 'character'"
 
 ``` r
 schema |>
-  schema_validate(bad_payload, mode = "test", name = "payload")
+    schema_validate(bad_payload, mode = "test", name = "payload")
 ```
 
     ## [1] FALSE
@@ -79,18 +160,52 @@ that can be inferred, edited, saved, and reused.
 
 ``` r
 scores <- data.frame(
-  id = 1:3,
-  name = c("alice", "bob", "carol"),
-  score = c(9.5, 8.0, 7.5)
+    id = 1:3,
+    name = c("alice", "bob", "carol"),
+    score = c(9.5, 8.0, 7.5)
 )
 
 score_schema <- scores |>
-  schema_infer(keys = "required") |>
-  schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
-  schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
+    schema_infer(keys = "required") |>
+    schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
+    schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
 
+score_schema
+```
+
+    ## {
+    ##   "check": {
+    ##     "kind": "data_frame"
+    ##   },
+    ##   "keys": {
+    ##     "type": "named",
+    ##     "must.include": ["id", "name", "score"]
+    ##   },
+    ##   "fields": {
+    ##     "id": {
+    ##       "check": {
+    ##         "kind": "integerish",
+    ##         "any.missing": false
+    ##       }
+    ##     },
+    ##     "name": {
+    ##       "check": {
+    ##         "kind": "character"
+    ##       }
+    ##     },
+    ##     "score": {
+    ##       "check": {
+    ##         "kind": "numeric",
+    ##         "lower": 0,
+    ##         "upper": 10
+    ##       }
+    ##     }
+    ##   }
+    ## }
+
+``` r
 score_schema |>
-  schema_validate(scores, mode = "test")
+    schema_validate(scores, mode = "test")
 ```
 
     ## [1] TRUE
@@ -98,7 +213,7 @@ score_schema |>
 ``` r
 bad_scores <- transform(scores, score = as.character(score))
 score_schema |>
-  schema_validate(bad_scores, mode = "check", name = "scores")
+    schema_validate(bad_scores, mode = "check", name = "scores")
 ```
 
     ## [1] "scores$score: Must be of type 'numeric', not 'character'"
@@ -108,7 +223,8 @@ score_schema |>
 Schemas are stored as a compact JSON DSL. The DSL is not JSON Schema; it
 is a thin representation of checkmate checks, field schemas, local
 definitions, and combinators. `schema_read()` and `schema_write()`
-require the suggested package `jsonlite`.
+require the suggested package
+[jsonlite](https://github.com/jeroen/jsonlite).
 
 ``` r
 path <- tempfile(fileext = ".json")
@@ -116,7 +232,7 @@ schema_write(schema, path)
 
 restored <- schema_read(path)
 restored |>
-  schema_validate(payload)
+    schema_validate(payload)
 ```
 
 Example schema files are installed under `inst/extdata`:
@@ -148,11 +264,6 @@ runtime.
 ``` r
 usethis::use_standalone("hongyuanjia/schemate", "schema", ref = "standalone")
 ```
-
-The standalone branch is generated from the development package. Do not
-edit the generated standalone file by hand; update the package source
-and regenerate it. The standalone changelog lives in
-`tools/standalone/NEWS.md`.
 
 ## Relation to Other Tools
 

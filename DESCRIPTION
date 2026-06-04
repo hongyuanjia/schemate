@@ -19,7 +19,7 @@ Description:
     distribution file for vendoring into other R packages.
 License: MIT + file LICENSE
 Encoding: UTF-8
-URL: https://github.com/hongyuanjia/schemate
+URL: https://hongyuanjia.github.io/schemate/
 BugReports: https://github.com/hongyuanjia/schemate/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
