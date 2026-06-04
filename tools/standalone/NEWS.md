@@ -1,5 +1,8 @@
 # Standalone Changelog
 
+## 2026-06-04
+- Cleanup roxygen2 documentation comments when bundling.
+
 ## 2026-06-03
 
 - Initial standalone schema bundle for `schemate`.

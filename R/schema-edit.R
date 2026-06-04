@@ -1,6 +1,4 @@
 #' @include schema-doc.R
-#' @noRd
-NULL
 
 SCHEMA_EDIT_RESERVED_TOKENS <- c(
     "fields",
@@ -122,8 +120,6 @@ schema_edit__parse_path <- function(path) {
     tokens
 }
 
-# Fragment helper utilities ------------------------------------------------
-
 schema_edit__ref_value <- function(x) {
     checkmate::assert_string(x, min.chars = 1L)
 
@@ -145,8 +141,6 @@ schema_edit__abort_with_context <- function(context, error) {
     }
     stop(sprintf("%s\n%s", context, message), call. = FALSE)
 }
-
-# Parser coercion ----------------------------------------------------------
 
 schema_edit__as_node <- function(x, defs, path, context = sprintf("Invalid schema fragment at path `%s`.", path)) {
     tryCatch(
@@ -175,8 +169,6 @@ schema_edit__as_group_binding <- function(
         }
     )
 }
-
-# Direct tree modification -------------------------------------------------
 
 schema_edit__field_binding_index <- function(bindings, name) {
     idx <- which(vapply(
@@ -252,7 +244,10 @@ schema_edit__node_refs <- function(node) {
             lapply(node@exact, function(binding) schema_edit__node_refs(binding@target)),
             use.names = FALSE
         )
-        refs <- c(refs, unlist(lapply(node@patterns, function(binding) schema_edit__node_refs(binding@target)), use.names = FALSE))
+        refs <- c(
+            refs,
+            unlist(lapply(node@patterns, function(binding) schema_edit__node_refs(binding@target)), use.names = FALSE)
+        )
         refs <- c(refs, unlist(lapply(node@positions, schema_edit__node_refs), use.names = FALSE))
         if (!is.null(node@rest)) {
             refs <- c(refs, schema_edit__node_refs(node@rest))
@@ -437,8 +432,6 @@ schema_edit__modify_doc <- function(x, path, fn) {
     schema_edit__update_node(doc, root = schema_edit__modify_tree(doc@root, tokens, fn, path))
 }
 
-# Public schema fragment helpers ------------------------------------------
-
 schema_edit__normalize_fragment <- function(x, what) {
     if (S7::S7_inherits(x, SchemaNode)) {
         return(as.list(x))
@@ -487,28 +480,6 @@ schema_edit__group_value <- function(value, description = NULL) {
     }
     value
 }
-
-#' Schema fragment helpers
-#'
-#' Fragment helpers create raw schema DSL fragments that can be passed to
-#' `schema_doc()` or the edit verbs. They are convenient for authoring schema
-#' documents without hand-writing nested lists.
-#'
-#' @name schema-fragments
-#' @keywords internal
-NULL
-
-#' Schema edit verbs
-#'
-#' Edit verbs return modified copies of `SchemaDoc` objects. Paths use `$` for
-#' the root node and bare field segments such as `$id` for container fields.
-#'
-#' Backtick-quote field names that contain path operators. Use `$fields$id` when
-#' you want the explicit field path.
-#'
-#' @name schema-edit
-#' @keywords internal
-NULL
 
 #' Create a schema check fragment
 #'
@@ -640,8 +611,6 @@ schema_group <- function(names, value, description = NULL) {
 
     c(list(names = names), schema_edit__group_value(value, description = description))
 }
-
-# Exported edit verbs ------------------------------------------------------
 
 #' Replace a schema node
 #'

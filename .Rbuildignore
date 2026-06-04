@@ -1,6 +1,12 @@
-^\.github
-^\.githooks
-^vignettes$
-^tools/standalone/.*$
-^tools/install-git-hooks\.R$
 ^\.github$
+^\.githooks$
+^vignettes$
+^tools$
+^\.github$
+^data-raw$
+^NEWS$
+^revdep$
+^_pkgdown\.yml$
+^README\.Rmd$
+^LICENSE\.md$
+^docs$

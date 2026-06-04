@@ -2,12 +2,67 @@ url: https://hongyuanjia.github.io/schemate/
 template:
   bootstrap: 5
 
+development:
+  mode: auto
+
+authors:
+  Hongyuan Jia:
+    href: https://github.com/hongyuanjia
+
 reference:
   - title: Infer And Compact
     contents:
       - schema_infer
       - schema_compact
+
+  - title: Parse And JSON IO
+    contents:
+      - schema_doc
+      - schema_read
+      - schema_write
+
+  - title: Validate
+    contents:
+      - schema_validate
+
+  - title: Modify Schema
+    desc: >
+      Edit verbs return modified copies of schema objects. Paths use `$` for the
+      root node and bare field segments such as `$id` for container fields.
+      Backtick-quote field names that contain path operators. Use `$fields$id`
+      when you want the explicit field path.
+
+  - subtitle: Edit Nodes
+    contents:
+      - schema_replace
+      - schema_set_desc
+
+  - subtitle: Edit Fields And Groups
+    contents:
+      - schema_add_field
+      - schema_del_field
+      - schema_add_group
+      - schema_del_group
+
+  - subtitle: Edit Keys, Rest, And Positions
+    contents:
+      - schema_set_keys
+      - schema_del_keys
+      - schema_set_rest
+      - schema_del_rest
+      - schema_add_position
+      - schema_del_position
+
+  - subtitle: Edit Definitions
+    contents:
+      - schema_add_def
+      - schema_del_def
+
   - title: Author Fragments
+    desc: >
+       Fragment helpers create raw schema DSL fragments that can be passed
+       to `schema_doc()` or the edit verbs. They are convenient for authoring
+       schema documents without hand-writing nested lists.
     contents:
       - schema_check
       - schema_ref
@@ -16,45 +71,21 @@ reference:
       - schema_any
       - schema_one
       - schema_not
-  - title: Parse And JSON IO
-    contents:
-      - schema_doc
-      - schema_read
-      - schema_write
-  - title: Edit Nodes
-    contents:
-      - schema_replace
-      - schema_set_desc
-  - title: Edit Fields And Groups
-    contents:
-      - schema_add_field
-      - schema_del_field
-      - schema_add_group
-      - schema_del_group
-  - title: Edit Keys, Rest, And Positions
-    contents:
-      - schema_set_keys
-      - schema_del_keys
-      - schema_set_rest
-      - schema_del_rest
-      - schema_add_position
-      - schema_del_position
-  - title: Edit Definitions
-    contents:
-      - schema_add_def
-      - schema_del_def
-  - title: Validate
-    contents:
-      - schema_validate
-navbar:
-  structure:
-    left: [intro, reference, articles, news]
-    right: [github]
 
 articles:
-  - title: Workflows
+  - title: API Response Examples
     contents:
-      - schema-workflow
-      - api-examples
-      - schema-dsl
+      - api-response
+
+  - title: Standalone Use
+    contents:
       - standalone
+
+  - title: schemate JSON DSL
+    contents:
+      - schema-dsl
+
+navbar:
+  structure:
+    left: [intro, reference, news, articles]
+    right: [search, github]

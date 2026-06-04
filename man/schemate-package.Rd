@@ -13,7 +13,7 @@ validate inputs against compiled schemas.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/hongyuanjia/schemate}
+  \item \url{https://hongyuanjia.github.io/schemate/}
   \item Report bugs at \url{https://github.com/hongyuanjia/schemate/issues}
 }
 
