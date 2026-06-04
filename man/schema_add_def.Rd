@@ -24,3 +24,11 @@ A modified \code{SchemaDoc}.
 \description{
 Add a schema definition
 }
+\examples{
+schema <- schema_doc(schema_check("string"))
+schema <- schema_add_def(schema, "text", schema_check("string"))
+schema
+
+names(as.list(schema)$`$defs`)
+
+}

@@ -492,6 +492,12 @@ schema_edit__group_value <- function(value, description = NULL) {
 #' @param description Optional node description.
 #'
 #' @return A raw schema fragment accepted by `schema_doc()` and schema edit verbs.
+#'
+#' @examples
+#' schema_check("string", min.chars = 1)
+#' schema <- schema_doc(schema_check("string", min.chars = 1))
+#' schema
+#'
 #' @export
 schema_check <- function(kind, ..., description = NULL) {
     checkmate::assert_string(kind, min.chars = 1L)
@@ -528,6 +534,17 @@ schema_check <- function(kind, ..., description = NULL) {
 #' @param description Optional node description.
 #'
 #' @return A raw schema fragment accepted by `schema_doc()` and schema edit verbs.
+#'
+#' @examples
+#' schema <- schema_doc(list(
+#'     `$defs` = list(text = schema_check("string")),
+#'     `$ref` = "#/$defs/text"
+#' ))
+#' schema
+#'
+#' schema_validate(schema, "ok", mode = "test")
+#' schema_ref("text")
+#'
 #' @export
 schema_ref <- function(name, description = NULL) {
     checkmate::assert_string(description, null.ok = TRUE)
@@ -545,6 +562,16 @@ schema_ref <- function(name, description = NULL) {
 #' @param description Optional node description.
 #'
 #' @return A raw schema fragment accepted by `schema_doc()` and schema edit verbs.
+#'
+#' @examples
+#' schema <- schema_doc(schema_all(
+#'     schema_check("string"),
+#'     schema_check("string", min.chars = 1)
+#' ))
+#' schema
+#'
+#' schema_validate(schema, "ok", mode = "test")
+#'
 #' @export
 schema_all <- function(..., description = NULL) {
     schema_edit__combinator("all", list(...), description = description)
@@ -556,6 +583,13 @@ schema_all <- function(..., description = NULL) {
 #' @param description Optional node description.
 #'
 #' @return A raw schema fragment accepted by `schema_doc()` and schema edit verbs.
+#'
+#' @examples
+#' schema <- schema_doc(schema_any(schema_check("int"), schema_check("string")))
+#' schema
+#'
+#' schema_validate(schema, "ok", mode = "test")
+#'
 #' @export
 schema_any <- function(..., description = NULL) {
     schema_edit__combinator("any", list(...), description = description)
@@ -567,6 +601,13 @@ schema_any <- function(..., description = NULL) {
 #' @param description Optional node description.
 #'
 #' @return A raw schema fragment accepted by `schema_doc()` and schema edit verbs.
+#'
+#' @examples
+#' schema <- schema_doc(schema_one(schema_check("int"), schema_check("string")))
+#' schema
+#'
+#' schema_validate(schema, "ok", mode = "test")
+#'
 #' @export
 schema_one <- function(..., description = NULL) {
     schema_edit__combinator("one", list(...), description = description)
@@ -578,6 +619,13 @@ schema_one <- function(..., description = NULL) {
 #' @param description Optional node description.
 #'
 #' @return A raw schema fragment accepted by `schema_doc()` and schema edit verbs.
+#'
+#' @examples
+#' schema <- schema_doc(schema_not(schema_check("null")))
+#' schema
+#'
+#' schema_validate(schema, "ok", mode = "test")
+#'
 #' @export
 schema_not <- function(branch, description = NULL) {
     checkmate::assert_string(description, null.ok = TRUE)
@@ -603,6 +651,8 @@ schema_not <- function(branch, description = NULL) {
 #'     check = list(kind = "list"),
 #'     groups = list(schema_group(c("x", "y"), schema_check("number")))
 #' ))
+#' schema
+#'
 #' schema_validate(schema, list(x = 1, y = 2), mode = "test")
 #'
 #' @export
@@ -624,6 +674,17 @@ schema_group <- function(names, value, description = NULL) {
 #'   `schema_check()` or `schema_ref()`.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(
+#'     check = list(kind = "list"),
+#'     fields = list(id = schema_check("int"))
+#' ))
+#' schema <- schema_replace(schema, "$id", schema_check("int", lower = 1))
+#' schema
+#'
+#' schema_validate(schema, list(id = 1L), mode = "test")
+#'
 #' @export
 schema_replace <- S7::new_generic(
     "schema_replace",
@@ -655,6 +716,14 @@ S7::method(schema_replace, SchemaDoc) <- function(x, path = "$", value) {
 #'   description.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(schema_check("string"))
+#' schema <- schema_set_desc(schema, "$", "A non-empty label.")
+#' schema
+#'
+#' as.list(schema)$description
+#'
 #' @export
 schema_set_desc <- S7::new_generic(
     "schema_set_desc",
@@ -682,6 +751,14 @@ S7::method(schema_set_desc, SchemaDoc) <- function(x, path = "$", description = 
 #' @param ... Named `keys` rule arguments passed through to the schema DSL.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema <- schema_set_keys(schema, type = "named", must.include = "id")
+#' schema
+#'
+#' schema_validate(schema, list(id = 1L), mode = "test")
+#'
 #' @export
 schema_set_keys <- S7::new_generic(
     "schema_set_keys",
@@ -718,6 +795,14 @@ S7::method(schema_set_keys, SchemaDoc) <- function(x, path = "$", ...) {
 #'   should raise an error.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(check = list(kind = "list"), keys = list(type = "named")))
+#' schema <- schema_del_keys(schema)
+#' schema
+#'
+#' as.list(schema)$keys
+#'
 #' @export
 schema_del_keys <- S7::new_generic(
     "schema_del_keys",
@@ -758,6 +843,14 @@ S7::method(schema_del_keys, SchemaDoc) <- function(x, path = "$", error_if_missi
 #'   name should be replaced.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema <- schema_add_field(schema, "id", schema_check("int", lower = 1))
+#' schema
+#'
+#' schema_validate(schema, list(id = 1L), mode = "test")
+#'
 #' @export
 schema_add_field <- S7::new_generic(
     "schema_add_field",
@@ -811,6 +904,14 @@ S7::method(schema_add_field, SchemaDoc) <- function(x, name, field, path = "$", 
 #'   that contain path operators, for example ``$`a$b` ``.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema <- schema_add_group(schema, schema_group(c("x", "y"), schema_check("number")))
+#' schema
+#'
+#' schema_validate(schema, list(x = 1, y = 2), mode = "test")
+#'
 #' @export
 schema_add_group <- S7::new_generic(
     "schema_add_group",
@@ -856,6 +957,8 @@ S7::method(schema_add_group, SchemaDoc) <- function(x, group, path = "$") {
 #'     keys = list(type = "unnamed")
 #' ))
 #' schema <- schema_set_rest(schema, schema_check("string"))
+#' schema
+#'
 #' schema_validate(schema, list("a", "b"), mode = "test")
 #'
 #' @export
@@ -903,6 +1006,8 @@ S7::method(schema_set_rest, SchemaDoc) <- function(x, field, path = "$") {
 #' ))
 #' schema <- schema_add_position(schema, 1, schema_check("string"))
 #' schema <- schema_add_position(schema, 2, schema_check("int"))
+#' schema
+#'
 #' schema_validate(schema, list("a", 1L), mode = "test")
 #'
 #' @export
@@ -953,6 +1058,15 @@ S7::method(schema_add_position, SchemaDoc) <- function(x, index, value, path = "
 #'   raise an error.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema <- schema_add_field(schema, "id", schema_check("int"))
+#' schema <- schema_del_field(schema, "id")
+#' schema
+#'
+#' names(as.list(schema)$fields)
+#'
 #' @export
 schema_del_field <- S7::new_generic(
     "schema_del_field",
@@ -1000,6 +1114,17 @@ S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_i
 #'   raise an error.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(
+#'     check = list(kind = "list"),
+#'     groups = list(schema_group(c("x", "y"), schema_check("number")))
+#' ))
+#' schema <- schema_del_group(schema, 1)
+#' schema
+#'
+#' as.list(schema)$groups
+#'
 #' @export
 schema_del_group <- S7::new_generic(
     "schema_del_group",
@@ -1046,6 +1171,15 @@ S7::method(schema_del_group, SchemaDoc) <- function(x, index, path = "$", error_
 #'   schema should raise an error.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema <- schema_set_rest(schema, schema_check("string"))
+#' schema <- schema_del_rest(schema)
+#' schema
+#'
+#' as.list(schema)$rest
+#'
 #' @export
 schema_del_rest <- S7::new_generic(
     "schema_del_rest",
@@ -1080,6 +1214,15 @@ S7::method(schema_del_rest, SchemaDoc) <- function(x, path = "$", error_if_missi
 #'   schema should raise an error.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(check = list(kind = "list"), keys = list(type = "unnamed")))
+#' schema <- schema_add_position(schema, 1, schema_check("string"))
+#' schema <- schema_del_position(schema, 1)
+#' schema
+#'
+#' as.list(schema)$positions
+#'
 #' @export
 schema_del_position <- S7::new_generic(
     "schema_del_position",
@@ -1118,6 +1261,14 @@ S7::method(schema_del_position, SchemaDoc) <- function(x, index, path = "$", err
 #'   same name should be replaced.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(schema_check("string"))
+#' schema <- schema_add_def(schema, "text", schema_check("string"))
+#' schema
+#'
+#' names(as.list(schema)$`$defs`)
+#'
 #' @export
 schema_add_def <- S7::new_generic(
     "schema_add_def",
@@ -1162,6 +1313,15 @@ S7::method(schema_add_def, SchemaDoc) <- function(x, name, value, overwrite = FA
 #'   should raise an error.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(schema_check("string"))
+#' schema <- schema_add_def(schema, "text", schema_check("string"))
+#' schema <- schema_del_def(schema, "text")
+#' schema
+#'
+#' as.list(schema)$`$defs`
+#'
 #' @export
 schema_del_def <- S7::new_generic(
     "schema_del_def",

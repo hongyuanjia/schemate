@@ -17,3 +17,10 @@ A raw schema fragment accepted by \code{schema_doc()} and schema edit verbs.
 \description{
 Create a \code{not} schema combinator fragment
 }
+\examples{
+schema <- schema_doc(schema_not(schema_check("null")))
+schema
+
+schema_validate(schema, "ok", mode = "test")
+
+}

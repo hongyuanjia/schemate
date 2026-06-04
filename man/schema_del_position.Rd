@@ -23,3 +23,12 @@ A modified \code{SchemaDoc}.
 \description{
 Delete a position schema from an unnamed container node
 }
+\examples{
+schema <- schema_doc(list(check = list(kind = "list"), keys = list(type = "unnamed")))
+schema <- schema_add_position(schema, 1, schema_check("string"))
+schema <- schema_del_position(schema, 1)
+schema
+
+as.list(schema)$positions
+
+}

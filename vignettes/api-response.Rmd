@@ -137,6 +137,7 @@ date_part <- list(
 
 crossref_schema <- crossref_schema |>
     schema_replace("$message$items$rest$`published-online`$`date-parts`$rest", date_part)
+crossref_schema
 
 bad_crossref <- crossref_payload
 bad_crossref$message$items[[1L]]$`published-online`$`date-parts`[[1L]][[2L]] <- 13L

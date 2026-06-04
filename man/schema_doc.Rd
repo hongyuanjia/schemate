@@ -25,6 +25,8 @@ hand-authoring a schema as an R list.
 }
 \examples{
 doc <- schema_doc(list(check = list(kind = "string", min.chars = 1)))
+doc
+
 schema_validate(doc, "ok")
 
 }

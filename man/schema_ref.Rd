@@ -19,3 +19,14 @@ A raw schema fragment accepted by \code{schema_doc()} and schema edit verbs.
 either a bare definition name such as \code{"text"} or a local ref string of the
 form \code{"#/$defs/text"}.
 }
+\examples{
+schema <- schema_doc(list(
+    `$defs` = list(text = schema_check("string")),
+    `$ref` = "#/$defs/text"
+))
+schema
+
+schema_validate(schema, "ok", mode = "test")
+schema_ref("text")
+
+}

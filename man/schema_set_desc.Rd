@@ -23,3 +23,11 @@ A modified \code{SchemaDoc}.
 \description{
 Set or remove a schema node description
 }
+\examples{
+schema <- schema_doc(schema_check("string"))
+schema <- schema_set_desc(schema, "$", "A non-empty label.")
+schema
+
+as.list(schema)$description
+
+}

@@ -21,3 +21,9 @@ A raw schema fragment accepted by \code{schema_doc()} and schema edit verbs.
 helper performs only lightweight structural validation; semantic validation of
 \code{kind} and check arguments is handled by \code{schema_doc()} and schema edit verbs.
 }
+\examples{
+schema_check("string", min.chars = 1)
+schema <- schema_doc(schema_check("string", min.chars = 1))
+schema
+
+}

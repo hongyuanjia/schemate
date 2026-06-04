@@ -23,3 +23,11 @@ A modified \code{SchemaDoc}.
 \description{
 Delete a schema node keys rule
 }
+\examples{
+schema <- schema_doc(list(check = list(kind = "list"), keys = list(type = "named")))
+schema <- schema_del_keys(schema)
+schema
+
+as.list(schema)$keys
+
+}

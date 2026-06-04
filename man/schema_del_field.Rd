@@ -25,3 +25,12 @@ A modified \code{SchemaDoc}.
 \description{
 Delete a field schema from a container node
 }
+\examples{
+schema <- schema_doc(list(check = list(kind = "list")))
+schema <- schema_add_field(schema, "id", schema_check("int"))
+schema <- schema_del_field(schema, "id")
+schema
+
+names(as.list(schema)$fields)
+
+}

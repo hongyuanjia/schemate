@@ -24,3 +24,14 @@ A modified \code{SchemaDoc}.
 \description{
 Replace a schema node
 }
+\examples{
+schema <- schema_doc(list(
+    check = list(kind = "list"),
+    fields = list(id = schema_check("int"))
+))
+schema <- schema_replace(schema, "$id", schema_check("int", lower = 1))
+schema
+
+schema_validate(schema, list(id = 1L), mode = "test")
+
+}

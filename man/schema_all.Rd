@@ -17,3 +17,13 @@ A raw schema fragment accepted by \code{schema_doc()} and schema edit verbs.
 \description{
 Create an \code{all} schema combinator fragment
 }
+\examples{
+schema <- schema_doc(schema_all(
+    schema_check("string"),
+    schema_check("string", min.chars = 1)
+))
+schema
+
+schema_validate(schema, "ok", mode = "test")
+
+}

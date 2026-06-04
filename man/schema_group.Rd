@@ -25,6 +25,8 @@ schema <- schema_doc(list(
     check = list(kind = "list"),
     groups = list(schema_group(c("x", "y"), schema_check("number")))
 ))
+schema
+
 schema_validate(schema, list(x = 1, y = 2), mode = "test")
 
 }

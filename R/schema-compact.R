@@ -401,7 +401,11 @@ S7::method(schema_compact__node, S7::class_any) <- function(node, arrays, groups
 #'     keys = "named",
 #'     arrays = "rest"
 #' )
+#' schema
+#'
 #' compact <- schema_compact(schema)
+#' compact
+#'
 #' names(as.list(compact)$fields$items$rest$fields)
 #'
 #' @export

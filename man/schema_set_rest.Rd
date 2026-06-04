@@ -30,6 +30,8 @@ schema <- schema_doc(list(
     keys = list(type = "unnamed")
 ))
 schema <- schema_set_rest(schema, schema_check("string"))
+schema
+
 schema_validate(schema, list("a", "b"), mode = "test")
 
 }

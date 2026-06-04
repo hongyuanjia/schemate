@@ -29,7 +29,11 @@ schema <- schema_infer(
     keys = "named",
     arrays = "rest"
 )
+schema
+
 compact <- schema_compact(schema)
+compact
+
 names(as.list(compact)$fields$items$rest$fields)
 
 }

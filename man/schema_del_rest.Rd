@@ -23,3 +23,12 @@ A modified \code{SchemaDoc}.
 \description{
 Delete a container rest schema
 }
+\examples{
+schema <- schema_doc(list(check = list(kind = "list")))
+schema <- schema_set_rest(schema, schema_check("string"))
+schema <- schema_del_rest(schema)
+schema
+
+as.list(schema)$rest
+
+}
