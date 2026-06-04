@@ -1,32 +1,38 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-arg_value <- function(name, default = NULL) {
-    hit <- which(args == name)
-    if (!length(hit) || hit[[1L]] == length(args)) {
-        return(default)
-    }
-    args[[hit[[1L]] + 1L]]
-}
-
 script_arg <- commandArgs(FALSE)
 script_file <- sub("^--file=", "", script_arg[startsWith(script_arg, "--file=")][[1L]])
 script_file <- normalizePath(script_file, mustWork = TRUE)
-repo <- normalizePath(file.path(dirname(script_file), "..", ".."), mustWork = TRUE)
-out_dir <- arg_value("--out-dir", tempfile("schemate-standalone-"))
+source(file.path(dirname(script_file), "utils.R"))
 
-system2(
+repo <- standalone_repo(script_file)
+out_dir <- standalone_arg_value(args, "--out-dir", tempfile("schemate-standalone-"))
+source_description_path <- file.path(repo, "DESCRIPTION")
+source_description <- standalone_source_description(repo)
+source_description_before <- readLines(source_description_path, warn = FALSE)
+
+output <- system2(
     file.path(R.home("bin"), "Rscript"),
     c(file.path(repo, "tools", "standalone", "generate.R"), "--out-dir", out_dir),
     stdout = TRUE,
     stderr = TRUE
 )
-
-standalone_file <- file.path(out_dir, "R", "standalone-schema.R")
-if (!file.exists(standalone_file)) {
-    stop("Standalone file was not generated.", call. = FALSE)
+status <- attr(output, "status")
+if (!is.null(status) && !identical(status, 0L)) {
+    cat(output, sep = "\n")
+    stop("Standalone generation failed.", call. = FALSE)
 }
 
+source_description_after <- readLines(source_description_path, warn = FALSE)
+if (!identical(source_description_before, source_description_after)) {
+    stop("Standalone generation modified the source package DESCRIPTION.", call. = FALSE)
+}
+
+standalone_assert_files(out_dir)
+standalone_assert_description(file.path(out_dir, "DESCRIPTION"), source_description)
+
+standalone_file <- file.path(out_dir, "R", "standalone-schema.R")
 source(standalone_file, chdir = TRUE)
 
 schema <- schema_infer(list(id = 1L, name = "alice"))
@@ -50,19 +56,10 @@ if (isTRUE(failed)) {
 target_pkg <- tempfile("schemate-target-")
 dir.create(file.path(target_pkg, "R"), recursive = TRUE)
 file.copy(standalone_file, file.path(target_pkg, "R", "import-standalone-schema.R"))
-writeLines(c(
-    "Package: schemate-target",
-    "Title: Standalone Import Target",
-    "Version: 0.0.0.9000",
-    "Description: Temporary target package for standalone testing.",
-    "License: MIT",
-    "Encoding: UTF-8",
-    "Imports:",
-    "    checkmate (>= 2.0.0),",
-    "    S7",
-    "Suggests:",
-    "    jsonlite"
-), file.path(target_pkg, "DESCRIPTION"))
+
+target_description <- standalone_bundle_description(repo)
+standalone_write_description(target_description, file.path(target_pkg, "DESCRIPTION"))
+standalone_assert_description(file.path(target_pkg, "DESCRIPTION"), source_description)
 
 if (requireNamespace("devtools", quietly = TRUE)) {
     devtools::load_all(target_pkg, quiet = TRUE)

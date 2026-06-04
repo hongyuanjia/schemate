@@ -1,41 +1,17 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-arg_value <- function(name, default = NULL) {
-    hit <- which(args == name)
-    if (!length(hit) || hit[[1L]] == length(args)) {
-        return(default)
-    }
-    args[[hit[[1L]] + 1L]]
-}
-
 script_arg <- commandArgs(FALSE)
 script_file <- sub("^--file=", "", script_arg[startsWith(script_arg, "--file=")][[1L]])
 script_file <- normalizePath(script_file, mustWork = TRUE)
-repo <- normalizePath(file.path(dirname(script_file), "..", ".."), mustWork = TRUE)
-out_dir <- arg_value("--out-dir", file.path(tempdir(), "schemate-standalone"))
+source(file.path(dirname(script_file), "utils.R"))
 
-source_files <- file.path(
-    repo,
-    "R",
-    c(
-        "schema-utils.R",
-        "schema-spec.R",
-        "schema-doc.R",
-        "schema-compact.R",
-        "schema-edit.R",
-        "schema-flat.R",
-        "schema-infer.R",
-        "schema-json.R",
-        "schema-validate.R",
-        "zzz.R"
-    )
-)
+repo <- standalone_repo(script_file)
+out_dir <- standalone_arg_value(args, "--out-dir", file.path(tempdir(), "schemate-standalone"))
 
-missing <- source_files[!file.exists(source_files)]
-if (length(missing)) {
-    stop("Missing source file(s): ", paste(missing, collapse = ", "), call. = FALSE)
-}
+source_description <- standalone_source_description(repo)
+description <- standalone_bundle_description(repo)
+source_files <- standalone_source_files(repo, source_description)
 
 source_commit <- tryCatch(
     system2("git", c("-C", repo, "rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE),
@@ -65,9 +41,9 @@ header <- c(
     "# file: standalone-schema.R",
     paste0("# last-updated: ", Sys.Date()),
     "# license: MIT",
-    "# imports: [S7, checkmate (>= 2.0.0)]",
-    "# optional: [jsonlite]",
-    paste0("# source-commit: ", source_commit[[1L]]),
+    sprintf("# imports: [%s]", standalone_description_field_inline(description, "Imports")),
+    sprintf("# optional: [%s]", standalone_description_field_inline(description, "Suggests")),
+    sprintf("# source-commit: %s", source_commit[[1L]]),
     "# ---",
     "#",
     comment_lines(news),
@@ -76,48 +52,42 @@ header <- c(
     ""
 )
 
-body <- unlist(lapply(source_files, function(path) {
-    c(
-        sprintf("# %s %s", strrep("-", 20), basename(path)),
-        readLines(path, warn = FALSE),
-        ""
-    )
-}), use.names = FALSE)
+body <- unlist(
+    lapply(source_files, function(path) {
+        c(
+            sprintf("# %s %s", strrep("-", 20), basename(path)),
+            standalone_clean_source_lines(path),
+            ""
+        )
+    }),
+    use.names = FALSE
+)
 
 footer <- c("# nocov end", "")
 
 dir.create(file.path(out_dir, "R"), recursive = TRUE, showWarnings = FALSE)
 writeLines(c(header, body, footer), file.path(out_dir, "R", "standalone-schema.R"))
+standalone_write_description(description, file.path(out_dir, "DESCRIPTION"))
 
-writeLines(c(
-    "Package: schemate-standalone",
-    "Title: Standalone Schema Bundle",
-    "Version: 0.0.0.9000",
-    "Author: Hongyuan Jia",
-    "Maintainer: Hongyuan Jia <hongyuanjia@outlook.com>",
-    "Description: Generated standalone schema bundle for usethis::use_standalone().",
-    "License: MIT + file LICENSE",
-    "Encoding: UTF-8",
-    "Imports:",
-    "    checkmate (>= 2.0.0),",
-    "    S7",
-    "Suggests:",
-    "    jsonlite"
-), file.path(out_dir, "DESCRIPTION"))
+writeLines(
+    c(
+        "YEAR: 2026",
+        "COPYRIGHT HOLDER: Hongyuan Jia"
+    ),
+    file.path(out_dir, "LICENSE")
+)
 
-writeLines(c(
-    "YEAR: 2026",
-    "COPYRIGHT HOLDER: Hongyuan Jia"
-), file.path(out_dir, "LICENSE"))
-
-writeLines(c(
-    "# schemate standalone",
-    "",
-    "This branch is generated from `hongyuanjia/schemate`.",
-    "",
-    "```r",
-    "usethis::use_standalone(\"hongyuanjia/schemate\", \"schema\", ref = \"standalone\")",
-    "```"
-), file.path(out_dir, "README.md"))
+writeLines(
+    c(
+        "# schemate",
+        "",
+        "This branch is generated from `hongyuanjia/schemate`.",
+        "",
+        "```r",
+        "usethis::use_standalone(\"hongyuanjia/schemate\", \"schema\", ref = \"standalone\")",
+        "```"
+    ),
+    file.path(out_dir, "README.md")
+)
 
 message("Generated standalone bundle at ", normalizePath(out_dir, mustWork = FALSE))

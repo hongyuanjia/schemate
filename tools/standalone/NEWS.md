@@ -2,6 +2,8 @@
 
 ## 2026-06-04
 - Cleanup roxygen2 documentation comments when bundling.
+- Share standalone DESCRIPTION generation logic between generation and local
+  tests, while preserving the source package DESCRIPTION.
 
 ## 2026-06-03
 

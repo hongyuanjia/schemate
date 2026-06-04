@@ -22,6 +22,7 @@ jobs:
         with:
           extra-packages: |
             any::devtools
+            any::desc
 
       - name: Check standalone changelog
         run: Rscript tools/standalone/check-news.R
