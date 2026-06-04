@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">schemate</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,11 +29,22 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/schemate.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/api-response.html">API Response Examples</a></li>
+    <li><a class="dropdown-item" href="../articles/standalone.html">Standalone Use</a></li>
+    <li><a class="dropdown-item" href="../articles/schema-dsl.html">Schema DSL</a></li>
+  </ul>
+</li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/hongyuanjia/schemate/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
@@ -87,26 +98,15 @@ installation hint. Printing still works through a small base R
 fallback.</p>
 </div>
 <div class="section level2">
-<h2 id="generated-branch">Generated Branch<a class="anchor" aria-label="anchor" href="#generated-branch"></a>
+<h2 id="register-s7-classes-and-methods">Register S7 classes and methods<a class="anchor" aria-label="anchor" href="#register-s7-classes-and-methods"></a>
 </h2>
-<p>The <code>standalone</code> branch is an artifact branch. Its
-<code>R/standalone-schema.R</code> file is generated from package source
-files by:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>Rscript tools<span class="sc">/</span>standalone<span class="sc">/</span>generate.R</span></code></pre></div>
-<p>Use the local smoke test before publishing updates:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>Rscript tools<span class="sc">/</span>standalone<span class="sc">/</span>test<span class="sc">-</span>local.R</span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="changelog">Changelog<a class="anchor" aria-label="anchor" href="#changelog"></a>
-</h2>
-<p>The generated standalone file includes a commented changelog header
-from <code>tools/standalone/NEWS.md</code>, plus the source commit. Keep
-that file current when the standalone API or behavior changes.</p>
-<p>Install the repository hook to receive a commit-time reminder:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>Rscript tools<span class="sc">/</span>install<span class="sc">-</span>git<span class="sc">-</span>hooks.R</span></code></pre></div>
-<p>The hook runs <code>tools/standalone/check-news.R</code> before
-commits and reminds you to update the standalone changelog when source
-files have changed.</p>
+<p>Next, create a <code>.onLoad()</code> in <code>zzz.R</code> that
+calls <code><a href="https://rconsortium.github.io/S7/reference/methods_register.html" class="external-link">S7::methods_register()</a></code>:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">.onLoad</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">libname</span>, <span class="va">pkgname</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu">S7</span><span class="fu">::</span><span class="fu"><a href="https://rconsortium.github.io/S7/reference/methods_register.html" class="external-link">methods_register</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>This is S7’s way of registering methods.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -115,7 +115,7 @@ files have changed.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Hongyuan Jia.</p>
+  <p>Developed by <a href="https://github.com/hongyuanjia" class="external-link">Hongyuan Jia</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

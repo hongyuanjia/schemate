@@ -1,4 +1,4 @@
-# Get Started: Schema Lifecycle
+# Introduction to schemate
 
 `schemate` is built around one lifecycle:
 
@@ -20,69 +20,89 @@ response.
 library(schemate)
 
 payload <- list(
-  request = list(id = "run-001", retry = FALSE),
-  items = list(
-    list(id = 1L, label = "alpha", tags = list("r", "schema")),
-    list(id = 2L, label = "beta", tags = list("validation"))
-  )
+    request = list(id = "run-001", retry = FALSE),
+    items = list(
+        list(id = 1L, label = "alpha", tags = list("r", "schema")),
+        list(id = 2L, label = "beta", tags = list("validation"))
+    )
 )
 
 schema <- payload |>
-  schema_infer(keys = "named", arrays = "rest") |>
-  schema_compact()
+    schema_infer(keys = "named", arrays = "rest") |>
+    schema_compact()
 
-as.list(schema)$fields$items
-#> $check
-#> $check$kind
-#> [1] "list"
-#> 
-#> 
-#> $keys
-#> $keys$type
-#> [1] "unnamed"
-#> 
-#> 
-#> $rest
-#> $rest$check
-#> $rest$check$kind
-#> [1] "list"
-#> 
-#> 
-#> $rest$keys
-#> $rest$keys$type
-#> [1] "named"
-#> 
-#> 
-#> $rest$fields
-#> $rest$fields$id
-#> $rest$fields$id$check
-#> $rest$fields$id$check$kind
-#> [1] "int"
-#> 
-#> 
-#> 
-#> $rest$fields$label
-#> $rest$fields$label$check
-#> $rest$fields$label$check$kind
-#> [1] "string"
-#> 
-#> 
-#> 
-#> $rest$fields$tags
-#> $rest$fields$tags$check
-#> $rest$fields$tags$check$kind
-#> [1] "list"
-#> 
-#> 
-#> $rest$fields$tags$keys
-#> $rest$fields$tags$keys$type
-#> [1] "unnamed"
-#> 
-#> 
-#> $rest$fields$tags$rest
-#> $rest$fields$tags$rest$check
-#> $rest$fields$tags$rest$check$kind
-#> [1] "string"
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "keys": {
+#>     "type": "named"
+#>   },
+#>   "fields": {
+#>     "request": {
+#>       "check": {
+#>         "kind": "list"
+#>       },
+#>       "keys": {
+#>         "type": "named"
+#>       },
+#>       "fields": {
+#>         "id": {
+#>           "check": {
+#>             "kind": "string"
+#>           }
+#>         },
+#>         "retry": {
+#>           "check": {
+#>             "kind": "flag"
+#>           }
+#>         }
+#>       }
+#>     },
+#>     "items": {
+#>       "check": {
+#>         "kind": "list"
+#>       },
+#>       "keys": {
+#>         "type": "unnamed"
+#>       },
+#>       "rest": {
+#>         "check": {
+#>           "kind": "list"
+#>         },
+#>         "keys": {
+#>           "type": "named"
+#>         },
+#>         "fields": {
+#>           "id": {
+#>             "check": {
+#>               "kind": "int"
+#>             }
+#>           },
+#>           "label": {
+#>             "check": {
+#>               "kind": "string"
+#>             }
+#>           },
+#>           "tags": {
+#>             "check": {
+#>               "kind": "list"
+#>             },
+#>             "keys": {
+#>               "type": "unnamed"
+#>             },
+#>             "rest": {
+#>               "check": {
+#>                 "kind": "string"
+#>               }
+#>             }
+#>           }
+#>         }
+#>       }
+#>     }
+#>   }
+#> }
 ```
 
 `arrays = "rest"` treats unnamed lists as homogeneous arrays. The
@@ -99,10 +119,10 @@ so the next step is to refine the parts of the contract that matter.
 ``` r
 
 schema <- schema |>
-  schema_set_desc("$", "Example request payload.") |>
-  schema_replace("$request$id", schema_check("string", min.chars = 1)) |>
-  schema_replace("$items$rest$id", schema_check("int", lower = 1)) |>
-  schema_set_rest(schema_check("string", min.chars = 1), path = "$items$rest$tags")
+    schema_set_desc("$", "Example request payload.") |>
+    schema_replace("$request$id", schema_check("string", min.chars = 1)) |>
+    schema_replace("$items$rest$id", schema_check("int", lower = 1)) |>
+    schema_set_rest(schema_check("string", min.chars = 1), path = "$items$rest$tags")
 
 schema
 #> {
@@ -277,8 +297,8 @@ restored
 #> }
 ```
 
-Package authors can store schema files in `inst/extdata` and load them
-with [`system.file()`](https://rdrr.io/r/base/system.file.html).
+Below is an example schema file shipped with this package.
+[`system.file()`](https://rdrr.io/r/base/system.file.html).
 
 ``` r
 
@@ -327,13 +347,13 @@ schema_read(person_schema)
 
 good <- payload
 restored |>
-  schema_validate(good, mode = "test")
+    schema_validate(good, mode = "test")
 #> [1] TRUE
 
 bad <- payload
 bad$items[[1L]]$id <- 0L
 restored |>
-  schema_validate(bad, mode = "check", name = "payload")
+    schema_validate(bad, mode = "check", name = "payload")
 #> [1] "payload$items[[1]]$id: Element 1 is not >= 1"
 ```
 
@@ -352,33 +372,125 @@ inferred, edited, saved, and reused.
 ``` r
 
 scores <- data.frame(
-  id = 1:3,
-  name = c("alice", "bob", "carol"),
-  score = c(9.5, 8.0, 7.5)
+    id = 1:3,
+    name = c("alice", "bob", "carol"),
+    score = c(9.5, 8.0, 7.5)
 )
 
 score_schema <- scores |>
-  schema_infer(keys = "required") |>
-  schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
-  schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
+    schema_infer(keys = "required") |>
+    schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
+    schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
+score_schema
+#> {
+#>   "check": {
+#>     "kind": "data_frame"
+#>   },
+#>   "keys": {
+#>     "type": "named",
+#>     "must.include": ["id", "name", "score"]
+#>   },
+#>   "fields": {
+#>     "id": {
+#>       "check": {
+#>         "kind": "integerish",
+#>         "any.missing": false
+#>       }
+#>     },
+#>     "name": {
+#>       "check": {
+#>         "kind": "character"
+#>       }
+#>     },
+#>     "score": {
+#>       "check": {
+#>         "kind": "numeric",
+#>         "lower": 0,
+#>         "upper": 10
+#>       }
+#>     }
+#>   }
+#> }
 
 score_schema |>
-  schema_validate(scores, mode = "test")
+    schema_validate(scores, mode = "test")
 #> [1] TRUE
 
 bad_scores <- transform(scores, score = as.character(score))
 score_schema |>
-  schema_validate(bad_scores, mode = "check", name = "scores")
+    schema_validate(bad_scores, mode = "check", name = "scores")
 #> [1] "scores$score: Must be of type 'numeric', not 'character'"
 ```
 
 ## Validation Modes
 
-Use validation modes according to the caller:
+Use validation modes according to the caller. The examples below use one
+small schema so the return shape is easy to compare.
 
-| Mode     | Use when                                                 |
-|----------|----------------------------------------------------------|
-| `assert` | invalid input should stop execution                      |
-| `check`  | you want a diagnostic string                             |
-| `test`   | control flow needs a boolean                             |
-| `expect` | tests should receive a testthat-style expectation object |
+``` r
+
+mode_schema <- schema_doc(list(
+    check = list(kind = "list"),
+    fields = list(id = schema_check("int", lower = 1))
+))
+mode_good <- list(id = 1L)
+mode_bad <- list(id = 0L)
+mode_schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "fields": {
+#>     "id": {
+#>       "check": {
+#>         "kind": "int",
+#>         "lower": 1
+#>       }
+#>     }
+#>   }
+#> }
+```
+
+`assert` is the default for application code. It returns the input
+invisibly on success and throws an error on failure.
+
+``` r
+
+mode_schema |>
+    schema_validate(mode_good)
+try(mode_schema |>
+    schema_validate(mode_bad, name = "payload"))
+#> Error : payload$id: Element 1 is not >= 1
+```
+
+`check` returns `TRUE` or a diagnostic string. It is useful when you
+want to show or store the validation message.
+
+``` r
+
+mode_schema |>
+    schema_validate(mode_bad, mode = "check", name = "payload")
+#> [1] "payload$id: Element 1 is not >= 1"
+```
+
+`test` returns a plain boolean. It is useful for control flow.
+
+``` r
+
+mode_schema |>
+    schema_validate(mode_good, mode = "test")
+#> [1] TRUE
+mode_schema |>
+    schema_validate(mode_bad, mode = "test")
+#> [1] FALSE
+```
+
+`expect` returns a testthat-style expectation object for package tests.
+
+``` r
+
+mode_schema |>
+    schema_validate(mode_good, mode = "expect")
+#> <expectation_success/expectation/condition>
+#> As expected
+```

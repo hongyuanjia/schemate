@@ -35,5 +35,13 @@ schema as an R list.
 
 ``` r
 doc <- schema_doc(list(check = list(kind = "string", min.chars = 1)))
+doc
+#> {
+#>   "check": {
+#>     "kind": "string",
+#>     "min.chars": 1
+#>   }
+#> }
+
 schema_validate(doc, "ok")
 ```

@@ -40,3 +40,27 @@ schema_add_field(x, name, field, path = "$", overwrite = FALSE)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(list(check = list(kind = "list")))
+schema <- schema_add_field(schema, "id", schema_check("int", lower = 1))
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "fields": {
+#>     "id": {
+#>       "check": {
+#>         "kind": "int",
+#>         "lower": 1
+#>       }
+#>     }
+#>   }
+#> }
+
+schema_validate(schema, list(id = 1L), mode = "test")
+#> [1] TRUE
+```

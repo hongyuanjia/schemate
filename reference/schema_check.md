@@ -31,3 +31,25 @@ schema_check(kind, ..., description = NULL)
 A raw schema fragment accepted by
 [`schema_doc()`](https://hongyuanjia.github.io/schemate/reference/schema_doc.md)
 and schema edit verbs.
+
+## Examples
+
+``` r
+schema_check("string", min.chars = 1)
+#> $check
+#> $check$kind
+#> [1] "string"
+#> 
+#> $check$min.chars
+#> [1] 1
+#> 
+#> 
+schema <- schema_doc(schema_check("string", min.chars = 1))
+schema
+#> {
+#>   "check": {
+#>     "kind": "string",
+#>     "min.chars": 1
+#>   }
+#> }
+```

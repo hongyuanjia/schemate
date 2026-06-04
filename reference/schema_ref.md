@@ -25,3 +25,30 @@ schema_ref(name, description = NULL)
 A raw schema fragment accepted by
 [`schema_doc()`](https://hongyuanjia.github.io/schemate/reference/schema_doc.md)
 and schema edit verbs.
+
+## Examples
+
+``` r
+schema <- schema_doc(list(
+    `$defs` = list(text = schema_check("string")),
+    `$ref` = "#/$defs/text"
+))
+schema
+#> {
+#>   "$defs": {
+#>     "text": {
+#>       "check": {
+#>         "kind": "string"
+#>       }
+#>     }
+#>   },
+#>   "$ref": "#/$defs/text"
+#> }
+
+schema_validate(schema, "ok", mode = "test")
+#> [1] TRUE
+schema_ref("text")
+#> $`$ref`
+#> [1] "#/$defs/text"
+#> 
+```

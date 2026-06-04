@@ -1,17 +1,15 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://hongyuanjia.github.io/schemate/404.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/LICENSE-text.html</loc></url>
-<url><loc>https://hongyuanjia.github.io/schemate/articles/api-examples.html</loc></url>
+<url><loc>https://hongyuanjia.github.io/schemate/articles/api-response.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/articles/index.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/articles/schema-dsl.html</loc></url>
-<url><loc>https://hongyuanjia.github.io/schemate/articles/schema-workflow.html</loc></url>
+<url><loc>https://hongyuanjia.github.io/schemate/articles/schemate.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/articles/standalone.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/authors.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/index.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/news/index.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/reference/index.html</loc></url>
-<url><loc>https://hongyuanjia.github.io/schemate/reference/schema-edit.html</loc></url>
-<url><loc>https://hongyuanjia.github.io/schemate/reference/schema-fragments.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/reference/schema-json.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/reference/schema_add_def.html</loc></url>
 <url><loc>https://hongyuanjia.github.io/schemate/reference/schema_add_field.html</loc></url>

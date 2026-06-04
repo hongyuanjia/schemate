@@ -33,3 +33,30 @@ schema_replace(x, path = "$", value)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(list(
+    check = list(kind = "list"),
+    fields = list(id = schema_check("int"))
+))
+schema <- schema_replace(schema, "$id", schema_check("int", lower = 1))
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "fields": {
+#>     "id": {
+#>       "check": {
+#>         "kind": "int",
+#>         "lower": 1
+#>       }
+#>     }
+#>   }
+#> }
+
+schema_validate(schema, list(id = 1L), mode = "test")
+#> [1] TRUE
+```

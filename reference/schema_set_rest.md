@@ -41,6 +41,21 @@ schema <- schema_doc(list(
     keys = list(type = "unnamed")
 ))
 schema <- schema_set_rest(schema, schema_check("string"))
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "keys": {
+#>     "type": "unnamed"
+#>   },
+#>   "rest": {
+#>     "check": {
+#>       "kind": "string"
+#>     }
+#>   }
+#> }
+
 schema_validate(schema, list("a", "b"), mode = "test")
 #> [1] TRUE
 ```

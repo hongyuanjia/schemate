@@ -26,3 +26,20 @@ schema_del_def(x, name, error_if_missing = TRUE)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(schema_check("string"))
+schema <- schema_add_def(schema, "text", schema_check("string"))
+schema <- schema_del_def(schema, "text")
+schema
+#> {
+#>   "check": {
+#>     "kind": "string"
+#>   }
+#> }
+
+as.list(schema)$`$defs`
+#> NULL
+```

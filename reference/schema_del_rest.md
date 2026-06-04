@@ -29,3 +29,20 @@ schema_del_rest(x, path = "$", error_if_missing = TRUE)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(list(check = list(kind = "list")))
+schema <- schema_set_rest(schema, schema_check("string"))
+schema <- schema_del_rest(schema)
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   }
+#> }
+
+as.list(schema)$rest
+#> NULL
+```

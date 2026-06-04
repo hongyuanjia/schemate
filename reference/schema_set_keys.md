@@ -28,3 +28,23 @@ schema_set_keys(x, path = "$", ...)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(list(check = list(kind = "list")))
+schema <- schema_set_keys(schema, type = "named", must.include = "id")
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "keys": {
+#>     "type": "named",
+#>     "must.include": "id"
+#>   }
+#> }
+
+schema_validate(schema, list(id = 1L), mode = "test")
+#> [1] FALSE
+```

@@ -30,3 +30,23 @@ schema_del_position(x, index, path = "$", error_if_missing = TRUE)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(list(check = list(kind = "list"), keys = list(type = "unnamed")))
+schema <- schema_add_position(schema, 1, schema_check("string"))
+schema <- schema_del_position(schema, 1)
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "keys": {
+#>     "type": "unnamed"
+#>   }
+#> }
+
+as.list(schema)$positions
+#> NULL
+```

@@ -57,6 +57,41 @@ instead.
 ``` r
 payload <- list(items = list(list(id = 1L), list(id = 2L)))
 schema <- schema_infer(payload, keys = "named", arrays = "rest")
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "keys": {
+#>     "type": "named"
+#>   },
+#>   "fields": {
+#>     "items": {
+#>       "check": {
+#>         "kind": "list"
+#>       },
+#>       "keys": {
+#>         "type": "unnamed"
+#>       },
+#>       "rest": {
+#>         "check": {
+#>           "kind": "list"
+#>         },
+#>         "keys": {
+#>           "type": "named"
+#>         },
+#>         "fields": {
+#>           "id": {
+#>             "check": {
+#>               "kind": "int"
+#>             }
+#>           }
+#>         }
+#>       }
+#>     }
+#>   }
+#> }
+
 as.list(schema)$fields$items$keys
 #> $type
 #> [1] "unnamed"

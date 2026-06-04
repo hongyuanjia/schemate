@@ -34,3 +34,26 @@ schema_add_def(x, name, value, overwrite = FALSE)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(schema_check("string"))
+schema <- schema_add_def(schema, "text", schema_check("string"))
+schema
+#> {
+#>   "$defs": {
+#>     "text": {
+#>       "check": {
+#>         "kind": "string"
+#>       }
+#>     }
+#>   },
+#>   "check": {
+#>     "kind": "string"
+#>   }
+#> }
+
+names(as.list(schema)$`$defs`)
+#> [1] "text"
+```

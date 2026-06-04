@@ -38,6 +38,47 @@ For most workflows, start with
 inspect `as.list(schema)`, then use edit verbs to add the few rules
 inference cannot know.
 
+### Common schema shapes
+
+A scalar schema is just a `check` node:
+
+``` json
+{
+  "check": { "kind": "string", "min.chars": 1 }
+}
+```
+
+A named container uses `fields` for exact child names and can use `rest`
+for the remaining fields:
+
+``` json
+{
+  "check": { "kind": "list" },
+  "keys": { "type": "named" },
+  "fields": {
+    "id": { "check": { "kind": "int", "lower": 1 } }
+  },
+  "rest": { "check": { "kind": "string" } }
+}
+```
+
+An unnamed JSON-like array uses `keys.type = "unnamed"`. Use `rest` for
+a homogeneous array and `positions` when the first positions have
+tuple-like meaning:
+
+``` json
+{
+  "check": { "kind": "list" },
+  "keys": { "type": "unnamed" },
+  "rest": { "check": { "kind": "string" } }
+}
+```
+
+The rest of this article is a reference for the same building blocks.
+The container-child sections explain `fields`, `groups`, `patterns`,
+`positions`, and `rest`; the formal-rule sections explain reserved keys,
+shorthand syntax, validation order, and serialization order.
+
 ### When to write DSL JSON by hand
 
 Most users should start from
@@ -74,7 +115,9 @@ The R helpers create the same JSON shapes documented below:
 | [`schema_not()`](https://hongyuanjia.github.io/schemate/reference/schema_not.md) | `not` |
 | [`schema_group()`](https://hongyuanjia.github.io/schemate/reference/schema_group.md) | `groups[]` |
 
-### Core principles
+### Formal reference
+
+#### Core principles
 
 1.  Each schema node has exactly one **primary operator**.
 2.  The primary operator must be one of:
@@ -112,7 +155,7 @@ The R helpers create the same JSON shapes documented below:
 14. Inside `all` / `any` / `one` / `not`, a branch may use shorthand
     check syntax without an explicit `check` wrapper.
 
-### Reserved schema DSL keys
+#### Reserved schema DSL keys
 
 The following keys are reserved by the schema DSL:
 
@@ -144,7 +187,7 @@ appear at the node top level. They appear inside:
 - `patterns`
 - `$defs` definition names
 
-### Top-level schema document
+#### Top-level schema document
 
 A schema document contains:
 
@@ -805,7 +848,7 @@ Validate the child schema and invert the result.
 
 Resolve the reference and validate against the target schema.
 
-### Static schema validation rules
+### Formal validation rules
 
 When parsing the JSON DSL itself, the following should be enforced:
 
@@ -856,7 +899,7 @@ When parsing the JSON DSL itself, the following should be enforced:
     `description`.
 34. `description` must be a non-empty string when present.
 
-### Examples
+### Additional examples
 
 #### Simple scalar schema
 

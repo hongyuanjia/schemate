@@ -8,7 +8,7 @@ schema JSON, and validate inputs against compiled schemas.
 
 Useful links:
 
-- <https://github.com/hongyuanjia/schemate>
+- <https://hongyuanjia.github.io/schemate/>
 
 - Report bugs at <https://github.com/hongyuanjia/schemate/issues>
 

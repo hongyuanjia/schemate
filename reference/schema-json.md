@@ -51,9 +51,24 @@ returns `path`.
 
 ``` r
 schema <- schema_infer(list(id = 1L))
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "fields": {
+#>     "id": {
+#>       "check": {
+#>         "kind": "int"
+#>       }
+#>     }
+#>   }
+#> }
+
 path <- tempfile(fileext = ".json")
 schema_write(schema, path)
-schema_read(path)
+restored <- schema_read(path)
+restored
 #> {
 #>   "check": {
 #>     "kind": "list"

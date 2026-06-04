@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">schemate</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,11 +29,22 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/schemate.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/api-response.html">API Response Examples</a></li>
+    <li><a class="dropdown-item" href="../articles/standalone.html">Standalone Use</a></li>
+    <li><a class="dropdown-item" href="../articles/schema-dsl.html">Schema DSL</a></li>
+  </ul>
+</li>
       </ul>
 <ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/hongyuanjia/schemate/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
@@ -134,6 +145,37 @@ positions</td>
 inference cannot know.</p>
 </div>
 <div class="section level3">
+<h3 id="common-schema-shapes">Common schema shapes<a class="anchor" aria-label="anchor" href="#common-schema-shapes"></a>
+</h3>
+<p>A scalar schema is just a <code>check</code> node:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"min.chars"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>A named container uses <code>fields</code> for exact child names and
+can use <code>rest</code> for the remaining fields:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"named"</span> <span class="fu">},</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    <span class="dt">"id"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>An unnamed JSON-like array uses <code>keys.type = "unnamed"</code>.
+Use <code>rest</code> for a homogeneous array and <code>positions</code>
+when the first positions have tuple-like meaning:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>The rest of this article is a reference for the same building blocks.
+The container-child sections explain <code>fields</code>,
+<code>groups</code>, <code>patterns</code>, <code>positions</code>, and
+<code>rest</code>; the formal-rule sections explain reserved keys,
+shorthand syntax, validation order, and serialization order.</p>
+</div>
+<div class="section level3">
 <h3 id="when-to-write-dsl-json-by-hand">When to write DSL JSON by hand<a class="anchor" aria-label="anchor" href="#when-to-write-dsl-json-by-hand"></a>
 </h3>
 <p>Most users should start from <code><a href="../reference/schema_infer.html">schema_infer()</a></code>, edit the
@@ -194,8 +236,11 @@ schema.</li>
 </table>
 </div>
 <div class="section level3">
-<h3 id="core-principles">Core principles<a class="anchor" aria-label="anchor" href="#core-principles"></a>
+<h3 id="formal-reference">Formal reference<a class="anchor" aria-label="anchor" href="#formal-reference"></a>
 </h3>
+<div class="section level4">
+<h4 id="core-principles">Core principles<a class="anchor" aria-label="anchor" href="#core-principles"></a>
+</h4>
 <ol style="list-style-type: decimal">
 <li>Each schema node has exactly one <strong>primary
 operator</strong>.</li>
@@ -251,9 +296,9 @@ version.</li>
 explicit <code>check</code> wrapper.</li>
 </ol>
 </div>
-<div class="section level3">
-<h3 id="reserved-schema-dsl-keys">Reserved schema DSL keys<a class="anchor" aria-label="anchor" href="#reserved-schema-dsl-keys"></a>
-</h3>
+<div class="section level4">
+<h4 id="reserved-schema-dsl-keys">Reserved schema DSL keys<a class="anchor" aria-label="anchor" href="#reserved-schema-dsl-keys"></a>
+</h4>
 <p>The following keys are reserved by the schema DSL:</p>
 <ul>
 <li><code>check</code></li>
@@ -286,9 +331,9 @@ inside:</p>
 <code>$defs</code> definition names</li>
 </ul>
 </div>
-<div class="section level3">
-<h3 id="top-level-schema-document">Top-level schema document<a class="anchor" aria-label="anchor" href="#top-level-schema-document"></a>
-</h3>
+<div class="section level4">
+<h4 id="top-level-schema-document">Top-level schema document<a class="anchor" aria-label="anchor" href="#top-level-schema-document"></a>
+</h4>
 <p>A schema document contains:</p>
 <ul>
 <li>an optional <code>version</code> string</li>
@@ -296,14 +341,14 @@ inside:</p>
 <li>exactly one root schema node</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"1.0.0"</span><span class="fu">,</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    <span class="dt">"text"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"root alias"</span><span class="fu">,</span></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"1.0.0"</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="dt">"text"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"root alias"</span><span class="fu">,</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p><code>version</code> is document metadata only. It describes the
 schema document version and does not alter node parsing or validation
 semantics.</p>
@@ -314,6 +359,7 @@ keys are emitted in this order when present:</p>
 <li><code>$defs</code></li>
 <li>the root schema node keys</li>
 </ol>
+</div>
 </div>
 <div class="section level3">
 <h3 id="container-check-nodes">Container check nodes<a class="anchor" aria-label="anchor" href="#container-check-nodes"></a>
@@ -342,13 +388,13 @@ keys.</p>
 <h4 id="check-node">Check node<a class="anchor" aria-label="anchor" href="#check-node"></a>
 </h4>
 <p>A check node has the form:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span><span class="fu">,</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span><span class="fu">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Rules:</p>
 <ul>
 <li>
@@ -397,12 +443,12 @@ parsing.</p>
 <p>The node is valid only if <strong>all</strong> child schemas validate
 successfully.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="dt">"all"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span> <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"a"</span><span class="ot">,</span> <span class="st">"b"</span><span class="ot">,</span> <span class="st">"c"</span><span class="ot">]</span> <span class="fu">}</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="dt">"all"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span> <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"a"</span><span class="ot">,</span> <span class="st">"b"</span><span class="ot">,</span> <span class="st">"c"</span><span class="ot">]</span> <span class="fu">}</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="any">
@@ -412,12 +458,12 @@ successfully.</p>
 <p>The node is valid if <strong>at least one</strong> child schema
 validates successfully.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="one">
@@ -427,12 +473,12 @@ validates successfully.</p>
 <p>The node is valid if <strong>exactly one</strong> child schema
 validates successfully.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="dt">"one"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"flag"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span> <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"true"</span><span class="ot">,</span> <span class="st">"false"</span><span class="ot">]</span> <span class="fu">}</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="dt">"one"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"flag"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span> <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"true"</span><span class="ot">,</span> <span class="st">"false"</span><span class="ot">]</span> <span class="fu">}</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="not">
@@ -442,9 +488,9 @@ validates successfully.</p>
 <p>The node is valid only if the child schema does <strong>not</strong>
 validate successfully.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="dt">"not"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"null"</span> <span class="fu">}</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="dt">"not"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"null"</span> <span class="fu">}</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="ref">
@@ -463,10 +509,10 @@ supported.</li>
 <code>$ref</code>.</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span><span class="fu">,</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"user-facing label"</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span><span class="fu">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"user-facing label"</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -480,14 +526,14 @@ supported.</li>
 <li><code>not</code></li>
 </ul>
 <p>the DSL allows a shorthand form for a <code>check</code> node:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span></code></pre></div>
 <p>This is equivalent to:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Rules for shorthand check objects:</p>
 <ul>
 <li>They must contain <code>kind</code>.</li>
@@ -518,26 +564,26 @@ container kinds such as <code>list</code>, <code>data_frame</code>,
 <p>If a combinator branch needs node-level metadata or adjunct schema
 features, write it as a full node instead of shorthand.</p>
 <p>Allowed examples:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"data_frame"</span><span class="fu">,</span> <span class="dt">"min.rows"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"data_frame"</span><span class="fu">,</span> <span class="dt">"min.rows"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span></span></code></pre></div>
 <p>Disallowed examples:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"metadata is not allowed in shorthand"</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"metadata is not allowed in shorthand"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span> <span class="fu">}</span></span></code></pre></div>
 <p>Example:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>    <span class="fu">{</span></span>
-<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>      <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>        <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>      <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a>        <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="defs-and-ref">
@@ -560,18 +606,18 @@ schema nodes.</li>
 directly; they are only targets for <code>$ref</code>.</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>    <span class="dt">"scalar_text"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span></span>
-<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>    <span class="dt">"name"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span> <span class="fu">}</span></span>
-<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span> <span class="fu">}</span></span>
-<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>    <span class="dt">"scalar_text"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a>    <span class="dt">"name"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span> <span class="fu">}</span></span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span> <span class="fu">}</span></span>
+<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="ref-1">
@@ -602,13 +648,13 @@ schema nodes. The field name <code>"*"</code> has no special meaning; it
 is treated like any other literal field name. Use <code>rest</code> for
 otherwise unspecified fields.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>    <span class="dt">"field1"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
-<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>    <span class="dt">"field2"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>    <span class="dt">"field1"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>    <span class="dt">"field2"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <div class="section level4">
 <h4 id="pattern-fields">Pattern fields<a class="anchor" aria-label="anchor" href="#pattern-fields"></a>
 </h4>
@@ -616,13 +662,13 @@ otherwise unspecified fields.</p>
 Patterns are applied only to fields that are not already covered by
 <code>fields</code> or <code>groups</code>.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="dt">"patterns"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>    <span class="dt">"^meta_"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
-<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>    <span class="dt">"_count$"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>  <span class="dt">"patterns"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a>    <span class="dt">"^meta_"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a>    <span class="dt">"_count$"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>If a field matches multiple patterns, it must satisfy every matching
 schema.</p>
 </div>
@@ -632,10 +678,10 @@ schema.</p>
 <p><code>rest</code> is the child schema for otherwise unspecified
 fields.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>This means that any field not covered by <code>fields</code>,
 <code>groups</code>, or <code>patterns</code> must satisfy the
 <code>rest</code> schema.</p>
@@ -684,27 +730,27 @@ Missing positions do not fail by themselves; use <code>len</code>,
 <code>min.len</code>, or <code>max.len</code> inside the
 <code>check</code> rule when length matters.</p>
 <p>Example, similar to a CrossRef <code>date-parts</code> item:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"min.len"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"max.len"</span><span class="fu">:</span> <span class="dv">3</span> <span class="fu">},</span></span>
-<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>  <span class="dt">"positions"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"upper"</span><span class="fu">:</span> <span class="dv">12</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"upper"</span><span class="fu">:</span> <span class="dv">31</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"min.len"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"max.len"</span><span class="fu">:</span> <span class="dv">3</span> <span class="fu">},</span></span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>  <span class="dt">"positions"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"upper"</span><span class="fu">:</span> <span class="dv">12</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"upper"</span><span class="fu">:</span> <span class="dv">31</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb25-9"><a href="#cb25-9" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>When <code>positions</code> is combined with <code>rest</code>,
 declared positions are validated first and all remaining positions are
 validated with <code>rest</code>:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a>  <span class="dt">"positions"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"number"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>  <span class="dt">"positions"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"number"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>With <code>keys.type = "unnamed"</code>, <code>positions</code> and
 <code>rest</code> are allowed. <code>fields</code>, <code>groups</code>,
 and <code>patterns</code> are named-object constraints and must not be
@@ -752,37 +798,37 @@ nested list</li>
 every expanded field in that group and overrides the referenced node’s
 own description.</p>
 <p>Valid examples:</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"name"</span><span class="ot">,</span> <span class="st">"label"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span></span>
-<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"name"</span><span class="ot">,</span> <span class="st">"label"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>  <span class="dt">"all"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"name"</span><span class="ot">,</span> <span class="st">"label"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span></span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"name"</span><span class="ot">,</span> <span class="st">"label"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>  <span class="dt">"all"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Groups can also share a container schema. This is useful after
 compacting API payload schemas where several fields have the same nested
 structure:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"issued"</span><span class="ot">,</span> <span class="st">"created"</span><span class="ot">,</span> <span class="st">"published-print"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>    <span class="dt">"date-parts"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a>      <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a>      <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb26-10"><a href="#cb26-10" tabindex="-1"></a>        <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb26-11"><a href="#cb26-11" tabindex="-1"></a>        <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb26-12"><a href="#cb26-12" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb26-13"><a href="#cb26-13" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb26-14"><a href="#cb26-14" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb26-15"><a href="#cb26-15" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"issued"</span><span class="ot">,</span> <span class="st">"created"</span><span class="ot">,</span> <span class="st">"published-print"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a>    <span class="dt">"date-parts"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>      <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>      <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a>        <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a>        <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Invalid example (R-list shape):</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"label"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`$ref` <span class="op">=</span> <span class="st">"#/$defs/text"</span>, check <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"string"</span><span class="op">)</span><span class="op">)</span></span>
@@ -793,22 +839,22 @@ structure:</p>
 <li>the inner object contains more than one primary operator</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>    <span class="dt">"flag_param"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span>
-<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb28-8"><a href="#cb28-8" tabindex="-1"></a>  <span class="dt">"groups"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb28-9"><a href="#cb28-9" tabindex="-1"></a>    <span class="fu">{</span></span>
-<span id="cb28-10"><a href="#cb28-10" tabindex="-1"></a>      <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"latest"</span><span class="ot">,</span> <span class="st">"distrib"</span><span class="ot">,</span> <span class="st">"replica"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb28-11"><a href="#cb28-11" tabindex="-1"></a>      <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/flag_param"</span><span class="fu">,</span></span>
-<span id="cb28-12"><a href="#cb28-12" tabindex="-1"></a>      <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"boolean control parameters"</span></span>
-<span id="cb28-13"><a href="#cb28-13" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb28-14"><a href="#cb28-14" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb28-15"><a href="#cb28-15" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/flag_param"</span> <span class="fu">}</span></span>
-<span id="cb28-16"><a href="#cb28-16" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>    <span class="dt">"flag_param"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span>
+<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb31-7"><a href="#cb31-7" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb31-8"><a href="#cb31-8" tabindex="-1"></a>  <span class="dt">"groups"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb31-9"><a href="#cb31-9" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb31-10"><a href="#cb31-10" tabindex="-1"></a>      <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"latest"</span><span class="ot">,</span> <span class="st">"distrib"</span><span class="ot">,</span> <span class="st">"replica"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb31-11"><a href="#cb31-11" tabindex="-1"></a>      <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/flag_param"</span><span class="fu">,</span></span>
+<span id="cb31-12"><a href="#cb31-12" tabindex="-1"></a>      <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"boolean control parameters"</span></span>
+<span id="cb31-13"><a href="#cb31-13" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb31-14"><a href="#cb31-14" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb31-15"><a href="#cb31-15" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/flag_param"</span> <span class="fu">}</span></span>
+<span id="cb31-16"><a href="#cb31-16" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="keys">
@@ -817,20 +863,20 @@ structure:</p>
 <p><code>keys</code> is only valid on container <code>check</code>
 nodes.</p>
 <p><code>keys</code> encodes arguments for:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">checkmate</span><span class="fu">::</span><span class="fu"><a href="https://mllg.github.io/checkmate/reference/checkNames.html" class="external-link">check_names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
 <div class="section level4">
 <h4 id="scalar-form">Scalar form<a class="anchor" aria-label="anchor" href="#scalar-form"></a>
 </h4>
 <p>If <code>keys</code> is a scalar value, it is shorthand for:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"..."</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"..."</span> <span class="fu">}</span></span></code></pre></div>
 <p>That scalar value is therefore interpreted as the <code>type</code>
 argument of <code><a href="https://mllg.github.io/checkmate/reference/checkNames.html" class="external-link">checkmate::check_names()</a></code>.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="st">"unique"</span></span>
-<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="st">"unique"</span></span>
+<span id="cb34-4"><a href="#cb34-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="object-form">Object form<a class="anchor" aria-label="anchor" href="#object-form"></a>
@@ -845,16 +891,16 @@ argument of <code><a href="https://mllg.github.io/checkmate/reference/checkNames
 type</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb32-4"><a href="#cb32-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
-<span id="cb32-5"><a href="#cb32-5" tabindex="-1"></a>    <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb32-6"><a href="#cb32-6" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">,</span> <span class="st">"negate"</span><span class="ot">]</span></span>
-<span id="cb32-7"><a href="#cb32-7" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb32-8"><a href="#cb32-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb35-4"><a href="#cb35-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
+<span id="cb35-5"><a href="#cb35-5" tabindex="-1"></a>    <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb35-6"><a href="#cb35-6" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">,</span> <span class="st">"negate"</span><span class="ot">]</span></span>
+<span id="cb35-7"><a href="#cb35-7" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb35-8"><a href="#cb35-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>This represents:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">checkmate</span><span class="fu">::</span><span class="fu"><a href="https://mllg.github.io/checkmate/reference/checkNames.html" class="external-link">check_names</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"unique"</span>,</span>
@@ -950,7 +996,7 @@ fails.</li>
 </div>
 </div>
 <div class="section level3">
-<h3 id="static-schema-validation-rules">Static schema validation rules<a class="anchor" aria-label="anchor" href="#static-schema-validation-rules"></a>
+<h3 id="formal-validation-rules">Formal validation rules<a class="anchor" aria-label="anchor" href="#formal-validation-rules"></a>
 </h3>
 <p>When parsing the JSON DSL itself, the following should be
 enforced:</p>
@@ -1044,91 +1090,91 @@ present.</li>
 </ol>
 </div>
 <div class="section level3">
-<h3 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
+<h3 id="additional-examples">Additional examples<a class="anchor" aria-label="anchor" href="#additional-examples"></a>
 </h3>
 <div class="section level4">
 <h4 id="simple-scalar-schema">Simple scalar schema<a class="anchor" aria-label="anchor" href="#simple-scalar-schema"></a>
 </h4>
-<div class="sourceCode" id="cb34"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
-<span id="cb34-4"><a href="#cb34-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span></span>
-<span id="cb34-5"><a href="#cb34-5" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb34-6"><a href="#cb34-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span></span>
+<span id="cb37-5"><a href="#cb37-5" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb37-6"><a href="#cb37-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="any-with-shorthand-checks">
 <code>any</code> with shorthand checks<a class="anchor" aria-label="anchor" href="#any-with-shorthand-checks"></a>
 </h4>
-<div class="sourceCode" id="cb35"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb35-4"><a href="#cb35-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb35-5"><a href="#cb35-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span>
-<span id="cb35-6"><a href="#cb35-6" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb35-7"><a href="#cb35-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb38-4"><a href="#cb38-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb38-5"><a href="#cb38-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span>
+<span id="cb38-6"><a href="#cb38-6" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb38-7"><a href="#cb38-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="closed-list-schema">Closed list schema<a class="anchor" aria-label="anchor" href="#closed-list-schema"></a>
 </h4>
-<div class="sourceCode" id="cb36"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb36-4"><a href="#cb36-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
-<span id="cb36-5"><a href="#cb36-5" tabindex="-1"></a>    <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"field1"</span><span class="ot">,</span> <span class="st">"field2"</span><span class="ot">]</span></span>
-<span id="cb36-6"><a href="#cb36-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb36-7"><a href="#cb36-7" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb36-8"><a href="#cb36-8" tabindex="-1"></a>    <span class="dt">"field1"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
-<span id="cb36-9"><a href="#cb36-9" tabindex="-1"></a>    <span class="dt">"field2"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb36-10"><a href="#cb36-10" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb36-11"><a href="#cb36-11" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb39-3"><a href="#cb39-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb39-4"><a href="#cb39-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
+<span id="cb39-5"><a href="#cb39-5" tabindex="-1"></a>    <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"field1"</span><span class="ot">,</span> <span class="st">"field2"</span><span class="ot">]</span></span>
+<span id="cb39-6"><a href="#cb39-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb39-7"><a href="#cb39-7" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb39-8"><a href="#cb39-8" tabindex="-1"></a>    <span class="dt">"field1"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
+<span id="cb39-9"><a href="#cb39-9" tabindex="-1"></a>    <span class="dt">"field2"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb39-10"><a href="#cb39-10" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb39-11"><a href="#cb39-11" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="rest-list-schema">Rest list schema<a class="anchor" aria-label="anchor" href="#rest-list-schema"></a>
 </h4>
-<div class="sourceCode" id="cb37"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="parameter-like-schema">Parameter-like schema<a class="anchor" aria-label="anchor" href="#parameter-like-schema"></a>
 </h4>
-<div class="sourceCode" id="cb38"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-4"><a href="#cb38-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
-<span id="cb38-5"><a href="#cb38-5" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"project"</span><span class="ot">,</span> <span class="st">"activity_id"</span><span class="ot">,</span> <span class="st">"experiment_id"</span><span class="ot">]</span></span>
-<span id="cb38-6"><a href="#cb38-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb38-7"><a href="#cb38-7" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-8"><a href="#cb38-8" tabindex="-1"></a>    <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb38-9"><a href="#cb38-9" tabindex="-1"></a>    <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-10"><a href="#cb38-10" tabindex="-1"></a>      <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
-<span id="cb38-11"><a href="#cb38-11" tabindex="-1"></a>      <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb38-12"><a href="#cb38-12" tabindex="-1"></a>      <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">,</span> <span class="st">"negate"</span><span class="ot">]</span></span>
-<span id="cb38-13"><a href="#cb38-13" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb38-14"><a href="#cb38-14" tabindex="-1"></a>    <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-15"><a href="#cb38-15" tabindex="-1"></a>      <span class="dt">"kind"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-16"><a href="#cb38-16" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-17"><a href="#cb38-17" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span></span>
-<span id="cb38-18"><a href="#cb38-18" tabindex="-1"></a>          <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"facet"</span><span class="ot">,</span> <span class="st">"datetime_start"</span><span class="ot">,</span> <span class="st">"datetime_stop"</span><span class="ot">]</span></span>
-<span id="cb38-19"><a href="#cb38-19" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb38-20"><a href="#cb38-20" tabindex="-1"></a>      <span class="fu">},</span></span>
-<span id="cb38-21"><a href="#cb38-21" tabindex="-1"></a>      <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-22"><a href="#cb38-22" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-23"><a href="#cb38-23" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"atomic"</span><span class="fu">,</span></span>
-<span id="cb38-24"><a href="#cb38-24" tabindex="-1"></a>          <span class="dt">"any.missing"</span><span class="fu">:</span> <span class="kw">false</span></span>
-<span id="cb38-25"><a href="#cb38-25" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb38-26"><a href="#cb38-26" tabindex="-1"></a>      <span class="fu">},</span></span>
-<span id="cb38-27"><a href="#cb38-27" tabindex="-1"></a>      <span class="dt">"negate"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-28"><a href="#cb38-28" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb38-29"><a href="#cb38-29" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"flag"</span><span class="fu">,</span></span>
-<span id="cb38-30"><a href="#cb38-30" tabindex="-1"></a>          <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb38-31"><a href="#cb38-31" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb38-32"><a href="#cb38-32" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb38-33"><a href="#cb38-33" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb38-34"><a href="#cb38-34" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb38-35"><a href="#cb38-35" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb41-3"><a href="#cb41-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-4"><a href="#cb41-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
+<span id="cb41-5"><a href="#cb41-5" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"project"</span><span class="ot">,</span> <span class="st">"activity_id"</span><span class="ot">,</span> <span class="st">"experiment_id"</span><span class="ot">]</span></span>
+<span id="cb41-6"><a href="#cb41-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb41-7"><a href="#cb41-7" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-8"><a href="#cb41-8" tabindex="-1"></a>    <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb41-9"><a href="#cb41-9" tabindex="-1"></a>    <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-10"><a href="#cb41-10" tabindex="-1"></a>      <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
+<span id="cb41-11"><a href="#cb41-11" tabindex="-1"></a>      <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb41-12"><a href="#cb41-12" tabindex="-1"></a>      <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">,</span> <span class="st">"negate"</span><span class="ot">]</span></span>
+<span id="cb41-13"><a href="#cb41-13" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb41-14"><a href="#cb41-14" tabindex="-1"></a>    <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-15"><a href="#cb41-15" tabindex="-1"></a>      <span class="dt">"kind"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-16"><a href="#cb41-16" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-17"><a href="#cb41-17" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span></span>
+<span id="cb41-18"><a href="#cb41-18" tabindex="-1"></a>          <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"facet"</span><span class="ot">,</span> <span class="st">"datetime_start"</span><span class="ot">,</span> <span class="st">"datetime_stop"</span><span class="ot">]</span></span>
+<span id="cb41-19"><a href="#cb41-19" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb41-20"><a href="#cb41-20" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb41-21"><a href="#cb41-21" tabindex="-1"></a>      <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-22"><a href="#cb41-22" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-23"><a href="#cb41-23" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"atomic"</span><span class="fu">,</span></span>
+<span id="cb41-24"><a href="#cb41-24" tabindex="-1"></a>          <span class="dt">"any.missing"</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb41-25"><a href="#cb41-25" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb41-26"><a href="#cb41-26" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb41-27"><a href="#cb41-27" tabindex="-1"></a>      <span class="dt">"negate"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-28"><a href="#cb41-28" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-29"><a href="#cb41-29" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"flag"</span><span class="fu">,</span></span>
+<span id="cb41-30"><a href="#cb41-30" tabindex="-1"></a>          <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb41-31"><a href="#cb41-31" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb41-32"><a href="#cb41-32" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb41-33"><a href="#cb41-33" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb41-34"><a href="#cb41-34" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb41-35"><a href="#cb41-35" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -1159,7 +1205,7 @@ at the document root.</li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Hongyuan Jia.</p>
+  <p>Developed by <a href="https://github.com/hongyuanjia" class="external-link">Hongyuan Jia</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

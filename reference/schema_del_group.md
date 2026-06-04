@@ -32,3 +32,22 @@ schema_del_group(x, index, path = "$", error_if_missing = TRUE)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(list(
+    check = list(kind = "list"),
+    groups = list(schema_group(c("x", "y"), schema_check("number")))
+))
+schema <- schema_del_group(schema, 1)
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   }
+#> }
+
+as.list(schema)$groups
+#> NULL
+```

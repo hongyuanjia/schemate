@@ -1,12 +1,16 @@
 # Articles
 
-### Workflows
+### API Response Examples
 
-- [Get Started: Schema
-  Lifecycle](https://hongyuanjia.github.io/schemate/articles/schema-workflow.md):
-- [API
-  Examples](https://hongyuanjia.github.io/schemate/articles/api-examples.md):
-- [Schema
-  DSL](https://hongyuanjia.github.io/schemate/articles/schema-dsl.md):
+- [API Response
+  Examples](https://hongyuanjia.github.io/schemate/articles/api-response.md):
+
+### Standalone Use
+
 - [Standalone
   Use](https://hongyuanjia.github.io/schemate/articles/standalone.md):
+
+### schemate JSON DSL
+
+- [Schema
+  DSL](https://hongyuanjia.github.io/schemate/articles/schema-dsl.md):

@@ -42,32 +42,16 @@ Suggests:
 When `jsonlite` is not installed, JSON IO fails with an installation
 hint. Printing still works through a small base R fallback.
 
-## Generated Branch
+## Register S7 classes and methods
 
-The `standalone` branch is an artifact branch. Its
-`R/standalone-schema.R` file is generated from package source files by:
-
-``` r
-Rscript tools/standalone/generate.R
-```
-
-Use the local smoke test before publishing updates:
+Next, create a `.onLoad()` in `zzz.R` that calls
+[`S7::methods_register()`](https://rconsortium.github.io/S7/reference/methods_register.html):
 
 ``` r
-Rscript tools/standalone/test-local.R
+
+.onLoad <- function(libname, pkgname) {
+    S7::methods_register()
+}
 ```
 
-## Changelog
-
-The generated standalone file includes a commented changelog header from
-`tools/standalone/NEWS.md`, plus the source commit. Keep that file
-current when the standalone API or behavior changes.
-
-Install the repository hook to receive a commit-time reminder:
-
-``` r
-Rscript tools/install-git-hooks.R
-```
-
-The hook runs `tools/standalone/check-news.R` before commits and reminds
-you to update the standalone changelog when source files have changed.
+This is S7’s way of registering methods.

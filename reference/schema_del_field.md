@@ -32,3 +32,20 @@ schema_del_field(x, name, path = "$", error_if_missing = TRUE)
 ## Value
 
 A modified `SchemaDoc`.
+
+## Examples
+
+``` r
+schema <- schema_doc(list(check = list(kind = "list")))
+schema <- schema_add_field(schema, "id", schema_check("int"))
+schema <- schema_del_field(schema, "id")
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   }
+#> }
+
+names(as.list(schema)$fields)
+#> NULL
+```
