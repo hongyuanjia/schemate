@@ -14,13 +14,14 @@ if (!length(staged)) {
 }
 
 news <- "tools/standalone/NEWS.md"
+# Keep this list focused on files that can change the generated standalone
+# bundle's API or behavior. Workflow and vignette-only changes should not force
+# standalone changelog churn.
 relevant <- grepl(
     paste(c(
         "^R/schema-",
-        "^schema-dsl[.]md$",
-        "^vignettes/schema-dsl[.]Rmd$",
-        "^tools/standalone/",
-        "^.github/workflows/standalone[.]yaml$"
+        "^DESCRIPTION$",
+        "^tools/standalone/"
     ), collapse = "|"),
     staged
 )

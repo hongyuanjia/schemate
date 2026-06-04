@@ -20,3 +20,5 @@
 - Remove the unimplemented `defs` argument from `schema_compact()`.
 - Expand package documentation and examples for nested objects, data frames,
   rest schemas, positions, and validation diagnostics.
+- Narrow the standalone changelog pre-commit reminder to source and standalone
+  tooling changes.

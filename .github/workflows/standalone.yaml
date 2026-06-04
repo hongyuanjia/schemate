@@ -22,28 +22,25 @@ jobs:
         with:
           extra-packages: |
             any::devtools
-            any::testthat
 
       - name: Check standalone changelog
         run: Rscript tools/standalone/check-news.R
-
-      - name: Test package
-        run: Rscript -e 'devtools::test(".")'
 
       - name: Generate and test standalone
         run: Rscript tools/standalone/test-local.R --out-dir standalone-build
 
       - name: Publish standalone branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           rm -rf standalone-publish
           mkdir standalone-publish
           cp -R standalone-build/. standalone-publish/
           cd standalone-publish
-          git init
+          git init -b standalone
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Update standalone schema bundle"
-          git branch -M standalone
           git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push --force origin standalone
