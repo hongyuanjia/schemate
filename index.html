@@ -47,6 +47,10 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="schemate">schemate<a class="anchor" aria-label="anchor" href="#schemate"></a>
 </h1></div>
+<blockquote>
+<p>A small, <a href="https://mllg.github.io/checkmate/" class="external-link">checkmate</a>-first schema DSL for R data.</p>
+</blockquote>
+<p><a href="http://cran.r-project.org/package=schemate" class="external-link"><img src="https://www.r-pkg.org/badges/version/schemate" alt="CRAN_Status_Badge"></a> <a href="http://cran.r-project.org/web/packages/schemate/index.html" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/schemate" alt="CRAN RStudio mirror downloads"></a></p>
 <p><code>schemate</code> provides a small, <a href="https://mllg.github.io/checkmate/" class="external-link">checkmate</a>-first schema DSL for R data. It can infer schemas from example objects, edit schema documents, save them as JSON, read them back, and validate new inputs against the schema.</p>
 <p>The package is meant for package authors and pipeline authors who want a compact R-native schema format without adopting the full JSON Schema vocabulary. A typical workflow is:</p>
 <ol style="list-style-type: decimal">
@@ -59,6 +63,7 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<p>Currently, you can install the development version from GitHub.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"hongyuanjia/schemate"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -67,74 +72,174 @@
 </h2>
 <p>The public API uses a single <code>schema_</code> prefix and works well in pipelines. Start from an example object, infer a conservative schema, then compact it into something easier to edit and review.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/hongyuanjia/schemate" class="external-link">schemate</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://hongyuanjia.github.io/schemate/">schemate</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">payload</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  items <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1L</span>, owner <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>login <span class="op">=</span> <span class="st">"alice"</span>, id <span class="op">=</span> <span class="fl">10L</span><span class="op">)</span>, topics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"r"</span>, <span class="st">"schema"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">2L</span>, owner <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>login <span class="op">=</span> <span class="st">"bob"</span>, id <span class="op">=</span> <span class="fl">20L</span><span class="op">)</span>, topics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"validation"</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
+<span>    items <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1L</span>, owner <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>login <span class="op">=</span> <span class="st">"alice"</span>, id <span class="op">=</span> <span class="fl">10L</span><span class="op">)</span>, topics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"r"</span>, <span class="st">"schema"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">2L</span>, owner <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>login <span class="op">=</span> <span class="st">"bob"</span>, id <span class="op">=</span> <span class="fl">20L</span><span class="op">)</span>, topics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"validation"</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="va">payload</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_infer.html">schema_infer</a></span><span class="op">(</span>keys <span class="op">=</span> <span class="st">"named"</span>, arrays <span class="op">=</span> <span class="st">"rest"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_compact.html">schema_compact</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_set_desc.html">schema_set_desc</a></span><span class="op">(</span><span class="st">"$items"</span>, <span class="st">"Repository-like result items"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="reference/schema_infer.html">schema_infer</a></span><span class="op">(</span>keys <span class="op">=</span> <span class="st">"named"</span>, arrays <span class="op">=</span> <span class="st">"rest"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/schema_compact.html">schema_compact</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/schema_set_desc.html">schema_set_desc</a></span><span class="op">(</span><span class="st">"$items"</span>, <span class="st">"Repository-like result items"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">schema</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">payload</span>, mode <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">## [1] TRUE</span></span></code></pre></div>
-<p><code><a href="reference/schema_validate.html">schema_validate()</a></code> defaults to assert mode: invalid input raises an error and valid input is returned invisibly. Other modes are available when you need a message or a boolean result.</p>
+<span><span class="va">schema</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">## {</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="do">##   "check": {</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="do">##     "kind": "list"</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="do">##   },</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="do">##   "keys": {</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="do">##     "type": "named"</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="do">##   },</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="do">##   "fields": {</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="do">##     "items": {</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="do">##       "description": "Repository-like result items",</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="do">##       "check": {</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="do">##         "kind": "list"</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="do">##       },</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="do">##       "keys": {</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="do">##         "type": "unnamed"</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="do">##       },</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="do">##       "rest": {</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="do">##         "check": {</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="do">##           "kind": "list"</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="do">##         },</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="do">##         "keys": {</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="do">##           "type": "named"</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="do">##         },</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="do">##         "fields": {</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="do">##           "id": {</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="do">##             "check": {</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="do">##               "kind": "int"</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="do">##             }</span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="do">##           },</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="do">##           "owner": {</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="do">##             "check": {</span></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="do">##               "kind": "list"</span></span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="do">##             },</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="do">##             "keys": {</span></span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="do">##               "type": "named"</span></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="do">##             },</span></span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="do">##             "fields": {</span></span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a><span class="do">##               "login": {</span></span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a><span class="do">##                 "check": {</span></span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a><span class="do">##                   "kind": "string"</span></span>
+<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a><span class="do">##                 }</span></span>
+<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a><span class="do">##               },</span></span>
+<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a><span class="do">##               "id": {</span></span>
+<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a><span class="do">##                 "check": {</span></span>
+<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a><span class="do">##                   "kind": "int"</span></span>
+<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a><span class="do">##                 }</span></span>
+<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a><span class="do">##               }</span></span>
+<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a><span class="do">##             }</span></span>
+<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a><span class="do">##           },</span></span>
+<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a><span class="do">##           "topics": {</span></span>
+<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a><span class="do">##             "check": {</span></span>
+<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a><span class="do">##               "kind": "list"</span></span>
+<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a><span class="do">##             },</span></span>
+<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a><span class="do">##             "keys": {</span></span>
+<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a><span class="do">##               "type": "unnamed"</span></span>
+<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a><span class="do">##             },</span></span>
+<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a><span class="do">##             "rest": {</span></span>
+<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a><span class="do">##               "check": {</span></span>
+<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a><span class="do">##                 "kind": "string"</span></span>
+<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a><span class="do">##               }</span></span>
+<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a><span class="do">##             }</span></span>
+<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a><span class="do">##           }</span></span>
+<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a><span class="do">##         }</span></span>
+<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a><span class="do">##       }</span></span>
+<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a><span class="do">##     }</span></span>
+<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a><span class="do">##   }</span></span>
+<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a><span class="do">## }</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">payload</span>, mode <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">## [1] TRUE</span></span></code></pre></div>
+<p><code><a href="reference/schema_validate.html">schema_validate()</a></code> defaults to assert mode: invalid input raises an error and valid input is returned invisibly. Other modes are available when you need a message or a boolean result.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bad_payload</span> <span class="op">&lt;-</span> <span class="va">payload</span></span>
 <span><span class="va">bad_payload</span><span class="op">$</span><span class="va">items</span><span class="op">[[</span><span class="fl">1L</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">owner</span><span class="op">$</span><span class="va">id</span> <span class="op">&lt;-</span> <span class="st">"bad"</span></span>
 <span></span>
 <span><span class="va">schema</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_payload</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">## [1] "payload$items[[1]]$owner$id: Must be of type 'single integerish value', not 'character'"</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_payload</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## [1] "payload$items[[1]]$owner$id: Must be of type 'single integerish value', not 'character'"</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">schema</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_payload</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## [1] FALSE</span></span></code></pre></div>
+<span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_payload</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">## [1] FALSE</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="data-frame-inputs">Data Frame Inputs<a class="anchor" aria-label="anchor" href="#data-frame-inputs"></a>
 </h2>
 <p><code>schemate</code> also validates ordinary R objects such as data frames. This is useful for package-facing input contracts where you want a schema that can be inferred, edited, saved, and reused.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,</span>
-<span>  name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"alice"</span>, <span class="st">"bob"</span>, <span class="st">"carol"</span><span class="op">)</span>,</span>
-<span>  score <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9.5</span>, <span class="fl">8.0</span>, <span class="fl">7.5</span><span class="op">)</span></span>
+<span>    id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,</span>
+<span>    name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"alice"</span>, <span class="st">"bob"</span>, <span class="st">"carol"</span><span class="op">)</span>,</span>
+<span>    score <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9.5</span>, <span class="fl">8.0</span>, <span class="fl">7.5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">score_schema</span> <span class="op">&lt;-</span> <span class="va">scores</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_infer.html">schema_infer</a></span><span class="op">(</span>keys <span class="op">=</span> <span class="st">"required"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_replace.html">schema_replace</a></span><span class="op">(</span><span class="st">"$id"</span>, <span class="fu"><a href="reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"integerish"</span>, any.missing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_replace.html">schema_replace</a></span><span class="op">(</span><span class="st">"$score"</span>, <span class="fu"><a href="reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"numeric"</span>, lower <span class="op">=</span> <span class="fl">0</span>, upper <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="reference/schema_infer.html">schema_infer</a></span><span class="op">(</span>keys <span class="op">=</span> <span class="st">"required"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/schema_replace.html">schema_replace</a></span><span class="op">(</span><span class="st">"$id"</span>, <span class="fu"><a href="reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"integerish"</span>, any.missing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/schema_replace.html">schema_replace</a></span><span class="op">(</span><span class="st">"$score"</span>, <span class="fu"><a href="reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"numeric"</span>, lower <span class="op">=</span> <span class="fl">0</span>, upper <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">score_schema</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">scores</span>, mode <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">## [1] TRUE</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<span><span class="va">score_schema</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="do">## {</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="do">##   "check": {</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="do">##     "kind": "data_frame"</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="do">##   },</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="do">##   "keys": {</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="do">##     "type": "named",</span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="do">##     "must.include": ["id", "name", "score"]</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="do">##   },</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="do">##   "fields": {</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="do">##     "id": {</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="do">##       "check": {</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="do">##         "kind": "integerish",</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="do">##         "any.missing": false</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="do">##       }</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="do">##     },</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="do">##     "name": {</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="do">##       "check": {</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="do">##         "kind": "character"</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="do">##       }</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="do">##     },</span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="do">##     "score": {</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="do">##       "check": {</span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="do">##         "kind": "numeric",</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="do">##         "lower": 0,</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="do">##         "upper": 10</span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="do">##       }</span></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="do">##     }</span></span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="do">##   }</span></span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="do">## }</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">score_schema</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">scores</span>, mode <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="do">## [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bad_scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">scores</span>, score <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">score</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">score_schema</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_scores</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"scores"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="do">## [1] "scores$score: Must be of type 'numeric', not 'character'"</span></span></code></pre></div>
+<span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_scores</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"scores"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="do">## [1] "scores$score: Must be of type 'numeric', not 'character'"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="json-workflow">JSON Workflow<a class="anchor" aria-label="anchor" href="#json-workflow"></a>
 </h2>
-<p>Schemas are stored as a compact JSON DSL. The DSL is not JSON Schema; it is a thin representation of checkmate checks, field schemas, local definitions, and combinators. <code><a href="reference/schema-json.html">schema_read()</a></code> and <code><a href="reference/schema-json.html">schema_write()</a></code> require the suggested package <code>jsonlite</code>.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<p>Schemas are stored as a compact JSON DSL. The DSL is not JSON Schema; it is a thin representation of checkmate checks, field schemas, local definitions, and combinators. <code><a href="reference/schema-json.html">schema_read()</a></code> and <code><a href="reference/schema-json.html">schema_write()</a></code> require the suggested package <a href="https://github.com/jeroen/jsonlite" class="external-link">jsonlite</a>.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".json"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/schema-json.html">schema_write</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">path</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">restored</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span>
 <span><span class="va">restored</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">payload</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">payload</span><span class="op">)</span></span></code></pre></div>
 <p>Example schema files are installed under <code>inst/extdata</code>:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"person-schema.json"</span>, package <span class="op">=</span> <span class="st">"schemate"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -181,9 +286,8 @@
 <h2 id="standalone-use">Standalone Use<a class="anchor" aria-label="anchor" href="#standalone-use"></a>
 </h2>
 <p><code>schemate</code> also publishes a generated standalone bundle for packages that want the schema features without depending on <code>schemate</code> at runtime.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_standalone</span><span class="op">(</span><span class="st">"hongyuanjia/schemate"</span>, <span class="st">"schema"</span>, ref <span class="op">=</span> <span class="st">"standalone"</span><span class="op">)</span></span></code></pre></div>
-<p>The standalone branch is generated from the development package. Do not edit the generated standalone file by hand; update the package source and regenerate it. The standalone changelog lives in <code>tools/standalone/NEWS.md</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="relation-to-other-tools">Relation to Other Tools<a class="anchor" aria-label="anchor" href="#relation-to-other-tools"></a>
