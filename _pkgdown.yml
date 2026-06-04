@@ -74,14 +74,17 @@ reference:
 
 articles:
   - title: API Response Examples
+    navbar:
     contents:
       - api-response
 
   - title: Standalone Use
+    navbar:
     contents:
       - standalone
 
   - title: schemate JSON DSL
+    navbar:
     contents:
       - schema-dsl
 
