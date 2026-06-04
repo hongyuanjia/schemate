@@ -394,6 +394,16 @@ S7::method(schema_compact__node, S7::class_any) <- function(node, arrays, groups
 #'   `groups`.
 #'
 #' @return A compacted `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_infer(
+#'     list(items = list(list(id = 1L, name = "a"), list(id = 2L, label = "b"))),
+#'     keys = "named",
+#'     arrays = "rest"
+#' )
+#' compact <- schema_compact(schema)
+#' names(as.list(compact)$fields$items$rest$fields)
+#'
 #' @export
 schema_compact <- function(x, arrays = TRUE, groups = TRUE) {
     checkmate::assert_flag(arrays)

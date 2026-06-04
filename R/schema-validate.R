@@ -16,9 +16,12 @@
 #'   expectation object.
 #'
 #' @examples
-#' schema <- schema_doc(list(check = list(kind = "integerish")))
-#' schema_validate(schema, 1L, mode = "test")
-#' schema_validate(schema, "x", mode = "check")
+#' schema <- schema_doc(list(
+#'     check = list(kind = "list"),
+#'     fields = list(id = list(check = list(kind = "int", lower = 1)))
+#' ))
+#' schema_validate(schema, list(id = 1L), mode = "test")
+#' schema_validate(schema, list(id = 0L), mode = "check", name = "payload")
 #'
 #' @export
 schema_validate <- S7::new_generic(

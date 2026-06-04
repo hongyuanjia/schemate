@@ -38,3 +38,9 @@ field structure, but does not guess higher-level authoring constructs such as
 To parse an existing schema DSL document, use \code{schema_doc()} or
 \code{schema_read()} instead.
 }
+\examples{
+payload <- list(items = list(list(id = 1L), list(id = 2L)))
+schema <- schema_infer(payload, keys = "named", arrays = "rest")
+as.list(schema)$fields$items$keys
+
+}

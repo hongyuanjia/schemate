@@ -26,6 +26,24 @@ into a `schemate` `SchemaDoc` object.
 This DSL is **not** a JSON Schema implementation. Its semantics are derived from
 `checkmate::assert_*()` and a small set of schema combinators.
 
+## Minimum mental model
+
+Most schema documents are nested combinations of a few keywords:
+
+| DSL key | Use it for |
+| --- | --- |
+| `check` | the checkmate constraint for the current node |
+| `fields` | exact field-name schemas for named containers |
+| `groups` | multiple sibling fields that share the same schema |
+| `patterns` | regex field-name schemas for otherwise unspecified fields |
+| `positions` | position-specific schemas for unnamed lists |
+| `rest` | otherwise unspecified fields or remaining unnamed-list positions |
+| `$defs` / `$ref` | manually named reusable schema components |
+| `all`, `any`, `one`, `not` | schema combinators |
+
+For most workflows, start with `schema_infer()`, inspect `as.list(schema)`, then
+use edit verbs to add the few rules inference cannot know.
+
 ## When to write DSL JSON by hand
 
 Most users should start from `schema_infer()`, edit the result with

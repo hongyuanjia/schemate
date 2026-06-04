@@ -23,3 +23,13 @@ A compacted \code{SchemaDoc}.
 hand-authoring. It can merge observed array element alternatives and group
 sibling fields that share identical schemas.
 }
+\examples{
+schema <- schema_infer(
+    list(items = list(list(id = 1L, name = "a"), list(id = 2L, label = "b"))),
+    keys = "named",
+    arrays = "rest"
+)
+compact <- schema_compact(schema)
+names(as.list(compact)$fields$items$rest$fields)
+
+}

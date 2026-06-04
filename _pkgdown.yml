@@ -3,7 +3,7 @@ template:
   bootstrap: 5
 
 reference:
-  - title: Infer
+  - title: Infer And Compact
     contents:
       - schema_infer
       - schema_compact
@@ -11,20 +11,38 @@ reference:
     contents:
       - schema_check
       - schema_ref
-      - schema_all
       - schema_group
-  - title: Parse And Inspect
+      - schema_all
+      - schema_any
+      - schema_one
+      - schema_not
+  - title: Parse And JSON IO
     contents:
       - schema_doc
-  - title: Edit
+      - schema_read
+      - schema_write
+  - title: Edit Nodes
     contents:
       - schema_replace
-      - schema_add_field
       - schema_set_desc
-      - schema_add_def
-  - title: JSON IO
+  - title: Edit Fields And Groups
     contents:
-      - schema_read
+      - schema_add_field
+      - schema_del_field
+      - schema_add_group
+      - schema_del_group
+  - title: Edit Keys, Rest, And Positions
+    contents:
+      - schema_set_keys
+      - schema_del_keys
+      - schema_set_rest
+      - schema_del_rest
+      - schema_add_position
+      - schema_del_position
+  - title: Edit Definitions
+    contents:
+      - schema_add_def
+      - schema_del_def
   - title: Validate
     contents:
       - schema_validate

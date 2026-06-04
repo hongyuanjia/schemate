@@ -18,3 +18,5 @@
   has a base R fallback.
 - Refactor schema compaction internals to use S7 dispatch.
 - Remove the unimplemented `defs` argument from `schema_compact()`.
+- Expand package documentation and examples for nested objects, data frames,
+  rest schemas, positions, and validation diagnostics.

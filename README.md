@@ -1,9 +1,11 @@
 
 # schemate
 
-`schemate` provides a small, checkmate-first schema DSL for R data. It
-can infer schemas from example objects, edit schema documents, save them
-as JSON, read them back, and validate new inputs against the schema.
+`schemate` provides a small,
+[checkmate](https://mllg.github.io/checkmate/)-first schema DSL for R
+data. It can infer schemas from example objects, edit schema documents,
+save them as JSON, read them back, and validate new inputs against the
+schema.
 
 The package is meant for package authors and pipeline authors who want a
 compact R-native schema format without adopting the full JSON Schema
@@ -23,33 +25,83 @@ pak::pak("hongyuanjia/schemate")
 
 ## Quick Start
 
-The public API uses a single `schema_` prefix.
+The public API uses a single `schema_` prefix and works well in
+pipelines. Start from an example object, infer a conservative schema,
+then compact it into something easier to edit and review.
 
 ``` r
 library(schemate)
 
-person <- list(id = 1L, name = "alice", score = 9.5)
-schema <- schema_infer(person)
-schema <- schema_set_desc(schema, "$id", "Stable person identifier")
+payload <- list(
+  items = list(
+    list(id = 1L, owner = list(login = "alice", id = 10L), topics = list("r", "schema")),
+    list(id = 2L, owner = list(login = "bob", id = 20L), topics = list("validation"))
+  )
+)
 
-schema_validate(schema, list(id = 2L, name = "bob", score = 10))
+schema <- payload |>
+  schema_infer(keys = "named", arrays = "rest") |>
+  schema_compact() |>
+  schema_set_desc("$items", "Repository-like result items")
+
+schema |>
+  schema_validate(payload, mode = "test")
 ```
+
+    ## [1] TRUE
 
 `schema_validate()` defaults to assert mode: invalid input raises an
 error and valid input is returned invisibly. Other modes are available
 when you need a message or a boolean result.
 
 ``` r
-schema_validate(schema, list(id = "bad"), mode = "check", name = "candidate")
+bad_payload <- payload
+bad_payload$items[[1L]]$owner$id <- "bad"
+
+schema |>
+  schema_validate(bad_payload, mode = "check", name = "payload")
 ```
 
-    ## [1] "candidate$id: Must be of type 'single integerish value', not 'character'"
+    ## [1] "payload$items[[1]]$owner$id: Must be of type 'single integerish value', not 'character'"
 
 ``` r
-schema_validate(schema, list(id = "bad"), mode = "test", name = "candidate")
+schema |>
+  schema_validate(bad_payload, mode = "test", name = "payload")
 ```
 
     ## [1] FALSE
+
+## Data Frame Inputs
+
+`schemate` also validates ordinary R objects such as data frames. This
+is useful for package-facing input contracts where you want a schema
+that can be inferred, edited, saved, and reused.
+
+``` r
+scores <- data.frame(
+  id = 1:3,
+  name = c("alice", "bob", "carol"),
+  score = c(9.5, 8.0, 7.5)
+)
+
+score_schema <- scores |>
+  schema_infer(keys = "required") |>
+  schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
+  schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
+
+score_schema |>
+  schema_validate(scores, mode = "test")
+```
+
+    ## [1] TRUE
+
+``` r
+bad_scores <- transform(scores, score = as.character(score))
+score_schema |>
+  schema_validate(bad_scores, mode = "check", name = "scores")
+```
+
+    ## [1] "scores$score: Must be of type 'numeric', not 'character'"
 
 ## JSON Workflow
 
@@ -63,7 +115,8 @@ path <- tempfile(fileext = ".json")
 schema_write(schema, path)
 
 restored <- schema_read(path)
-schema_validate(restored, person)
+restored |>
+  schema_validate(payload)
 ```
 
 Example schema files are installed under `inst/extdata`:
@@ -104,8 +157,35 @@ and regenerate it. The standalone changelog lives in
 ## Relation to Other Tools
 
 `schemate` is closest in spirit to checkmate: schemas ultimately
-validate R objects by calling checkmate checks. It is not a replacement
-for JSON Schema or `jsonvalidate`, which are better choices when you
-need standards-compliant JSON document validation. `schemate` is
-deliberately narrower: it describes R values, R object names, nested
-lists, and package-facing input contracts.
+validate R objects by calling checkmate checks. It adds a schema
+lifecycle around those checks: infer, edit, serialize, read, and
+validate.
+
+[`pointblank`](https://rstudio.github.io/pointblank/) is a better fit
+for tabular data quality workflows, reporting, and column-oriented
+validation plans. `schemate` is deliberately narrower and more
+structural: it describes R values, R object names, nested lists,
+JSON-like payloads, and package-facing input contracts. It is not a
+replacement for [JSON Schema](https://json-schema.org/) or
+[`jsonvalidate`](https://docs.ropensci.org/jsonvalidate/), which are
+better choices when you need standards-compliant JSON document
+validation.
+
+The R validation ecosystem is broad:
+
+- [`validate`](https://cran.r-project.org/package=validate) captures
+  data validation rules that can be documented, stored, and applied to
+  data sets.
+- [`assertr`](https://docs.ropensci.org/assertr/) is designed for
+  assertive data checks inside analysis pipelines.
+- [`data.validator`](https://appsilon.github.io/data.validator/) focuses
+  on dataset validation with reporting.
+- [`vetr`](https://cran.r-project.org/package=vetr) provides
+  template-based structural checks for R objects.
+- [`testthat`](https://testthat.r-lib.org/) is the right home for
+  unit-test expectations; `schema_validate(..., mode = "expect")` is
+  intended to fit into that style.
+
+## License
+
+The project is released under the terms of MIT License.

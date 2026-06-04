@@ -18,6 +18,11 @@ Real API responses often contain nested JSON arrays. A useful workflow is:
 3. compact repeated alternatives into a maintainable shape;
 4. refine the few places where the API contract is stricter than the example.
 
+Use `simplifyVector = FALSE` when the goal is to validate the original JSON-like
+structure. If jsonlite simplifies arrays into vectors or data frames, that
+simplified R object is still valid to check, but it is no longer a direct view of
+the raw JSON response.
+
 ```{r}
 library(schemate)
 
@@ -39,6 +44,7 @@ into data frames:
 ```{r, eval = FALSE}
 github_payload <- jsonlite::fromJSON(
   "https://api.github.com/search/repositories?q=language:R+schema",
+  simplifyVector = FALSE,
   simplifyDataFrame = FALSE,
   simplifyMatrix = FALSE
 )
@@ -56,9 +62,13 @@ github_payload <- jsonlite::fromJSON(
   simplifyMatrix = FALSE
 )
 
-github_schema <- schema_infer(github_payload, keys = "named", arrays = "rest")
-github_schema <- schema_compact(github_schema)
-as.list(github_schema)$fields$items
+github_schema <- github_payload |>
+  schema_infer(keys = "named", arrays = "rest") |>
+  schema_compact()
+
+github_items <- as.list(github_schema)$fields$items
+github_items$keys
+names(github_items$rest$fields)
 ```
 
 The `items` field is inferred as an unnamed list whose `rest` schema describes
@@ -68,8 +78,10 @@ repository-like objects.
 bad_github <- github_payload
 bad_github$items[[1L]]$owner$id <- "not an integer"
 
-schema_validate(github_schema, github_payload, mode = "test")
-schema_validate(github_schema, bad_github, mode = "check", name = "github")
+github_schema |>
+  schema_validate(github_payload, mode = "test")
+github_schema |>
+  schema_validate(bad_github, mode = "check", name = "github")
 ```
 
 ## CrossRef Works
@@ -79,6 +91,7 @@ For live CrossRef data:
 ```{r, eval = FALSE}
 crossref_payload <- jsonlite::fromJSON(
   "https://api.crossref.org/works?query.title=schema&rows=2",
+  simplifyVector = FALSE,
   simplifyDataFrame = FALSE,
   simplifyMatrix = FALSE
 )
@@ -94,14 +107,26 @@ crossref_payload <- jsonlite::fromJSON(
   simplifyMatrix = FALSE
 )
 
-crossref_schema <- schema_infer(crossref_payload, keys = "named", arrays = "rest")
-crossref_schema <- schema_compact(crossref_schema)
-as.list(crossref_schema)$fields$message$fields$items
+crossref_schema <- crossref_payload |>
+  schema_infer(keys = "named", arrays = "rest") |>
+  schema_compact()
+
+crossref_items <- as.list(crossref_schema)$fields$message$fields$items
+crossref_items$keys
+names(crossref_items$rest$fields)
 ```
 
 CrossRef `date-parts` is a tuple-like array. Inference records the observed
 array shape, then a small manual edit can express year/month/day positions for
-the saved response's `created` date.
+the saved response's `published-online` date.
+
+The path below walks through the inferred homogeneous arrays. The first `rest`
+means "the schema for each item"; the final `rest` means "the schema for each
+date-parts entry".
+
+```text
+$message$items$rest$`published-online`$`date-parts`$rest
+```
 
 ```{r}
 date_part <- list(
@@ -114,17 +139,16 @@ date_part <- list(
   )
 )
 
-crossref_schema <- schema_replace(
-  crossref_schema,
-  "$message$items$rest$created$`date-parts`$rest",
-  date_part
-)
+crossref_schema <- crossref_schema |>
+  schema_replace("$message$items$rest$`published-online`$`date-parts`$rest", date_part)
 
 bad_crossref <- crossref_payload
-bad_crossref$message$items[[1L]]$created$`date-parts`[[1L]][[2L]] <- 13L
+bad_crossref$message$items[[1L]]$`published-online`$`date-parts`[[1L]][[2L]] <- 13L
 
-schema_validate(crossref_schema, crossref_payload, mode = "test")
-schema_validate(crossref_schema, bad_crossref, mode = "check", name = "crossref")
+crossref_schema |>
+  schema_validate(crossref_payload, mode = "test")
+crossref_schema |>
+  schema_validate(bad_crossref, mode = "check", name = "crossref")
 ```
 
 When a reusable component has a clear domain name, author it explicitly with

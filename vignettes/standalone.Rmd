@@ -27,9 +27,10 @@ The imported file contains the same core `schema_` API used by the package:
 `schema_infer()`, the edit helpers, `schema_write()`, `schema_read()`, and
 `schema_validate()`.
 
-The target package must still declare the standalone imports. JSON reading and
-writing are available when `jsonlite` is installed, so packages that use
-`schema_read()` or `schema_write()` should list it in `Suggests` or `Imports`.
+The target package must still declare the standalone imports. Core schema
+inference, editing, printing, and validation need `checkmate` and `S7`.
+`schema_read()` and `schema_write()` use `jsonlite` at runtime, so packages that
+call those functions should list `jsonlite` in `Suggests` or `Imports`.
 
 ```r
 Imports:
@@ -38,6 +39,9 @@ Imports:
 Suggests:
     jsonlite
 ```
+
+When `jsonlite` is not installed, JSON IO fails with an installation hint.
+Printing still works through a small base R fallback.
 
 ## Generated Branch
 

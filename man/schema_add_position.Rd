@@ -24,3 +24,13 @@ A modified \code{SchemaDoc}.
 \description{
 Add a position schema to an unnamed container node
 }
+\examples{
+schema <- schema_doc(list(
+    check = list(kind = "list"),
+    keys = list(type = "unnamed")
+))
+schema <- schema_add_position(schema, 1, schema_check("string"))
+schema <- schema_add_position(schema, 2, schema_check("int"))
+schema_validate(schema, list("a", 1L), mode = "test")
+
+}

@@ -24,3 +24,12 @@ A modified \code{SchemaDoc}.
 \description{
 Set or replace a container rest schema
 }
+\examples{
+schema <- schema_doc(list(
+    check = list(kind = "list"),
+    keys = list(type = "unnamed")
+))
+schema <- schema_set_rest(schema, schema_check("string"))
+schema_validate(schema, list("a", "b"), mode = "test")
+
+}

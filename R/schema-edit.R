@@ -626,6 +626,14 @@ schema_not <- function(branch, description = NULL) {
 #'
 #' @return A raw schema group fragment accepted in a schema document `groups`
 #'   list or by `schema_add_group()`.
+#'
+#' @examples
+#' schema <- schema_doc(list(
+#'     check = list(kind = "list"),
+#'     groups = list(schema_group(c("x", "y"), schema_check("number")))
+#' ))
+#' schema_validate(schema, list(x = 1, y = 2), mode = "test")
+#'
 #' @export
 schema_group <- function(names, value, description = NULL) {
     checkmate::assert_character(names, any.missing = FALSE, min.len = 1L, unique = TRUE)
@@ -872,6 +880,15 @@ S7::method(schema_add_group, SchemaDoc) <- function(x, group, path = "$") {
 #'   that contain path operators, for example ``$`a$b` ``.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(
+#'     check = list(kind = "list"),
+#'     keys = list(type = "unnamed")
+#' ))
+#' schema <- schema_set_rest(schema, schema_check("string"))
+#' schema_validate(schema, list("a", "b"), mode = "test")
+#'
 #' @export
 schema_set_rest <- S7::new_generic(
     "schema_set_rest",
@@ -909,6 +926,16 @@ S7::method(schema_set_rest, SchemaDoc) <- function(x, field, path = "$") {
 #'   node.
 #'
 #' @return A modified `SchemaDoc`.
+#'
+#' @examples
+#' schema <- schema_doc(list(
+#'     check = list(kind = "list"),
+#'     keys = list(type = "unnamed")
+#' ))
+#' schema <- schema_add_position(schema, 1, schema_check("string"))
+#' schema <- schema_add_position(schema, 2, schema_check("int"))
+#' schema_validate(schema, list("a", 1L), mode = "test")
+#'
 #' @export
 schema_add_position <- S7::new_generic(
     "schema_add_position",

@@ -1,8 +1,8 @@
 ---
-title: "Schema Workflow"
+title: "Get Started: Schema Lifecycle"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Schema Workflow}
+  %\VignetteIndexEntry{Get Started: Schema Lifecycle}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,43 +11,60 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-`schemate` is built around one common workflow:
+`schemate` is built around one lifecycle:
 
 1. infer a conservative schema from an example object;
-2. edit the schema until it expresses the real input contract;
-3. write the schema to JSON;
-4. read the schema back where it is needed;
-5. validate new input.
+2. compact repeated observed structure;
+3. edit the schema until it expresses the real input contract;
+4. write the schema to JSON;
+5. read the schema back where it is needed;
+6. validate new input.
 
-## Infer
+## Nested List Contract
+
+The most useful `schemate` workflows start with a nested R object such as a
+package configuration, a model payload, or a JSON-like API response.
 
 ```{r}
 library(schemate)
 
-person <- list(id = 1L, name = "alice")
-schema <- schema_infer(person, keys = "required")
+payload <- list(
+  request = list(id = "run-001", retry = FALSE),
+  items = list(
+    list(id = 1L, label = "alpha", tags = list("r", "schema")),
+    list(id = 2L, label = "beta", tags = list("validation"))
+  )
+)
+
+schema <- payload |>
+  schema_infer(keys = "named", arrays = "rest") |>
+  schema_compact()
+
+as.list(schema)$fields$items
+```
+
+`arrays = "rest"` treats unnamed lists as homogeneous arrays. The observed item
+schemas are stored in `rest`, and `schema_compact()` merges compatible observed
+alternatives into one maintainable item schema.
+
+## Refine
+
+Inference captures observed structure. It does not guess business rules, so the
+next step is to refine the parts of the contract that matter.
+
+```{r}
+schema <- schema |>
+  schema_set_desc("$", "Example request payload.") |>
+  schema_replace("$request$id", schema_check("string", min.chars = 1)) |>
+  schema_replace("$items$rest$id", schema_check("int", lower = 1)) |>
+  schema_set_rest(schema_check("string", min.chars = 1), path = "$items$rest$tags")
+
 schema
 ```
 
-Inference captures structure and checkmate kinds. It does not guess business
-rules, optional fields, reusable definitions, or descriptions.
-
-## Edit
-
-```{r}
-schema <- schema_set_desc(schema, "$", "Person-like named list.")
-schema <- schema_set_desc(schema, "$id", "Stable integer identifier.")
-schema <- schema_set_desc(schema, "$name", "Display name.")
-schema <- schema_add_field(
-  schema,
-  "email",
-  schema_check("string", min.chars = 3, null.ok = TRUE),
-  overwrite = TRUE
-)
-```
-
-Paths use `$` for the root node. Bare field paths such as `$id` are shorthand for
-the corresponding field under a container node.
+Paths use `$` for the root node. Bare field paths such as `$request$id` traverse
+container fields. Inferred unnamed array schemas are reached through `rest`, as
+in `$items$rest$id`.
 
 ## Write And Read
 
@@ -72,12 +89,48 @@ schema_read(person_schema)
 ## Validate
 
 ```{r}
-good <- list(id = 2L, name = "bob", email = "bob@example.com")
-schema_validate(restored, good)
+good <- payload
+restored |>
+  schema_validate(good, mode = "test")
 
-bad <- list(id = "two", name = "bob")
-schema_validate(restored, bad, mode = "check")
+bad <- payload
+bad$items[[1L]]$id <- 0L
+restored |>
+  schema_validate(bad, mode = "check", name = "payload")
 ```
+
+Diagnostics include a path prefix. A message starting with `payload$items[[1]]$id`
+means the root object named `payload` failed inside the first item at field `id`.
+Messages from leaf checks come from checkmate, while container messages are
+produced by `schemate` when fields, names, branches, or references do not match.
+
+## Data Frame Inputs
+
+Data frames are also container objects. `schemate` is not a data quality
+reporting framework; use it when you want an input schema that can be inferred,
+edited, saved, and reused.
+
+```{r}
+scores <- data.frame(
+  id = 1:3,
+  name = c("alice", "bob", "carol"),
+  score = c(9.5, 8.0, 7.5)
+)
+
+score_schema <- scores |>
+  schema_infer(keys = "required") |>
+  schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
+  schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
+
+score_schema |>
+  schema_validate(scores, mode = "test")
+
+bad_scores <- transform(scores, score = as.character(score))
+score_schema |>
+  schema_validate(bad_scores, mode = "check", name = "scores")
+```
+
+## Validation Modes
 
 Use validation modes according to the caller:
 
@@ -86,11 +139,4 @@ Use validation modes according to the caller:
 | `assert` | invalid input should stop execution |
 | `check` | you want a diagnostic string |
 | `test` | control flow needs a boolean |
-| `expect` | tests should receive an expectation object |
-
-## Interpret Errors
-
-Diagnostics include a path prefix. For example, a message starting with
-`bad$id` means the root object named `bad` failed at its `id` field. Messages
-from leaf checks come from checkmate, while container messages are produced by
-`schemate` when fields, names, branches, or references do not match.
+| `expect` | tests should receive a testthat-style expectation object |

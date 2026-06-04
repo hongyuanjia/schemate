@@ -23,6 +23,12 @@ NULL
 #'   observed element schemas are stored in `rest`.
 #'
 #' @return A `SchemaDoc` inferred from `x`.
+#'
+#' @examples
+#' payload <- list(items = list(list(id = 1L), list(id = 2L)))
+#' schema <- schema_infer(payload, keys = "named", arrays = "rest")
+#' as.list(schema)$fields$items$keys
+#'
 #' @export
 schema_infer <- function(
     x,
