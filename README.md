@@ -152,77 +152,16 @@ schema |>
 
     ## [1] FALSE
 
-## Data Frame Inputs
-
-`schemate` also validates ordinary R objects such as data frames. This
-is useful for package-facing input contracts where you want a schema
-that can be inferred, edited, saved, and reused.
-
-``` r
-scores <- data.frame(
-    id = 1:3,
-    name = c("alice", "bob", "carol"),
-    score = c(9.5, 8.0, 7.5)
-)
-
-score_schema <- scores |>
-    schema_infer(keys = "required") |>
-    schema_replace("$id", schema_check("integerish", any.missing = FALSE)) |>
-    schema_replace("$score", schema_check("numeric", lower = 0, upper = 10))
-
-score_schema
-```
-
-    ## {
-    ##   "check": {
-    ##     "kind": "data_frame"
-    ##   },
-    ##   "keys": {
-    ##     "type": "named",
-    ##     "must.include": ["id", "name", "score"]
-    ##   },
-    ##   "fields": {
-    ##     "id": {
-    ##       "check": {
-    ##         "kind": "integerish",
-    ##         "any.missing": false
-    ##       }
-    ##     },
-    ##     "name": {
-    ##       "check": {
-    ##         "kind": "character"
-    ##       }
-    ##     },
-    ##     "score": {
-    ##       "check": {
-    ##         "kind": "numeric",
-    ##         "lower": 0,
-    ##         "upper": 10
-    ##       }
-    ##     }
-    ##   }
-    ## }
-
-``` r
-score_schema |>
-    schema_validate(scores, mode = "test")
-```
-
-    ## [1] TRUE
-
-``` r
-bad_scores <- transform(scores, score = as.character(score))
-score_schema |>
-    schema_validate(bad_scores, mode = "check", name = "scores")
-```
-
-    ## [1] "scores$score: Must be of type 'numeric', not 'character'"
+For a data frame example, see the [Get started
+article](https://hongyuanjia.github.io/schemate/articles/schemate.html).
 
 ## JSON Workflow
 
 Schemas are stored as a compact JSON DSL. The DSL is not JSON Schema; it
 is a thin representation of checkmate checks, field schemas, local
-definitions, and combinators. `schema_read()` and `schema_write()`
+definitions, and combinators. See the [Schema DSL
+article](https://hongyuanjia.github.io/schemate/articles/schema-dsl.html)
+for the complete format reference. `schema_read()` and `schema_write()`
 require the suggested package
 [jsonlite](https://github.com/jeroen/jsonlite).
 
@@ -231,6 +170,78 @@ path <- tempfile(fileext = ".json")
 schema_write(schema, path)
 
 restored <- schema_read(path)
+restored
+```
+
+    ## {
+    ##   "check": {
+    ##     "kind": "list"
+    ##   },
+    ##   "keys": {
+    ##     "type": "named"
+    ##   },
+    ##   "fields": {
+    ##     "items": {
+    ##       "description": "Repository-like result items",
+    ##       "check": {
+    ##         "kind": "list"
+    ##       },
+    ##       "keys": {
+    ##         "type": "unnamed"
+    ##       },
+    ##       "rest": {
+    ##         "check": {
+    ##           "kind": "list"
+    ##         },
+    ##         "keys": {
+    ##           "type": "named"
+    ##         },
+    ##         "fields": {
+    ##           "id": {
+    ##             "check": {
+    ##               "kind": "int"
+    ##             }
+    ##           },
+    ##           "owner": {
+    ##             "check": {
+    ##               "kind": "list"
+    ##             },
+    ##             "keys": {
+    ##               "type": "named"
+    ##             },
+    ##             "fields": {
+    ##               "login": {
+    ##                 "check": {
+    ##                   "kind": "string"
+    ##                 }
+    ##               },
+    ##               "id": {
+    ##                 "check": {
+    ##                   "kind": "int"
+    ##                 }
+    ##               }
+    ##             }
+    ##           },
+    ##           "topics": {
+    ##             "check": {
+    ##               "kind": "list"
+    ##             },
+    ##             "keys": {
+    ##               "type": "unnamed"
+    ##             },
+    ##             "rest": {
+    ##               "check": {
+    ##                 "kind": "string"
+    ##               }
+    ##             }
+    ##           }
+    ##         }
+    ##       }
+    ##     }
+    ##   }
+    ## }
+
+``` r
 restored |>
     schema_validate(payload)
 ```

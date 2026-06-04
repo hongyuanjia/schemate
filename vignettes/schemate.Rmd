@@ -133,11 +133,49 @@ score_schema |>
 
 ## Validation Modes
 
-Use validation modes according to the caller:
+Use validation modes according to the caller. The examples below use one small
+schema so the return shape is easy to compare.
 
-| Mode | Use when |
-| --- | --- |
-| `assert` | invalid input should stop execution |
-| `check` | you want a diagnostic string |
-| `test` | control flow needs a boolean |
-| `expect` | tests should receive a testthat-style expectation object |
+```{r}
+mode_schema <- schema_doc(list(
+    check = list(kind = "list"),
+    fields = list(id = schema_check("int", lower = 1))
+))
+mode_good <- list(id = 1L)
+mode_bad <- list(id = 0L)
+mode_schema
+```
+
+`assert` is the default for application code. It returns the input invisibly on
+success and throws an error on failure.
+
+```{r}
+mode_schema |>
+    schema_validate(mode_good)
+try(mode_schema |>
+    schema_validate(mode_bad, name = "payload"))
+```
+
+`check` returns `TRUE` or a diagnostic string. It is useful when you want to show
+or store the validation message.
+
+```{r}
+mode_schema |>
+    schema_validate(mode_bad, mode = "check", name = "payload")
+```
+
+`test` returns a plain boolean. It is useful for control flow.
+
+```{r}
+mode_schema |>
+    schema_validate(mode_good, mode = "test")
+mode_schema |>
+    schema_validate(mode_bad, mode = "test")
+```
+
+`expect` returns a testthat-style expectation object for package tests.
+
+```{r, eval = requireNamespace("testthat", quietly = TRUE)}
+mode_schema |>
+    schema_validate(mode_good, mode = "expect")
+```
