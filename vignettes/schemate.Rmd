@@ -66,6 +66,21 @@ Paths use `$` for the root node. Bare field paths such as `$request$id` traverse
 container fields. Inferred unnamed array schemas are reached through `rest`, as
 in `$items$rest$id`.
 
+When the same edit should apply to several schema nodes, find the logical paths
+first, then replace the matching nodes. Logical paths expand grouped fields into
+ordinary field paths.
+
+```{r}
+schema_find(schema, schema_where_path("(^|\\$)id$"))
+
+schema <- schema_replace_where(
+    schema,
+    schema_where_path("(^|\\$)id$"),
+    schema_check("int", lower = 1)
+)
+schema
+```
+
 ## Write And Read
 
 `schema_read()` and `schema_write()` require the suggested package `jsonlite`.

@@ -38,6 +38,7 @@ Collate:
     'schema-flat.R'
     'schema-infer.R'
     'schema-json.R'
+    'schema-query.R'
     'schema-validate.R'
     'schemate-package.R'
     'zzz.R'

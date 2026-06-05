@@ -6,6 +6,9 @@
   length constraints.
 
 ## 2026-06-04
+- Add schema path query and batch edit helpers: `schema_paths()`,
+  `schema_find()`, `schema_modify_where()`, `schema_replace_where()`,
+  `schema_where_path()`, and `schema_where_check()`.
 - Cleanup roxygen2 documentation comments when bundling.
 - Share standalone DESCRIPTION generation logic between generation and local
   tests, while preserving the source package DESCRIPTION.

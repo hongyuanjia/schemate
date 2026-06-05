@@ -112,9 +112,10 @@ crossref_schema <- crossref_payload |>
 crossref_schema
 ```
 
-CrossRef `date-parts` is a tuple-like array. Inference records the observed
-array shape, then a small manual edit can express year/month/day positions for
-the saved response's `published-online` date.
+CrossRef `date-parts` entries may be a scalar year or a tuple-like
+`year/month/day` array in this saved response. Inference records the observed
+array shapes, then a small manual edit can define the reusable date component
+once and reference it from every matching `date-parts` position.
 
 The path below walks through the inferred homogeneous arrays. The first `rest`
 means "the schema for each item"; the final `rest` means "the schema for each
@@ -125,18 +126,29 @@ $message$items$rest$`published-online`$`date-parts`$rest
 ```
 
 ```{r}
-date_part <- list(
-    check = list(kind = "list", min.len = 1L, max.len = 3L),
-    keys = list(type = "unnamed"),
-    positions = list(
-        schema_check("int", lower = 0),
-        schema_check("int", lower = 1, upper = 12),
-        schema_check("int", lower = 1, upper = 31)
+date_part <- schema_any(
+    schema_check("int", lower = 0),
+    list(
+        check = list(kind = "list", min.len = 1L, max.len = 3L),
+        keys = list(type = "unnamed"),
+        positions = list(
+            schema_check("int", lower = 0),
+            schema_check("int", lower = 1, upper = 12),
+            schema_check("int", lower = 1, upper = 31)
+        )
     )
 )
 
 crossref_schema <- crossref_schema |>
-    schema_replace("$message$items$rest$`published-online`$`date-parts`$rest", date_part)
+    schema_add_def("crossref_date_part", date_part)
+
+schema_find(crossref_schema, schema_where_path("(^|\\$)`date-parts`\\$rest$"))
+
+crossref_schema <- crossref_schema |>
+    schema_replace_where(
+        schema_where_path("(^|\\$)`date-parts`\\$rest$"),
+        schema_ref("crossref_date_part")
+    )
 crossref_schema
 
 bad_crossref <- crossref_payload
@@ -149,5 +161,6 @@ crossref_schema |>
 ```
 
 When a reusable component has a clear domain name, author it explicitly with
-`$defs` and `$ref`. `schema_compact()` deliberately avoids inventing reusable
-definition names for you.
+`$defs` and `$ref`, then use `schema_replace_where()` to replace repeated logical
+paths with a shared reference. `schema_compact()` deliberately avoids inventing
+reusable definition names for you.

@@ -21,6 +21,51 @@ schema_edit__is_reserved_token <- function(token) {
     checkmate::test_choice(token, SCHEMA_EDIT_RESERVED_TOKENS)
 }
 
+schema_edit__quote_segment <- function(x) {
+    x <- gsub("\\", "\\\\", x, fixed = TRUE)
+    x <- gsub("`", "\\`", x, fixed = TRUE)
+    paste0("`", x, "`")
+}
+
+schema_edit__path_segment <- function(x) {
+    checkmate::assert_string(x, min.chars = 1L)
+    if (grepl("^[A-Za-z.][A-Za-z0-9_.]*$", x, useBytes = TRUE)) {
+        return(x)
+    }
+
+    schema_edit__quote_segment(x)
+}
+
+schema_edit__path_append <- function(path, ...) {
+    tokens <- list(...)
+    if (!length(tokens)) {
+        return(path)
+    }
+
+    for (token in tokens) {
+        segment <- schema_edit__path_segment(token)
+        if (identical(path, "$")) {
+            path <- paste0("$", segment)
+        } else {
+            path <- paste0(path, "$", segment)
+        }
+    }
+
+    path
+}
+
+schema_edit__path_append_field <- function(path, name) {
+    if (schema_edit__is_reserved_token(name)) {
+        return(schema_edit__path_append(path, "fields", name))
+    }
+
+    schema_edit__path_append(path, name)
+}
+
+schema_edit__path_append_index <- function(path, token, index) {
+    paste0(schema_edit__path_append(path, token), "[", index, "]")
+}
+
 schema_edit__parse_quoted_segment <- function(path, pos) {
     n <- nchar(path)
     chars <- character()
@@ -345,6 +390,24 @@ S7::method(schema_edit__modify_tree, SchemaNodeContainerCmpt) <- function(node, 
             node,
             rest = schema_edit__modify_tree(node@rest, rest, fn, path)
         ))
+    }
+
+    if (is.character(token) && identical(token, "patterns")) {
+        if (!length(rest) || !is.character(rest[[1L]])) {
+            schema_edit__path_not_found(path)
+        }
+        pattern <- rest[[1L]]
+        index <- which(vapply(node@patterns, function(binding) identical(binding@pattern, pattern), logical(1L)))
+        if (!length(index)) {
+            schema_edit__path_not_found(path)
+        }
+
+        patterns <- node@patterns
+        patterns[[index[[1L]]]] <- SchemaBindingPatternCmpt(
+            pattern = patterns[[index[[1L]]]]@pattern,
+            target = schema_edit__modify_tree(patterns[[index[[1L]]]]@target, rest[-1L], fn, path)
+        )
+        return(schema_edit__update_node(node, patterns = patterns))
     }
 
     if (is.character(token) && identical(token, "positions")) {

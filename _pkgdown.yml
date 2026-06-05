@@ -32,6 +32,15 @@ reference:
       Backtick-quote field names that contain path operators. Use `$fields$id`
       when you want the explicit field path.
 
+  - subtitle: Query And Batch Edit
+    contents:
+      - schema_paths
+      - schema_find
+      - schema_modify_where
+      - schema_replace_where
+      - schema_where_path
+      - schema_where_check
+
   - subtitle: Edit Nodes
     contents:
       - schema_replace
