@@ -37,6 +37,10 @@ source(standalone_file, chdir = TRUE)
 
 schema <- schema_infer(list(id = 1L, name = "alice"))
 schema <- schema_set_desc(schema, "$id", "Identifier")
+if (!identical(schema_find(schema, schema_where_check("int")), "$id")) {
+    stop("Standalone schema query helpers returned unexpected paths.", call. = FALSE)
+}
+schema <- schema_replace_where(schema, schema_where_path("^\\$id$"), schema_check("int", lower = 1))
 schema_validate(schema, list(id = 2L, name = "bob"))
 
 if (requireNamespace("jsonlite", quietly = TRUE)) {
