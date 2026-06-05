@@ -30,6 +30,10 @@ test_that("schema_validate()", {
         check = list(kind = "data_frame"),
         fields = list(id = list(check = list(kind = "int")))
     ))
+    required_keys_only_doc <- schema_doc(list(
+        check = list(kind = "list"),
+        keys = list(type = "named", must.include = "id")
+    ))
     named_leaf_schema <- schema_flat__compile(schema_doc(list(
         check = list(kind = "character"),
         keys = list(must.include = "id")
@@ -48,10 +52,9 @@ test_that("schema_validate()", {
         schema_validate(open_schema, data.frame(id = 1L, extra = 2L), mode = "check", name = "payload"),
         "payload\\$extra"
     )
-    expect_match(
-        schema_validate(closed_schema, data.frame(id = 1L, extra = "boom"), mode = "check", name = "payload"),
-        "unexpected field"
-    )
+    expect_true(isTRUE(schema_validate(closed_schema, data.frame(id = 1L, extra = "boom"), mode = "check", name = "payload")))
+    expect_true(isTRUE(schema_validate(required_keys_only_doc, list(id = 1L), mode = "check", name = "payload")))
+    expect_match(schema_validate(required_keys_only_doc, list(name = 1L), mode = "check", name = "payload"), "must include")
     expect_true(isTRUE(schema_validate(named_leaf_schema, c(id = "ok"), mode = "check", name = "payload")))
     expect_match(schema_validate(named_leaf_schema, "ok", mode = "check", name = "payload"), "payload")
     expect_match(schema_validate(keyed_list_schema, list(1L), mode = "check", name = "payload"), "named object")
@@ -180,7 +183,7 @@ test_that("schema_validate applies positions before rest", {
     expect_match(schema_validate(doc, list("x", 1L, "bad"), mode = "check", name = "payload"), "payload\\[\\[3\\]\\]")
     expect_match(schema_validate(doc, list("x"), mode = "check", name = "payload"), "length >= 2")
     expect_true(isTRUE(schema_validate(closed_doc, list("x"), mode = "check", name = "payload")))
-    expect_match(schema_validate(closed_doc, list("x", 1L, 2), mode = "check", name = "payload"), "unexpected position")
+    expect_true(isTRUE(schema_validate(closed_doc, list("x", 1L, 2), mode = "check", name = "payload")))
     expect_match(schema_validate(exact_len_doc, list("x", 1L), mode = "check", name = "payload"), "length 3")
     expect_match(
         schema_validate(doc, stats::setNames(list("x", 1L), c("a", "b")), mode = "check", name = "payload"),
@@ -214,4 +217,32 @@ test_that("schema_validate applies patterns before rest", {
     expect_match(schema_validate(doc, bad_pattern, mode = "check", name = "payload"), "payload\\$meta_name")
     expect_match(schema_validate(doc, bad_multi, mode = "check", name = "payload"), "payload\\$meta_flag")
     expect_match(schema_validate(doc, bad_rest, mode = "check", name = "payload"), "payload\\$score")
+})
+
+test_that("schema_validate treats keyed child constraints as optional without explicit keys", {
+    fields_doc <- schema_doc(list(
+        check = list(kind = "list"),
+        fields = list(id = list(check = list(kind = "int")))
+    ))
+    patterns_doc <- schema_doc(list(
+        check = list(kind = "list"),
+        patterns = list("^meta_" = list(check = list(kind = "string")))
+    ))
+    rest_doc <- schema_doc(list(
+        check = list(kind = "list"),
+        rest = list(check = list(kind = "string"))
+    ))
+
+    expect_true(isTRUE(schema_validate(fields_doc, list(id = 1L, extra = "ok"), mode = "check", name = "payload")))
+    expect_true(isTRUE(schema_validate(fields_doc, list(extra = "ok"), mode = "check", name = "payload")))
+    expect_match(schema_validate(fields_doc, list(id = "bad"), mode = "check", name = "payload"), "payload\\$id")
+    expect_match(schema_validate(fields_doc, list(1L), mode = "check", name = "payload"), "named object")
+
+    expect_true(isTRUE(schema_validate(patterns_doc, list(meta_name = "ok", other = 1L), mode = "check", name = "payload")))
+    expect_match(schema_validate(patterns_doc, list(meta_name = 1L), mode = "check", name = "payload"), "payload\\$meta_name")
+    expect_match(schema_validate(patterns_doc, list(1L), mode = "check", name = "payload"), "named object")
+
+    expect_true(isTRUE(schema_validate(rest_doc, list(extra = "ok"), mode = "check", name = "payload")))
+    expect_match(schema_validate(rest_doc, list(extra = 1L), mode = "check", name = "payload"), "payload\\$extra")
+    expect_match(schema_validate(rest_doc, list(1L), mode = "check", name = "payload"), "named object")
 })

@@ -1,5 +1,10 @@
 # Standalone Changelog
 
+## 2026-06-05
+- Treat `fields`, `patterns`, and `positions` as optional child validators
+  during schema validation; use `keys` and `check` rules for required keys and
+  length constraints.
+
 ## 2026-06-04
 - Cleanup roxygen2 documentation comments when bundling.
 - Share standalone DESCRIPTION generation logic between generation and local
