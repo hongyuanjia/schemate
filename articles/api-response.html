@@ -862,29 +862,91 @@ response.</p>
 <span><span class="co">#&gt;     }</span></span>
 <span><span class="co">#&gt;   ]</span></span>
 <span><span class="co">#&gt; }</span></span></code></pre></div>
-<p>CrossRef <code>date-parts</code> is a tuple-like array. Inference
-records the observed array shape, then a small manual edit can express
-year/month/day positions for the saved response’s
-<code>published-online</code> date.</p>
+<p>CrossRef <code>date-parts</code> entries may be a scalar year or a
+tuple-like <code>year/month/day</code> array in this saved response.
+Inference records the observed array shapes, then a small manual edit
+can define the reusable date component once and reference it from every
+matching <code>date-parts</code> position.</p>
 <p>The path below walks through the inferred homogeneous arrays. The
 first <code>rest</code> means “the schema for each item”; the final
 <code>rest</code> means “the schema for each date-parts entry”.</p>
 <pre class="text"><code>$message$items$rest$`published-online`$`date-parts`$rest</code></pre>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">date_part</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    check <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"list"</span>, min.len <span class="op">=</span> <span class="fl">1L</span>, max.len <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span>,</span>
-<span>    keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"unnamed"</span><span class="op">)</span>,</span>
-<span>    positions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>        <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
-<span>        <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">1</span>, upper <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>,</span>
-<span>        <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">1</span>, upper <span class="op">=</span> <span class="fl">31</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">date_part</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema_any.html">schema_any</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        check <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"list"</span>, min.len <span class="op">=</span> <span class="fl">1L</span>, max.len <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span>,</span>
+<span>        keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"unnamed"</span><span class="op">)</span>,</span>
+<span>        positions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>            <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">1</span>, upper <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">1</span>, upper <span class="op">=</span> <span class="fl">31</span><span class="op">)</span></span>
+<span>        <span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">crossref_schema</span> <span class="op">&lt;-</span> <span class="va">crossref_schema</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="../reference/schema_replace.html">schema_replace</a></span><span class="op">(</span><span class="st">"$message$items$rest$`published-online`$`date-parts`$rest"</span>, <span class="va">date_part</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="../reference/schema_add_def.html">schema_add_def</a></span><span class="op">(</span><span class="st">"crossref_date_part"</span>, <span class="va">date_part</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_paths.html">schema_find</a></span><span class="op">(</span><span class="va">crossref_schema</span>, <span class="fu"><a href="../reference/schema_where_path.html">schema_where_path</a></span><span class="op">(</span><span class="st">"(^|\\$)`date-parts`\\$rest$"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "$message$items$rest$issued$`date-parts`$rest"            </span></span>
+<span><span class="co">#&gt; [2] "$message$items$rest$published$`date-parts`$rest"         </span></span>
+<span><span class="co">#&gt; [3] "$message$items$rest$`published-online`$`date-parts`$rest"</span></span>
+<span><span class="co">#&gt; [4] "$message$items$rest$created$`date-parts`$rest"           </span></span>
+<span><span class="co">#&gt; [5] "$message$items$rest$deposited$`date-parts`$rest"         </span></span>
+<span><span class="co">#&gt; [6] "$message$items$rest$`published-print`$`date-parts`$rest"</span></span>
+<span></span>
+<span><span class="va">crossref_schema</span> <span class="op">&lt;-</span> <span class="va">crossref_schema</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/schema_modify_where.html">schema_replace_where</a></span><span class="op">(</span></span>
+<span>        <span class="fu"><a href="../reference/schema_where_path.html">schema_where_path</a></span><span class="op">(</span><span class="st">"(^|\\$)`date-parts`\\$rest$"</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/schema_ref.html">schema_ref</a></span><span class="op">(</span><span class="st">"crossref_date_part"</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
 <span><span class="va">crossref_schema</span></span>
 <span><span class="co">#&gt; {</span></span>
+<span><span class="co">#&gt;   "$defs": {</span></span>
+<span><span class="co">#&gt;     "crossref_date_part": {</span></span>
+<span><span class="co">#&gt;       "any": [</span></span>
+<span><span class="co">#&gt;         {</span></span>
+<span><span class="co">#&gt;           "check": {</span></span>
+<span><span class="co">#&gt;             "kind": "int",</span></span>
+<span><span class="co">#&gt;             "lower": 0</span></span>
+<span><span class="co">#&gt;           }</span></span>
+<span><span class="co">#&gt;         },</span></span>
+<span><span class="co">#&gt;         {</span></span>
+<span><span class="co">#&gt;           "check": {</span></span>
+<span><span class="co">#&gt;             "kind": "list",</span></span>
+<span><span class="co">#&gt;             "min.len": 1,</span></span>
+<span><span class="co">#&gt;             "max.len": 3</span></span>
+<span><span class="co">#&gt;           },</span></span>
+<span><span class="co">#&gt;           "keys": {</span></span>
+<span><span class="co">#&gt;             "type": "unnamed"</span></span>
+<span><span class="co">#&gt;           },</span></span>
+<span><span class="co">#&gt;           "positions": [</span></span>
+<span><span class="co">#&gt;             {</span></span>
+<span><span class="co">#&gt;               "check": {</span></span>
+<span><span class="co">#&gt;                 "kind": "int",</span></span>
+<span><span class="co">#&gt;                 "lower": 0</span></span>
+<span><span class="co">#&gt;               }</span></span>
+<span><span class="co">#&gt;             },</span></span>
+<span><span class="co">#&gt;             {</span></span>
+<span><span class="co">#&gt;               "check": {</span></span>
+<span><span class="co">#&gt;                 "kind": "int",</span></span>
+<span><span class="co">#&gt;                 "lower": 1,</span></span>
+<span><span class="co">#&gt;                 "upper": 12</span></span>
+<span><span class="co">#&gt;               }</span></span>
+<span><span class="co">#&gt;             },</span></span>
+<span><span class="co">#&gt;             {</span></span>
+<span><span class="co">#&gt;               "check": {</span></span>
+<span><span class="co">#&gt;                 "kind": "int",</span></span>
+<span><span class="co">#&gt;                 "lower": 1,</span></span>
+<span><span class="co">#&gt;                 "upper": 31</span></span>
+<span><span class="co">#&gt;               }</span></span>
+<span><span class="co">#&gt;             }</span></span>
+<span><span class="co">#&gt;           ]</span></span>
+<span><span class="co">#&gt;         }</span></span>
+<span><span class="co">#&gt;       ]</span></span>
+<span><span class="co">#&gt;     }</span></span>
+<span><span class="co">#&gt;   },</span></span>
 <span><span class="co">#&gt;   "check": {</span></span>
 <span><span class="co">#&gt;     "kind": "list"</span></span>
 <span><span class="co">#&gt;   },</span></span>
@@ -940,6 +1002,48 @@ first <code>rest</code> means “the schema for each item”; the final
 <span><span class="co">#&gt;                   "kind": "number"</span></span>
 <span><span class="co">#&gt;                 }</span></span>
 <span><span class="co">#&gt;               },</span></span>
+<span><span class="co">#&gt;               "issued": {</span></span>
+<span><span class="co">#&gt;                 "check": {</span></span>
+<span><span class="co">#&gt;                   "kind": "list"</span></span>
+<span><span class="co">#&gt;                 },</span></span>
+<span><span class="co">#&gt;                 "keys": {</span></span>
+<span><span class="co">#&gt;                   "type": "named"</span></span>
+<span><span class="co">#&gt;                 },</span></span>
+<span><span class="co">#&gt;                 "fields": {</span></span>
+<span><span class="co">#&gt;                   "date-parts": {</span></span>
+<span><span class="co">#&gt;                     "check": {</span></span>
+<span><span class="co">#&gt;                       "kind": "list"</span></span>
+<span><span class="co">#&gt;                     },</span></span>
+<span><span class="co">#&gt;                     "keys": {</span></span>
+<span><span class="co">#&gt;                       "type": "unnamed"</span></span>
+<span><span class="co">#&gt;                     },</span></span>
+<span><span class="co">#&gt;                     "rest": {</span></span>
+<span><span class="co">#&gt;                       "$ref": "#/$defs/crossref_date_part"</span></span>
+<span><span class="co">#&gt;                     }</span></span>
+<span><span class="co">#&gt;                   }</span></span>
+<span><span class="co">#&gt;                 }</span></span>
+<span><span class="co">#&gt;               },</span></span>
+<span><span class="co">#&gt;               "published": {</span></span>
+<span><span class="co">#&gt;                 "check": {</span></span>
+<span><span class="co">#&gt;                   "kind": "list"</span></span>
+<span><span class="co">#&gt;                 },</span></span>
+<span><span class="co">#&gt;                 "keys": {</span></span>
+<span><span class="co">#&gt;                   "type": "named"</span></span>
+<span><span class="co">#&gt;                 },</span></span>
+<span><span class="co">#&gt;                 "fields": {</span></span>
+<span><span class="co">#&gt;                   "date-parts": {</span></span>
+<span><span class="co">#&gt;                     "check": {</span></span>
+<span><span class="co">#&gt;                       "kind": "list"</span></span>
+<span><span class="co">#&gt;                     },</span></span>
+<span><span class="co">#&gt;                     "keys": {</span></span>
+<span><span class="co">#&gt;                       "type": "unnamed"</span></span>
+<span><span class="co">#&gt;                     },</span></span>
+<span><span class="co">#&gt;                     "rest": {</span></span>
+<span><span class="co">#&gt;                       "$ref": "#/$defs/crossref_date_part"</span></span>
+<span><span class="co">#&gt;                     }</span></span>
+<span><span class="co">#&gt;                   }</span></span>
+<span><span class="co">#&gt;                 }</span></span>
+<span><span class="co">#&gt;               },</span></span>
 <span><span class="co">#&gt;               "published-online": {</span></span>
 <span><span class="co">#&gt;                 "check": {</span></span>
 <span><span class="co">#&gt;                   "kind": "list"</span></span>
@@ -956,36 +1060,69 @@ first <code>rest</code> means “the schema for each item”; the final
 <span><span class="co">#&gt;                       "type": "unnamed"</span></span>
 <span><span class="co">#&gt;                     },</span></span>
 <span><span class="co">#&gt;                     "rest": {</span></span>
-<span><span class="co">#&gt;                       "check": {</span></span>
-<span><span class="co">#&gt;                         "kind": "list",</span></span>
-<span><span class="co">#&gt;                         "min.len": 1,</span></span>
-<span><span class="co">#&gt;                         "max.len": 3</span></span>
-<span><span class="co">#&gt;                       },</span></span>
-<span><span class="co">#&gt;                       "keys": {</span></span>
-<span><span class="co">#&gt;                         "type": "unnamed"</span></span>
-<span><span class="co">#&gt;                       },</span></span>
-<span><span class="co">#&gt;                       "positions": [</span></span>
-<span><span class="co">#&gt;                         {</span></span>
-<span><span class="co">#&gt;                           "check": {</span></span>
-<span><span class="co">#&gt;                             "kind": "int",</span></span>
-<span><span class="co">#&gt;                             "lower": 0</span></span>
-<span><span class="co">#&gt;                           }</span></span>
-<span><span class="co">#&gt;                         },</span></span>
-<span><span class="co">#&gt;                         {</span></span>
-<span><span class="co">#&gt;                           "check": {</span></span>
-<span><span class="co">#&gt;                             "kind": "int",</span></span>
-<span><span class="co">#&gt;                             "lower": 1,</span></span>
-<span><span class="co">#&gt;                             "upper": 12</span></span>
-<span><span class="co">#&gt;                           }</span></span>
-<span><span class="co">#&gt;                         },</span></span>
-<span><span class="co">#&gt;                         {</span></span>
-<span><span class="co">#&gt;                           "check": {</span></span>
-<span><span class="co">#&gt;                             "kind": "int",</span></span>
-<span><span class="co">#&gt;                             "lower": 1,</span></span>
-<span><span class="co">#&gt;                             "upper": 31</span></span>
-<span><span class="co">#&gt;                           }</span></span>
-<span><span class="co">#&gt;                         }</span></span>
-<span><span class="co">#&gt;                       ]</span></span>
+<span><span class="co">#&gt;                       "$ref": "#/$defs/crossref_date_part"</span></span>
+<span><span class="co">#&gt;                     }</span></span>
+<span><span class="co">#&gt;                   }</span></span>
+<span><span class="co">#&gt;                 }</span></span>
+<span><span class="co">#&gt;               },</span></span>
+<span><span class="co">#&gt;               "created": {</span></span>
+<span><span class="co">#&gt;                 "check": {</span></span>
+<span><span class="co">#&gt;                   "kind": "list"</span></span>
+<span><span class="co">#&gt;                 },</span></span>
+<span><span class="co">#&gt;                 "keys": {</span></span>
+<span><span class="co">#&gt;                   "type": "named"</span></span>
+<span><span class="co">#&gt;                 },</span></span>
+<span><span class="co">#&gt;                 "fields": {</span></span>
+<span><span class="co">#&gt;                   "date-parts": {</span></span>
+<span><span class="co">#&gt;                     "check": {</span></span>
+<span><span class="co">#&gt;                       "kind": "list"</span></span>
+<span><span class="co">#&gt;                     },</span></span>
+<span><span class="co">#&gt;                     "keys": {</span></span>
+<span><span class="co">#&gt;                       "type": "unnamed"</span></span>
+<span><span class="co">#&gt;                     },</span></span>
+<span><span class="co">#&gt;                     "rest": {</span></span>
+<span><span class="co">#&gt;                       "$ref": "#/$defs/crossref_date_part"</span></span>
+<span><span class="co">#&gt;                     }</span></span>
+<span><span class="co">#&gt;                   },</span></span>
+<span><span class="co">#&gt;                   "date-time": {</span></span>
+<span><span class="co">#&gt;                     "check": {</span></span>
+<span><span class="co">#&gt;                       "kind": "string"</span></span>
+<span><span class="co">#&gt;                     }</span></span>
+<span><span class="co">#&gt;                   },</span></span>
+<span><span class="co">#&gt;                   "timestamp": {</span></span>
+<span><span class="co">#&gt;                     "check": {</span></span>
+<span><span class="co">#&gt;                       "kind": "number"</span></span>
+<span><span class="co">#&gt;                     }</span></span>
+<span><span class="co">#&gt;                   }</span></span>
+<span><span class="co">#&gt;                 }</span></span>
+<span><span class="co">#&gt;               },</span></span>
+<span><span class="co">#&gt;               "deposited": {</span></span>
+<span><span class="co">#&gt;                 "check": {</span></span>
+<span><span class="co">#&gt;                   "kind": "list"</span></span>
+<span><span class="co">#&gt;                 },</span></span>
+<span><span class="co">#&gt;                 "keys": {</span></span>
+<span><span class="co">#&gt;                   "type": "named"</span></span>
+<span><span class="co">#&gt;                 },</span></span>
+<span><span class="co">#&gt;                 "fields": {</span></span>
+<span><span class="co">#&gt;                   "date-parts": {</span></span>
+<span><span class="co">#&gt;                     "check": {</span></span>
+<span><span class="co">#&gt;                       "kind": "list"</span></span>
+<span><span class="co">#&gt;                     },</span></span>
+<span><span class="co">#&gt;                     "keys": {</span></span>
+<span><span class="co">#&gt;                       "type": "unnamed"</span></span>
+<span><span class="co">#&gt;                     },</span></span>
+<span><span class="co">#&gt;                     "rest": {</span></span>
+<span><span class="co">#&gt;                       "$ref": "#/$defs/crossref_date_part"</span></span>
+<span><span class="co">#&gt;                     }</span></span>
+<span><span class="co">#&gt;                   },</span></span>
+<span><span class="co">#&gt;                   "date-time": {</span></span>
+<span><span class="co">#&gt;                     "check": {</span></span>
+<span><span class="co">#&gt;                       "kind": "string"</span></span>
+<span><span class="co">#&gt;                     }</span></span>
+<span><span class="co">#&gt;                   },</span></span>
+<span><span class="co">#&gt;                   "timestamp": {</span></span>
+<span><span class="co">#&gt;                     "check": {</span></span>
+<span><span class="co">#&gt;                       "kind": "number"</span></span>
 <span><span class="co">#&gt;                     }</span></span>
 <span><span class="co">#&gt;                   }</span></span>
 <span><span class="co">#&gt;                 }</span></span>
@@ -1064,9 +1201,7 @@ first <code>rest</code> means “the schema for each item”; the final
 <span><span class="co">#&gt;                       "type": "unnamed"</span></span>
 <span><span class="co">#&gt;                     },</span></span>
 <span><span class="co">#&gt;                     "rest": {</span></span>
-<span><span class="co">#&gt;                       "check": {</span></span>
-<span><span class="co">#&gt;                         "kind": "int"</span></span>
-<span><span class="co">#&gt;                       }</span></span>
+<span><span class="co">#&gt;                       "$ref": "#/$defs/crossref_date_part"</span></span>
 <span><span class="co">#&gt;                     }</span></span>
 <span><span class="co">#&gt;                   }</span></span>
 <span><span class="co">#&gt;                 }</span></span>
@@ -1097,89 +1232,6 @@ first <code>rest</code> means “the schema for each item”; the final
 <span><span class="co">#&gt;                 "names": ["reference-count", "is-referenced-by-count", "references-count"],</span></span>
 <span><span class="co">#&gt;                 "check": {</span></span>
 <span><span class="co">#&gt;                   "kind": "int"</span></span>
-<span><span class="co">#&gt;                 }</span></span>
-<span><span class="co">#&gt;               },</span></span>
-<span><span class="co">#&gt;               {</span></span>
-<span><span class="co">#&gt;                 "names": ["issued", "published"],</span></span>
-<span><span class="co">#&gt;                 "check": {</span></span>
-<span><span class="co">#&gt;                   "kind": "list"</span></span>
-<span><span class="co">#&gt;                 },</span></span>
-<span><span class="co">#&gt;                 "keys": {</span></span>
-<span><span class="co">#&gt;                   "type": "named"</span></span>
-<span><span class="co">#&gt;                 },</span></span>
-<span><span class="co">#&gt;                 "fields": {</span></span>
-<span><span class="co">#&gt;                   "date-parts": {</span></span>
-<span><span class="co">#&gt;                     "check": {</span></span>
-<span><span class="co">#&gt;                       "kind": "list"</span></span>
-<span><span class="co">#&gt;                     },</span></span>
-<span><span class="co">#&gt;                     "keys": {</span></span>
-<span><span class="co">#&gt;                       "type": "unnamed"</span></span>
-<span><span class="co">#&gt;                     },</span></span>
-<span><span class="co">#&gt;                     "rest": {</span></span>
-<span><span class="co">#&gt;                       "any": [</span></span>
-<span><span class="co">#&gt;                         {</span></span>
-<span><span class="co">#&gt;                           "check": {</span></span>
-<span><span class="co">#&gt;                             "kind": "list"</span></span>
-<span><span class="co">#&gt;                           },</span></span>
-<span><span class="co">#&gt;                           "keys": {</span></span>
-<span><span class="co">#&gt;                             "type": "unnamed"</span></span>
-<span><span class="co">#&gt;                           },</span></span>
-<span><span class="co">#&gt;                           "rest": {</span></span>
-<span><span class="co">#&gt;                             "check": {</span></span>
-<span><span class="co">#&gt;                               "kind": "int"</span></span>
-<span><span class="co">#&gt;                             }</span></span>
-<span><span class="co">#&gt;                           }</span></span>
-<span><span class="co">#&gt;                         },</span></span>
-<span><span class="co">#&gt;                         {</span></span>
-<span><span class="co">#&gt;                           "check": {</span></span>
-<span><span class="co">#&gt;                             "kind": "int"</span></span>
-<span><span class="co">#&gt;                           }</span></span>
-<span><span class="co">#&gt;                         }</span></span>
-<span><span class="co">#&gt;                       ]</span></span>
-<span><span class="co">#&gt;                     }</span></span>
-<span><span class="co">#&gt;                   }</span></span>
-<span><span class="co">#&gt;                 }</span></span>
-<span><span class="co">#&gt;               },</span></span>
-<span><span class="co">#&gt;               {</span></span>
-<span><span class="co">#&gt;                 "names": ["created", "deposited"],</span></span>
-<span><span class="co">#&gt;                 "check": {</span></span>
-<span><span class="co">#&gt;                   "kind": "list"</span></span>
-<span><span class="co">#&gt;                 },</span></span>
-<span><span class="co">#&gt;                 "keys": {</span></span>
-<span><span class="co">#&gt;                   "type": "named"</span></span>
-<span><span class="co">#&gt;                 },</span></span>
-<span><span class="co">#&gt;                 "fields": {</span></span>
-<span><span class="co">#&gt;                   "date-parts": {</span></span>
-<span><span class="co">#&gt;                     "check": {</span></span>
-<span><span class="co">#&gt;                       "kind": "list"</span></span>
-<span><span class="co">#&gt;                     },</span></span>
-<span><span class="co">#&gt;                     "keys": {</span></span>
-<span><span class="co">#&gt;                       "type": "unnamed"</span></span>
-<span><span class="co">#&gt;                     },</span></span>
-<span><span class="co">#&gt;                     "rest": {</span></span>
-<span><span class="co">#&gt;                       "check": {</span></span>
-<span><span class="co">#&gt;                         "kind": "list"</span></span>
-<span><span class="co">#&gt;                       },</span></span>
-<span><span class="co">#&gt;                       "keys": {</span></span>
-<span><span class="co">#&gt;                         "type": "unnamed"</span></span>
-<span><span class="co">#&gt;                       },</span></span>
-<span><span class="co">#&gt;                       "rest": {</span></span>
-<span><span class="co">#&gt;                         "check": {</span></span>
-<span><span class="co">#&gt;                           "kind": "int"</span></span>
-<span><span class="co">#&gt;                         }</span></span>
-<span><span class="co">#&gt;                       }</span></span>
-<span><span class="co">#&gt;                     }</span></span>
-<span><span class="co">#&gt;                   },</span></span>
-<span><span class="co">#&gt;                   "date-time": {</span></span>
-<span><span class="co">#&gt;                     "check": {</span></span>
-<span><span class="co">#&gt;                       "kind": "string"</span></span>
-<span><span class="co">#&gt;                     }</span></span>
-<span><span class="co">#&gt;                   },</span></span>
-<span><span class="co">#&gt;                   "timestamp": {</span></span>
-<span><span class="co">#&gt;                     "check": {</span></span>
-<span><span class="co">#&gt;                       "kind": "number"</span></span>
-<span><span class="co">#&gt;                     }</span></span>
-<span><span class="co">#&gt;                   }</span></span>
 <span><span class="co">#&gt;                 }</span></span>
 <span><span class="co">#&gt;               }</span></span>
 <span><span class="co">#&gt;             ]</span></span>
@@ -1214,11 +1266,12 @@ first <code>rest</code> means “the schema for each item”; the final
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="va">crossref_schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_crossref</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"crossref"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "crossref$message$items[[1]]$published-online$date-parts[[1]][[2]]: Element 1 is not &lt;= 12"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "crossref$message$items[[1]]$published-online$date-parts[[1]] failed all branches of `any`: [1] crossref$message$items[[1]]$published-online$date-parts[[1]]: Must be of type 'single integerish value', not 'list' | [2] crossref$message$items[[1]]$published-online$date-parts[[1]][[2]]: Element 1 is not &lt;= 12"</span></span></code></pre></div>
 <p>When a reusable component has a clear domain name, author it
-explicitly with <code>$defs</code> and <code>$ref</code>.
-<code><a href="../reference/schema_compact.html">schema_compact()</a></code> deliberately avoids inventing reusable
-definition names for you.</p>
+explicitly with <code>$defs</code> and <code>$ref</code>, then use
+<code><a href="../reference/schema_modify_where.html">schema_replace_where()</a></code> to replace repeated logical paths
+with a shared reference. <code><a href="../reference/schema_compact.html">schema_compact()</a></code> deliberately
+avoids inventing reusable definition names for you.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

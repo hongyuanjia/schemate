@@ -5,7 +5,7 @@ Delete a schema definition
 ## Usage
 
 ``` r
-schema_del_def(x, name, error_if_missing = TRUE)
+schema_del_def(x, name, missing = "error")
 ```
 
 ## Arguments
@@ -18,10 +18,10 @@ schema_del_def(x, name, error_if_missing = TRUE)
 
   Definition name to remove.
 
-- error_if_missing:
+- missing:
 
-  Logical flag indicating whether a missing definition should raise an
-  error.
+  Missing-target behavior. Use `"error"` to raise an error or `"ignore"`
+  to leave the schema unchanged.
 
 ## Value
 

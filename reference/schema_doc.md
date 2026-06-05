@@ -44,4 +44,6 @@ doc
 #> }
 
 schema_validate(doc, "ok")
+schema_validate(doc, 1L, mode = "check")
+#> [1] "x: Must be of type 'string', not 'integer'"
 ```

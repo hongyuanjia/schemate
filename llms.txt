@@ -368,6 +368,18 @@ the root node and bare field segments such as `$id` for container
 fields. Backtick-quote field names that contain path operators. Use
 `$fields$id` when you want the explicit field path.
 
+### Query And Batch Edit
+
+- [`schema_paths()`](https://hongyuanjia.github.io/schemate/reference/schema_paths.md)
+  [`schema_find()`](https://hongyuanjia.github.io/schemate/reference/schema_paths.md)
+  : Query schema paths and matching nodes
+- [`schema_modify_where()`](https://hongyuanjia.github.io/schemate/reference/schema_modify_where.md)
+  [`schema_replace_where()`](https://hongyuanjia.github.io/schemate/reference/schema_modify_where.md)
+  : Modify schema nodes selected by a predicate
+- [`schema_where_path()`](https://hongyuanjia.github.io/schemate/reference/schema_where_path.md)
+  [`schema_where_check()`](https://hongyuanjia.github.io/schemate/reference/schema_where_path.md)
+  : Create schema query predicates
+
 ### Edit Nodes
 
 - [`schema_replace()`](https://hongyuanjia.github.io/schemate/reference/schema_replace.md)

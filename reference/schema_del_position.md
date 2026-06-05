@@ -5,7 +5,7 @@ Delete a position schema from an unnamed container node
 ## Usage
 
 ``` r
-schema_del_position(x, index, path = "$", error_if_missing = TRUE)
+schema_del_position(x, index, path = "$", missing = "error")
 ```
 
 ## Arguments
@@ -22,10 +22,10 @@ schema_del_position(x, index, path = "$", error_if_missing = TRUE)
 
   Path to the target unnamed container node. Use `$` for the root node.
 
-- error_if_missing:
+- missing:
 
-  Logical flag indicating whether a missing position schema should raise
-  an error.
+  Missing-target behavior. Use `"error"` to raise an error or `"ignore"`
+  to leave the schema unchanged.
 
 ## Value
 

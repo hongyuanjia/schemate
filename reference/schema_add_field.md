@@ -45,6 +45,12 @@ A modified `SchemaDoc`.
 
 ``` r
 schema <- schema_doc(list(check = list(kind = "list")))
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   }
+#> }
 schema <- schema_add_field(schema, "id", schema_check("int", lower = 1))
 schema
 #> {

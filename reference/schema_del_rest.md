@@ -5,7 +5,7 @@ Delete a container rest schema
 ## Usage
 
 ``` r
-schema_del_rest(x, path = "$", error_if_missing = TRUE)
+schema_del_rest(x, path = "$", missing = "error")
 ```
 
 ## Arguments
@@ -21,10 +21,10 @@ schema_del_rest(x, path = "$", error_if_missing = TRUE)
   Use `$fields$id` to write the explicit field path. Backtick-quote
   field names that contain path operators, for example `` $`a$b`  ``.
 
-- error_if_missing:
+- missing:
 
-  Logical flag indicating whether a missing `rest` schema should raise
-  an error.
+  Missing-target behavior. Use `"error"` to raise an error or `"ignore"`
+  to leave the schema unchanged.
 
 ## Value
 

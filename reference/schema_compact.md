@@ -102,8 +102,7 @@ schema
 #>   }
 #> }
 
-compact <- schema_compact(schema)
-compact
+schema_compact(schema)
 #> {
 #>   "check": {
 #>     "kind": "list"
@@ -145,7 +144,4 @@ compact
 #>     }
 #>   }
 #> }
-
-names(as.list(compact)$fields$items$rest$fields)
-#> [1] "id"
 ```

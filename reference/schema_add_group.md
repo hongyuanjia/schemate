@@ -36,6 +36,12 @@ A modified `SchemaDoc`.
 
 ``` r
 schema <- schema_doc(list(check = list(kind = "list")))
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   }
+#> }
 schema <- schema_add_group(schema, schema_group(c("x", "y"), schema_check("number")))
 schema
 #> {

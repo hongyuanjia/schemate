@@ -67,8 +67,8 @@ schema
 
 path <- tempfile(fileext = ".json")
 schema_write(schema, path)
-restored <- schema_read(path)
-restored
+
+schema_read(path)
 #> {
 #>   "check": {
 #>     "kind": "list"

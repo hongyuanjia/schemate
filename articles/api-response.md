@@ -811,10 +811,11 @@ crossref_schema
 #> }
 ```
 
-CrossRef `date-parts` is a tuple-like array. Inference records the
-observed array shape, then a small manual edit can express
-year/month/day positions for the saved response’s `published-online`
-date.
+CrossRef `date-parts` entries may be a scalar year or a tuple-like
+`year/month/day` array in this saved response. Inference records the
+observed array shapes, then a small manual edit can define the reusable
+date component once and reference it from every matching `date-parts`
+position.
 
 The path below walks through the inferred homogeneous arrays. The first
 `rest` means “the schema for each item”; the final `rest` means “the
@@ -826,20 +827,81 @@ $message$items$rest$`published-online`$`date-parts`$rest
 
 ``` r
 
-date_part <- list(
-    check = list(kind = "list", min.len = 1L, max.len = 3L),
-    keys = list(type = "unnamed"),
-    positions = list(
-        schema_check("int", lower = 0),
-        schema_check("int", lower = 1, upper = 12),
-        schema_check("int", lower = 1, upper = 31)
+date_part <- schema_any(
+    schema_check("int", lower = 0),
+    list(
+        check = list(kind = "list", min.len = 1L, max.len = 3L),
+        keys = list(type = "unnamed"),
+        positions = list(
+            schema_check("int", lower = 0),
+            schema_check("int", lower = 1, upper = 12),
+            schema_check("int", lower = 1, upper = 31)
+        )
     )
 )
 
 crossref_schema <- crossref_schema |>
-    schema_replace("$message$items$rest$`published-online`$`date-parts`$rest", date_part)
+    schema_add_def("crossref_date_part", date_part)
+
+schema_find(crossref_schema, schema_where_path("(^|\\$)`date-parts`\\$rest$"))
+#> [1] "$message$items$rest$issued$`date-parts`$rest"            
+#> [2] "$message$items$rest$published$`date-parts`$rest"         
+#> [3] "$message$items$rest$`published-online`$`date-parts`$rest"
+#> [4] "$message$items$rest$created$`date-parts`$rest"           
+#> [5] "$message$items$rest$deposited$`date-parts`$rest"         
+#> [6] "$message$items$rest$`published-print`$`date-parts`$rest"
+
+crossref_schema <- crossref_schema |>
+    schema_replace_where(
+        schema_where_path("(^|\\$)`date-parts`\\$rest$"),
+        schema_ref("crossref_date_part")
+    )
 crossref_schema
 #> {
+#>   "$defs": {
+#>     "crossref_date_part": {
+#>       "any": [
+#>         {
+#>           "check": {
+#>             "kind": "int",
+#>             "lower": 0
+#>           }
+#>         },
+#>         {
+#>           "check": {
+#>             "kind": "list",
+#>             "min.len": 1,
+#>             "max.len": 3
+#>           },
+#>           "keys": {
+#>             "type": "unnamed"
+#>           },
+#>           "positions": [
+#>             {
+#>               "check": {
+#>                 "kind": "int",
+#>                 "lower": 0
+#>               }
+#>             },
+#>             {
+#>               "check": {
+#>                 "kind": "int",
+#>                 "lower": 1,
+#>                 "upper": 12
+#>               }
+#>             },
+#>             {
+#>               "check": {
+#>                 "kind": "int",
+#>                 "lower": 1,
+#>                 "upper": 31
+#>               }
+#>             }
+#>           ]
+#>         }
+#>       ]
+#>     }
+#>   },
 #>   "check": {
 #>     "kind": "list"
 #>   },
@@ -895,6 +957,48 @@ crossref_schema
 #>                   "kind": "number"
 #>                 }
 #>               },
+#>               "issued": {
+#>                 "check": {
+#>                   "kind": "list"
+#>                 },
+#>                 "keys": {
+#>                   "type": "named"
+#>                 },
+#>                 "fields": {
+#>                   "date-parts": {
+#>                     "check": {
+#>                       "kind": "list"
+#>                     },
+#>                     "keys": {
+#>                       "type": "unnamed"
+#>                     },
+#>                     "rest": {
+#>                       "$ref": "#/$defs/crossref_date_part"
+#>                     }
+#>                   }
+#>                 }
+#>               },
+#>               "published": {
+#>                 "check": {
+#>                   "kind": "list"
+#>                 },
+#>                 "keys": {
+#>                   "type": "named"
+#>                 },
+#>                 "fields": {
+#>                   "date-parts": {
+#>                     "check": {
+#>                       "kind": "list"
+#>                     },
+#>                     "keys": {
+#>                       "type": "unnamed"
+#>                     },
+#>                     "rest": {
+#>                       "$ref": "#/$defs/crossref_date_part"
+#>                     }
+#>                   }
+#>                 }
+#>               },
 #>               "published-online": {
 #>                 "check": {
 #>                   "kind": "list"
@@ -911,36 +1015,69 @@ crossref_schema
 #>                       "type": "unnamed"
 #>                     },
 #>                     "rest": {
-#>                       "check": {
-#>                         "kind": "list",
-#>                         "min.len": 1,
-#>                         "max.len": 3
-#>                       },
-#>                       "keys": {
-#>                         "type": "unnamed"
-#>                       },
-#>                       "positions": [
-#>                         {
-#>                           "check": {
-#>                             "kind": "int",
-#>                             "lower": 0
-#>                           }
-#>                         },
-#>                         {
-#>                           "check": {
-#>                             "kind": "int",
-#>                             "lower": 1,
-#>                             "upper": 12
-#>                           }
-#>                         },
-#>                         {
-#>                           "check": {
-#>                             "kind": "int",
-#>                             "lower": 1,
-#>                             "upper": 31
-#>                           }
-#>                         }
-#>                       ]
+#>                       "$ref": "#/$defs/crossref_date_part"
+#>                     }
+#>                   }
+#>                 }
+#>               },
+#>               "created": {
+#>                 "check": {
+#>                   "kind": "list"
+#>                 },
+#>                 "keys": {
+#>                   "type": "named"
+#>                 },
+#>                 "fields": {
+#>                   "date-parts": {
+#>                     "check": {
+#>                       "kind": "list"
+#>                     },
+#>                     "keys": {
+#>                       "type": "unnamed"
+#>                     },
+#>                     "rest": {
+#>                       "$ref": "#/$defs/crossref_date_part"
+#>                     }
+#>                   },
+#>                   "date-time": {
+#>                     "check": {
+#>                       "kind": "string"
+#>                     }
+#>                   },
+#>                   "timestamp": {
+#>                     "check": {
+#>                       "kind": "number"
+#>                     }
+#>                   }
+#>                 }
+#>               },
+#>               "deposited": {
+#>                 "check": {
+#>                   "kind": "list"
+#>                 },
+#>                 "keys": {
+#>                   "type": "named"
+#>                 },
+#>                 "fields": {
+#>                   "date-parts": {
+#>                     "check": {
+#>                       "kind": "list"
+#>                     },
+#>                     "keys": {
+#>                       "type": "unnamed"
+#>                     },
+#>                     "rest": {
+#>                       "$ref": "#/$defs/crossref_date_part"
+#>                     }
+#>                   },
+#>                   "date-time": {
+#>                     "check": {
+#>                       "kind": "string"
+#>                     }
+#>                   },
+#>                   "timestamp": {
+#>                     "check": {
+#>                       "kind": "number"
 #>                     }
 #>                   }
 #>                 }
@@ -1019,9 +1156,7 @@ crossref_schema
 #>                       "type": "unnamed"
 #>                     },
 #>                     "rest": {
-#>                       "check": {
-#>                         "kind": "int"
-#>                       }
+#>                       "$ref": "#/$defs/crossref_date_part"
 #>                     }
 #>                   }
 #>                 }
@@ -1052,89 +1187,6 @@ crossref_schema
 #>                 "names": ["reference-count", "is-referenced-by-count", "references-count"],
 #>                 "check": {
 #>                   "kind": "int"
-#>                 }
-#>               },
-#>               {
-#>                 "names": ["issued", "published"],
-#>                 "check": {
-#>                   "kind": "list"
-#>                 },
-#>                 "keys": {
-#>                   "type": "named"
-#>                 },
-#>                 "fields": {
-#>                   "date-parts": {
-#>                     "check": {
-#>                       "kind": "list"
-#>                     },
-#>                     "keys": {
-#>                       "type": "unnamed"
-#>                     },
-#>                     "rest": {
-#>                       "any": [
-#>                         {
-#>                           "check": {
-#>                             "kind": "list"
-#>                           },
-#>                           "keys": {
-#>                             "type": "unnamed"
-#>                           },
-#>                           "rest": {
-#>                             "check": {
-#>                               "kind": "int"
-#>                             }
-#>                           }
-#>                         },
-#>                         {
-#>                           "check": {
-#>                             "kind": "int"
-#>                           }
-#>                         }
-#>                       ]
-#>                     }
-#>                   }
-#>                 }
-#>               },
-#>               {
-#>                 "names": ["created", "deposited"],
-#>                 "check": {
-#>                   "kind": "list"
-#>                 },
-#>                 "keys": {
-#>                   "type": "named"
-#>                 },
-#>                 "fields": {
-#>                   "date-parts": {
-#>                     "check": {
-#>                       "kind": "list"
-#>                     },
-#>                     "keys": {
-#>                       "type": "unnamed"
-#>                     },
-#>                     "rest": {
-#>                       "check": {
-#>                         "kind": "list"
-#>                       },
-#>                       "keys": {
-#>                         "type": "unnamed"
-#>                       },
-#>                       "rest": {
-#>                         "check": {
-#>                           "kind": "int"
-#>                         }
-#>                       }
-#>                     }
-#>                   },
-#>                   "date-time": {
-#>                     "check": {
-#>                       "kind": "string"
-#>                     }
-#>                   },
-#>                   "timestamp": {
-#>                     "check": {
-#>                       "kind": "number"
-#>                     }
-#>                   }
 #>                 }
 #>               }
 #>             ]
@@ -1169,10 +1221,12 @@ crossref_schema |>
 #> [1] TRUE
 crossref_schema |>
     schema_validate(bad_crossref, mode = "check", name = "crossref")
-#> [1] "crossref$message$items[[1]]$published-online$date-parts[[1]][[2]]: Element 1 is not <= 12"
+#> [1] "crossref$message$items[[1]]$published-online$date-parts[[1]] failed all branches of `any`: [1] crossref$message$items[[1]]$published-online$date-parts[[1]]: Must be of type 'single integerish value', not 'list' | [2] crossref$message$items[[1]]$published-online$date-parts[[1]][[2]]: Element 1 is not <= 12"
 ```
 
 When a reusable component has a clear domain name, author it explicitly
-with `$defs` and `$ref`.
+with `$defs` and `$ref`, then use
+[`schema_replace_where()`](https://hongyuanjia.github.io/schemate/reference/schema_modify_where.md)
+to replace repeated logical paths with a shared reference.
 [`schema_compact()`](https://hongyuanjia.github.io/schemate/reference/schema_compact.md)
 deliberately avoids inventing reusable definition names for you.

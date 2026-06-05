@@ -33,15 +33,11 @@ A modified `SchemaDoc`.
 
 ``` r
 schema <- schema_doc(schema_check("string"))
-schema <- schema_set_desc(schema, "$", "A non-empty label.")
-schema
+schema_set_desc(schema, "$", "A non-empty label.")
 #> {
 #>   "description": "A non-empty label.",
 #>   "check": {
 #>     "kind": "string"
 #>   }
 #> }
-
-as.list(schema)$description
-#> [1] "A non-empty label."
 ```

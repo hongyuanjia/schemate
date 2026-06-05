@@ -33,6 +33,15 @@ A modified `SchemaDoc`.
 
 ``` r
 schema <- schema_doc(list(check = list(kind = "list")))
+schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   }
+#> }
+schema_validate(schema, list(id = 1L), mode = "test")
+#> [1] TRUE
+
 schema <- schema_set_keys(schema, type = "named", must.include = "id")
 schema
 #> {
@@ -44,7 +53,5 @@ schema
 #>     "must.include": "id"
 #>   }
 #> }
-
-schema_validate(schema, list(id = 1L), mode = "test")
-#> [1] FALSE
+schema_validate(schema, list(id = 1L), mode = "assert")
 ```

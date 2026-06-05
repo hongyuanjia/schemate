@@ -268,13 +268,101 @@ matter.</p>
 <code>$request$id</code> traverse container fields. Inferred unnamed
 array schemas are reached through <code>rest</code>, as in
 <code>$items$rest$id</code>.</p>
+<p>When the same edit should apply to several schema nodes, find the
+logical paths first, then replace the matching nodes. Logical paths
+expand grouped fields into ordinary field paths.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/schema_paths.html">schema_find</a></span><span class="op">(</span><span class="va">schema</span>, <span class="fu"><a href="../reference/schema_where_path.html">schema_where_path</a></span><span class="op">(</span><span class="st">"(^|\\$)id$"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "$request$id"    "$items$rest$id"</span></span>
+<span></span>
+<span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema_modify_where.html">schema_replace_where</a></span><span class="op">(</span></span>
+<span>    <span class="va">schema</span>,</span>
+<span>    <span class="fu"><a href="../reference/schema_where_path.html">schema_where_path</a></span><span class="op">(</span><span class="st">"(^|\\$)id$"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">schema</span></span>
+<span><span class="co">#&gt; {</span></span>
+<span><span class="co">#&gt;   "description": "Example request payload.",</span></span>
+<span><span class="co">#&gt;   "check": {</span></span>
+<span><span class="co">#&gt;     "kind": "list"</span></span>
+<span><span class="co">#&gt;   },</span></span>
+<span><span class="co">#&gt;   "keys": {</span></span>
+<span><span class="co">#&gt;     "type": "named"</span></span>
+<span><span class="co">#&gt;   },</span></span>
+<span><span class="co">#&gt;   "fields": {</span></span>
+<span><span class="co">#&gt;     "request": {</span></span>
+<span><span class="co">#&gt;       "check": {</span></span>
+<span><span class="co">#&gt;         "kind": "list"</span></span>
+<span><span class="co">#&gt;       },</span></span>
+<span><span class="co">#&gt;       "keys": {</span></span>
+<span><span class="co">#&gt;         "type": "named"</span></span>
+<span><span class="co">#&gt;       },</span></span>
+<span><span class="co">#&gt;       "fields": {</span></span>
+<span><span class="co">#&gt;         "id": {</span></span>
+<span><span class="co">#&gt;           "check": {</span></span>
+<span><span class="co">#&gt;             "kind": "int",</span></span>
+<span><span class="co">#&gt;             "lower": 1</span></span>
+<span><span class="co">#&gt;           }</span></span>
+<span><span class="co">#&gt;         },</span></span>
+<span><span class="co">#&gt;         "retry": {</span></span>
+<span><span class="co">#&gt;           "check": {</span></span>
+<span><span class="co">#&gt;             "kind": "flag"</span></span>
+<span><span class="co">#&gt;           }</span></span>
+<span><span class="co">#&gt;         }</span></span>
+<span><span class="co">#&gt;       }</span></span>
+<span><span class="co">#&gt;     },</span></span>
+<span><span class="co">#&gt;     "items": {</span></span>
+<span><span class="co">#&gt;       "check": {</span></span>
+<span><span class="co">#&gt;         "kind": "list"</span></span>
+<span><span class="co">#&gt;       },</span></span>
+<span><span class="co">#&gt;       "keys": {</span></span>
+<span><span class="co">#&gt;         "type": "unnamed"</span></span>
+<span><span class="co">#&gt;       },</span></span>
+<span><span class="co">#&gt;       "rest": {</span></span>
+<span><span class="co">#&gt;         "check": {</span></span>
+<span><span class="co">#&gt;           "kind": "list"</span></span>
+<span><span class="co">#&gt;         },</span></span>
+<span><span class="co">#&gt;         "keys": {</span></span>
+<span><span class="co">#&gt;           "type": "named"</span></span>
+<span><span class="co">#&gt;         },</span></span>
+<span><span class="co">#&gt;         "fields": {</span></span>
+<span><span class="co">#&gt;           "id": {</span></span>
+<span><span class="co">#&gt;             "check": {</span></span>
+<span><span class="co">#&gt;               "kind": "int",</span></span>
+<span><span class="co">#&gt;               "lower": 1</span></span>
+<span><span class="co">#&gt;             }</span></span>
+<span><span class="co">#&gt;           },</span></span>
+<span><span class="co">#&gt;           "label": {</span></span>
+<span><span class="co">#&gt;             "check": {</span></span>
+<span><span class="co">#&gt;               "kind": "string"</span></span>
+<span><span class="co">#&gt;             }</span></span>
+<span><span class="co">#&gt;           },</span></span>
+<span><span class="co">#&gt;           "tags": {</span></span>
+<span><span class="co">#&gt;             "check": {</span></span>
+<span><span class="co">#&gt;               "kind": "list"</span></span>
+<span><span class="co">#&gt;             },</span></span>
+<span><span class="co">#&gt;             "keys": {</span></span>
+<span><span class="co">#&gt;               "type": "unnamed"</span></span>
+<span><span class="co">#&gt;             },</span></span>
+<span><span class="co">#&gt;             "rest": {</span></span>
+<span><span class="co">#&gt;               "check": {</span></span>
+<span><span class="co">#&gt;                 "kind": "string",</span></span>
+<span><span class="co">#&gt;                 "min.chars": 1</span></span>
+<span><span class="co">#&gt;               }</span></span>
+<span><span class="co">#&gt;             }</span></span>
+<span><span class="co">#&gt;           }</span></span>
+<span><span class="co">#&gt;         }</span></span>
+<span><span class="co">#&gt;       }</span></span>
+<span><span class="co">#&gt;     }</span></span>
+<span><span class="co">#&gt;   }</span></span>
+<span><span class="co">#&gt; }</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="write-and-read">Write And Read<a class="anchor" aria-label="anchor" href="#write-and-read"></a>
 </h2>
 <p><code><a href="../reference/schema-json.html">schema_read()</a></code> and <code><a href="../reference/schema-json.html">schema_write()</a></code> require
 the suggested package <code>jsonlite</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".json"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/schema-json.html">schema_write</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">path</span><span class="op">)</span></span>
 <span></span>
@@ -299,8 +387,8 @@ the suggested package <code>jsonlite</code>.</p>
 <span><span class="co">#&gt;       "fields": {</span></span>
 <span><span class="co">#&gt;         "id": {</span></span>
 <span><span class="co">#&gt;           "check": {</span></span>
-<span><span class="co">#&gt;             "kind": "string",</span></span>
-<span><span class="co">#&gt;             "min.chars": 1</span></span>
+<span><span class="co">#&gt;             "kind": "int",</span></span>
+<span><span class="co">#&gt;             "lower": 1</span></span>
 <span><span class="co">#&gt;           }</span></span>
 <span><span class="co">#&gt;         },</span></span>
 <span><span class="co">#&gt;         "retry": {</span></span>
@@ -357,7 +445,7 @@ the suggested package <code>jsonlite</code>.</p>
 <span><span class="co">#&gt; }</span></span></code></pre></div>
 <p>Below is an example schema file shipped with this package.
 <code><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file()</a></code>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">person_schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"person-schema.json"</span>, package <span class="op">=</span> <span class="st">"schemate"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="va">person_schema</span><span class="op">)</span></span>
 <span><span class="co">#&gt; {</span></span>
@@ -399,17 +487,17 @@ the suggested package <code>jsonlite</code>.</p>
 <div class="section level2">
 <h2 id="validate">Validate<a class="anchor" aria-label="anchor" href="#validate"></a>
 </h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">good</span> <span class="op">&lt;-</span> <span class="va">payload</span></span>
 <span><span class="va">restored</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span>
 <span></span>
 <span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="va">payload</span></span>
 <span><span class="va">bad</span><span class="op">$</span><span class="va">items</span><span class="op">[[</span><span class="fl">1L</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">id</span> <span class="op">&lt;-</span> <span class="fl">0L</span></span>
 <span><span class="va">restored</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "payload$items[[1]]$id: Element 1 is not &gt;= 1"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "payload$request$id: Must be of type 'single integerish value', not 'character'"</span></span></code></pre></div>
 <p>Diagnostics include a path prefix. A message starting with
 <code>payload$items[[1]]$id</code> means the root object named
 <code>payload</code> failed inside the first item at field
@@ -423,7 +511,7 @@ names, branches, or references do not match.</p>
 <p>Data frames are also container objects. <code>schemate</code> is not
 a data quality reporting framework; use it when you want an input schema
 that can be inferred, edited, saved, and reused.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,</span>
 <span>    name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"alice"</span>, <span class="st">"bob"</span>, <span class="st">"carol"</span><span class="op">)</span>,</span>
@@ -479,7 +567,7 @@ that can be inferred, edited, saved, and reused.</p>
 </h2>
 <p>Use validation modes according to the caller. The examples below use
 one small schema so the return shape is easy to compare.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mode_schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema_doc.html">schema_doc</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    check <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"list"</span><span class="op">)</span>,</span>
 <span>    fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="../reference/schema_check.html">schema_check</a></span><span class="op">(</span><span class="st">"int"</span>, lower <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
@@ -502,7 +590,7 @@ one small schema so the return shape is easy to compare.</p>
 <span><span class="co">#&gt; }</span></span></code></pre></div>
 <p><code>assert</code> is the default for application code. It returns
 the input invisibly on success and throws an error on failure.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mode_schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">mode_good</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="va">mode_schema</span> <span class="op">|&gt;</span></span>
@@ -510,13 +598,13 @@ the input invisibly on success and throws an error on failure.</p>
 <span><span class="co">#&gt; Error : payload$id: Element 1 is not &gt;= 1</span></span></code></pre></div>
 <p><code>check</code> returns <code>TRUE</code> or a diagnostic string.
 It is useful when you want to show or store the validation message.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mode_schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">mode_bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "payload$id: Element 1 is not &gt;= 1"</span></span></code></pre></div>
 <p><code>test</code> returns a plain boolean. It is useful for control
 flow.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mode_schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">mode_good</span>, mode <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span>
@@ -525,7 +613,7 @@ flow.</p>
 <span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
 <p><code>expect</code> returns a testthat-style expectation object for
 package tests.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mode_schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">mode_good</span>, mode <span class="op">=</span> <span class="st">"expect"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="font-weight: bold;">&lt;expectation_success/expectation/condition&gt;</span></span></span>

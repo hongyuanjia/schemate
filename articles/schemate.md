@@ -206,6 +206,98 @@ Paths use `$` for the root node. Bare field paths such as `$request$id`
 traverse container fields. Inferred unnamed array schemas are reached
 through `rest`, as in `$items$rest$id`.
 
+When the same edit should apply to several schema nodes, find the
+logical paths first, then replace the matching nodes. Logical paths
+expand grouped fields into ordinary field paths.
+
+``` r
+
+schema_find(schema, schema_where_path("(^|\\$)id$"))
+#> [1] "$request$id"    "$items$rest$id"
+
+schema <- schema_replace_where(
+    schema,
+    schema_where_path("(^|\\$)id$"),
+    schema_check("int", lower = 1)
+)
+schema
+#> {
+#>   "description": "Example request payload.",
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "keys": {
+#>     "type": "named"
+#>   },
+#>   "fields": {
+#>     "request": {
+#>       "check": {
+#>         "kind": "list"
+#>       },
+#>       "keys": {
+#>         "type": "named"
+#>       },
+#>       "fields": {
+#>         "id": {
+#>           "check": {
+#>             "kind": "int",
+#>             "lower": 1
+#>           }
+#>         },
+#>         "retry": {
+#>           "check": {
+#>             "kind": "flag"
+#>           }
+#>         }
+#>       }
+#>     },
+#>     "items": {
+#>       "check": {
+#>         "kind": "list"
+#>       },
+#>       "keys": {
+#>         "type": "unnamed"
+#>       },
+#>       "rest": {
+#>         "check": {
+#>           "kind": "list"
+#>         },
+#>         "keys": {
+#>           "type": "named"
+#>         },
+#>         "fields": {
+#>           "id": {
+#>             "check": {
+#>               "kind": "int",
+#>               "lower": 1
+#>             }
+#>           },
+#>           "label": {
+#>             "check": {
+#>               "kind": "string"
+#>             }
+#>           },
+#>           "tags": {
+#>             "check": {
+#>               "kind": "list"
+#>             },
+#>             "keys": {
+#>               "type": "unnamed"
+#>             },
+#>             "rest": {
+#>               "check": {
+#>                 "kind": "string",
+#>                 "min.chars": 1
+#>               }
+#>             }
+#>           }
+#>         }
+#>       }
+#>     }
+#>   }
+#> }
+```
+
 ## Write And Read
 
 [`schema_read()`](https://hongyuanjia.github.io/schemate/reference/schema-json.md)
@@ -239,8 +331,8 @@ restored
 #>       "fields": {
 #>         "id": {
 #>           "check": {
-#>             "kind": "string",
-#>             "min.chars": 1
+#>             "kind": "int",
+#>             "lower": 1
 #>           }
 #>         },
 #>         "retry": {
@@ -348,13 +440,13 @@ schema_read(person_schema)
 good <- payload
 restored |>
     schema_validate(good, mode = "test")
-#> [1] TRUE
+#> [1] FALSE
 
 bad <- payload
 bad$items[[1L]]$id <- 0L
 restored |>
     schema_validate(bad, mode = "check", name = "payload")
-#> [1] "payload$items[[1]]$id: Element 1 is not >= 1"
+#> [1] "payload$request$id: Must be of type 'single integerish value', not 'character'"
 ```
 
 Diagnostics include a path prefix. A message starting with

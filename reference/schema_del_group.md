@@ -5,7 +5,7 @@ Delete a schema group from a container node
 ## Usage
 
 ``` r
-schema_del_group(x, index, path = "$", error_if_missing = TRUE)
+schema_del_group(x, index, path = "$", missing = "error")
 ```
 
 ## Arguments
@@ -25,9 +25,10 @@ schema_del_group(x, index, path = "$", error_if_missing = TRUE)
   Use `$fields$id` to write the explicit field path. Backtick-quote
   field names that contain path operators, for example `` $`a$b`  ``.
 
-- error_if_missing:
+- missing:
 
-  Logical flag indicating whether a missing group should raise an error.
+  Missing-target behavior. Use `"error"` to raise an error or `"ignore"`
+  to leave the schema unchanged.
 
 ## Value
 
@@ -40,14 +41,25 @@ schema <- schema_doc(list(
     check = list(kind = "list"),
     groups = list(schema_group(c("x", "y"), schema_check("number")))
 ))
-schema <- schema_del_group(schema, 1)
 schema
+#> {
+#>   "check": {
+#>     "kind": "list"
+#>   },
+#>   "groups": [
+#>     {
+#>       "names": ["x", "y"],
+#>       "check": {
+#>         "kind": "number"
+#>       }
+#>     }
+#>   ]
+#> }
+
+schema_del_group(schema, 1)
 #> {
 #>   "check": {
 #>     "kind": "list"
 #>   }
 #> }
-
-as.list(schema)$groups
-#> NULL
 ```
