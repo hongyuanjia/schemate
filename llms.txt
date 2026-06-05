@@ -1,4 +1,4 @@
-# schemate
+# schemate ![](reference/figures/schemate.svg)
 
 > A small, [checkmate](https://mllg.github.io/checkmate/)-first schema
 > DSL for R data.
