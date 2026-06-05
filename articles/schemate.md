@@ -206,6 +206,8 @@ Paths use `$` for the root node. Bare field paths such as `$request$id`
 traverse container fields. Inferred unnamed array schemas are reached
 through `rest`, as in `$items$rest$id`.
 
+## Batch Edits
+
 When the same edit should apply to several schema nodes, find the
 logical paths first, then replace the matching nodes. Logical paths
 expand grouped fields into ordinary field paths.

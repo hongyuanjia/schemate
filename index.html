@@ -87,8 +87,8 @@
 <span></span>
 <span><span class="va">payload</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    items <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>        <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1L</span>, owner <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>login <span class="op">=</span> <span class="st">"alice"</span>, id <span class="op">=</span> <span class="fl">10L</span><span class="op">)</span>, topics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"r"</span>, <span class="st">"schema"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>        <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">2L</span>, owner <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>login <span class="op">=</span> <span class="st">"bob"</span>, id <span class="op">=</span> <span class="fl">20L</span><span class="op">)</span>, topics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"validation"</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1L</span>, name <span class="op">=</span> <span class="st">"alpha"</span>, label <span class="op">=</span> <span class="st">"Alpha"</span>, slug <span class="op">=</span> <span class="st">"alpha"</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">2L</span>, name <span class="op">=</span> <span class="st">"beta"</span>, label <span class="op">=</span> <span class="st">"Beta"</span>, slug <span class="op">=</span> <span class="st">"beta"</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -126,45 +126,20 @@
 <span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="do">##             "check": {</span></span>
 <span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="do">##               "kind": "int"</span></span>
 <span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="do">##             }</span></span>
-<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="do">##           },</span></span>
-<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="do">##           "owner": {</span></span>
-<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="do">##             "check": {</span></span>
-<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="do">##               "kind": "list"</span></span>
-<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="do">##             },</span></span>
-<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="do">##             "keys": {</span></span>
-<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="do">##               "type": "named"</span></span>
-<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="do">##             },</span></span>
-<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="do">##             "fields": {</span></span>
-<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a><span class="do">##               "login": {</span></span>
-<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a><span class="do">##                 "check": {</span></span>
-<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a><span class="do">##                   "kind": "string"</span></span>
-<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a><span class="do">##                 }</span></span>
-<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a><span class="do">##               },</span></span>
-<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a><span class="do">##               "id": {</span></span>
-<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a><span class="do">##                 "check": {</span></span>
-<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a><span class="do">##                   "kind": "int"</span></span>
-<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a><span class="do">##                 }</span></span>
-<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a><span class="do">##               }</span></span>
-<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a><span class="do">##             }</span></span>
-<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a><span class="do">##           },</span></span>
-<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a><span class="do">##           "topics": {</span></span>
-<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a><span class="do">##             "check": {</span></span>
-<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a><span class="do">##               "kind": "list"</span></span>
-<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a><span class="do">##             },</span></span>
-<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a><span class="do">##             "keys": {</span></span>
-<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a><span class="do">##               "type": "unnamed"</span></span>
-<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a><span class="do">##             },</span></span>
-<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a><span class="do">##             "rest": {</span></span>
-<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a><span class="do">##               "check": {</span></span>
-<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a><span class="do">##                 "kind": "string"</span></span>
-<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a><span class="do">##               }</span></span>
-<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a><span class="do">##             }</span></span>
-<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a><span class="do">##           }</span></span>
-<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a><span class="do">##         }</span></span>
-<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a><span class="do">##       }</span></span>
-<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a><span class="do">##     }</span></span>
-<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a><span class="do">##   }</span></span>
-<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a><span class="do">## }</span></span></code></pre></div>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="do">##           }</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="do">##         },</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="do">##         "groups": [</span></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="do">##           {</span></span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="do">##             "names": ["name", "label", "slug"],</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="do">##             "check": {</span></span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="do">##               "kind": "string"</span></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="do">##             }</span></span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="do">##           }</span></span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a><span class="do">##         ]</span></span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a><span class="do">##       }</span></span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a><span class="do">##     }</span></span>
+<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a><span class="do">##   }</span></span>
+<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a><span class="do">## }</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">payload</span>, mode <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span></code></pre></div>
@@ -172,11 +147,11 @@
 <p><code><a href="reference/schema_validate.html">schema_validate()</a></code> defaults to assert mode: invalid input raises an error and valid input is returned invisibly. Other modes are available when you need a message or a boolean result.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bad_payload</span> <span class="op">&lt;-</span> <span class="va">payload</span></span>
-<span><span class="va">bad_payload</span><span class="op">$</span><span class="va">items</span><span class="op">[[</span><span class="fl">1L</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">owner</span><span class="op">$</span><span class="va">id</span> <span class="op">&lt;-</span> <span class="st">"bad"</span></span>
+<span><span class="va">bad_payload</span><span class="op">$</span><span class="va">items</span><span class="op">[[</span><span class="fl">1L</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">id</span> <span class="op">&lt;-</span> <span class="st">"bad"</span></span>
 <span></span>
 <span><span class="va">schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_payload</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## [1] "payload$items[[1]]$owner$id: Must be of type 'single integerish value', not 'character'"</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## [1] "payload$items[[1]]$id: Must be of type 'single integerish value', not 'character'"</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_payload</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span></code></pre></div>
@@ -221,45 +196,20 @@
 <span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="do">##             "check": {</span></span>
 <span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="do">##               "kind": "int"</span></span>
 <span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="do">##             }</span></span>
-<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="do">##           },</span></span>
-<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="do">##           "owner": {</span></span>
-<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="do">##             "check": {</span></span>
-<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="do">##               "kind": "list"</span></span>
-<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="do">##             },</span></span>
-<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="do">##             "keys": {</span></span>
-<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a><span class="do">##               "type": "named"</span></span>
-<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a><span class="do">##             },</span></span>
-<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a><span class="do">##             "fields": {</span></span>
-<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a><span class="do">##               "login": {</span></span>
-<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a><span class="do">##                 "check": {</span></span>
-<span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a><span class="do">##                   "kind": "string"</span></span>
-<span id="cb11-41"><a href="#cb11-41" tabindex="-1"></a><span class="do">##                 }</span></span>
-<span id="cb11-42"><a href="#cb11-42" tabindex="-1"></a><span class="do">##               },</span></span>
-<span id="cb11-43"><a href="#cb11-43" tabindex="-1"></a><span class="do">##               "id": {</span></span>
-<span id="cb11-44"><a href="#cb11-44" tabindex="-1"></a><span class="do">##                 "check": {</span></span>
-<span id="cb11-45"><a href="#cb11-45" tabindex="-1"></a><span class="do">##                   "kind": "int"</span></span>
-<span id="cb11-46"><a href="#cb11-46" tabindex="-1"></a><span class="do">##                 }</span></span>
-<span id="cb11-47"><a href="#cb11-47" tabindex="-1"></a><span class="do">##               }</span></span>
-<span id="cb11-48"><a href="#cb11-48" tabindex="-1"></a><span class="do">##             }</span></span>
-<span id="cb11-49"><a href="#cb11-49" tabindex="-1"></a><span class="do">##           },</span></span>
-<span id="cb11-50"><a href="#cb11-50" tabindex="-1"></a><span class="do">##           "topics": {</span></span>
-<span id="cb11-51"><a href="#cb11-51" tabindex="-1"></a><span class="do">##             "check": {</span></span>
-<span id="cb11-52"><a href="#cb11-52" tabindex="-1"></a><span class="do">##               "kind": "list"</span></span>
-<span id="cb11-53"><a href="#cb11-53" tabindex="-1"></a><span class="do">##             },</span></span>
-<span id="cb11-54"><a href="#cb11-54" tabindex="-1"></a><span class="do">##             "keys": {</span></span>
-<span id="cb11-55"><a href="#cb11-55" tabindex="-1"></a><span class="do">##               "type": "unnamed"</span></span>
-<span id="cb11-56"><a href="#cb11-56" tabindex="-1"></a><span class="do">##             },</span></span>
-<span id="cb11-57"><a href="#cb11-57" tabindex="-1"></a><span class="do">##             "rest": {</span></span>
-<span id="cb11-58"><a href="#cb11-58" tabindex="-1"></a><span class="do">##               "check": {</span></span>
-<span id="cb11-59"><a href="#cb11-59" tabindex="-1"></a><span class="do">##                 "kind": "string"</span></span>
-<span id="cb11-60"><a href="#cb11-60" tabindex="-1"></a><span class="do">##               }</span></span>
-<span id="cb11-61"><a href="#cb11-61" tabindex="-1"></a><span class="do">##             }</span></span>
-<span id="cb11-62"><a href="#cb11-62" tabindex="-1"></a><span class="do">##           }</span></span>
-<span id="cb11-63"><a href="#cb11-63" tabindex="-1"></a><span class="do">##         }</span></span>
-<span id="cb11-64"><a href="#cb11-64" tabindex="-1"></a><span class="do">##       }</span></span>
-<span id="cb11-65"><a href="#cb11-65" tabindex="-1"></a><span class="do">##     }</span></span>
-<span id="cb11-66"><a href="#cb11-66" tabindex="-1"></a><span class="do">##   }</span></span>
-<span id="cb11-67"><a href="#cb11-67" tabindex="-1"></a><span class="do">## }</span></span></code></pre></div>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="do">##           }</span></span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="do">##         },</span></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="do">##         "groups": [</span></span>
+<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="do">##           {</span></span>
+<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="do">##             "names": ["name", "label", "slug"],</span></span>
+<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="do">##             "check": {</span></span>
+<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a><span class="do">##               "kind": "string"</span></span>
+<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a><span class="do">##             }</span></span>
+<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a><span class="do">##           }</span></span>
+<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a><span class="do">##         ]</span></span>
+<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a><span class="do">##       }</span></span>
+<span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a><span class="do">##     }</span></span>
+<span id="cb11-41"><a href="#cb11-41" tabindex="-1"></a><span class="do">##   }</span></span>
+<span id="cb11-42"><a href="#cb11-42" tabindex="-1"></a><span class="do">## }</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">restored</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">payload</span><span class="op">)</span></span></code></pre></div>

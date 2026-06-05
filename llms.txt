@@ -48,8 +48,8 @@ library(schemate)
 
 payload <- list(
     items = list(
-        list(id = 1L, owner = list(login = "alice", id = 10L), topics = list("r", "schema")),
-        list(id = 2L, owner = list(login = "bob", id = 20L), topics = list("validation"))
+        list(id = 1L, name = "alpha", label = "Alpha", slug = "alpha"),
+        list(id = 2L, name = "beta", label = "Beta", slug = "beta")
     )
 )
 
@@ -90,41 +90,16 @@ schema
 ##             "check": {
 ##               "kind": "int"
 ##             }
-##           },
-##           "owner": {
+##           }
+##         },
+##         "groups": [
+##           {
+##             "names": ["name", "label", "slug"],
 ##             "check": {
-##               "kind": "list"
-##             },
-##             "keys": {
-##               "type": "named"
-##             },
-##             "fields": {
-##               "login": {
-##                 "check": {
-##                   "kind": "string"
-##                 }
-##               },
-##               "id": {
-##                 "check": {
-##                   "kind": "int"
-##                 }
-##               }
-##             }
-##           },
-##           "topics": {
-##             "check": {
-##               "kind": "list"
-##             },
-##             "keys": {
-##               "type": "unnamed"
-##             },
-##             "rest": {
-##               "check": {
-##                 "kind": "string"
-##               }
+##               "kind": "string"
 ##             }
 ##           }
-##         }
+##         ]
 ##       }
 ##     }
 ##   }
@@ -149,14 +124,14 @@ or a boolean result.
 ``` r
 
 bad_payload <- payload
-bad_payload$items[[1L]]$owner$id <- "bad"
+bad_payload$items[[1L]]$id <- "bad"
 
 schema |>
     schema_validate(bad_payload, mode = "check", name = "payload")
 ```
 
 ``` R
-## [1] "payload$items[[1]]$owner$id: Must be of type 'single integerish value', not 'character'"
+## [1] "payload$items[[1]]$id: Must be of type 'single integerish value', not 'character'"
 ```
 
 ``` r
@@ -223,41 +198,16 @@ restored
 ##             "check": {
 ##               "kind": "int"
 ##             }
-##           },
-##           "owner": {
+##           }
+##         },
+##         "groups": [
+##           {
+##             "names": ["name", "label", "slug"],
 ##             "check": {
-##               "kind": "list"
-##             },
-##             "keys": {
-##               "type": "named"
-##             },
-##             "fields": {
-##               "login": {
-##                 "check": {
-##                   "kind": "string"
-##                 }
-##               },
-##               "id": {
-##                 "check": {
-##                   "kind": "int"
-##                 }
-##               }
-##             }
-##           },
-##           "topics": {
-##             "check": {
-##               "kind": "list"
-##             },
-##             "keys": {
-##               "type": "unnamed"
-##             },
-##             "rest": {
-##               "check": {
-##                 "kind": "string"
-##               }
+##               "kind": "string"
 ##             }
 ##           }
-##         }
+##         ]
 ##       }
 ##     }
 ##   }
