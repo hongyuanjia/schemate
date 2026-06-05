@@ -719,10 +719,7 @@ S7::method(schema_replace, SchemaDoc) <- function(x, path = "$", value) {
 #'
 #' @examples
 #' schema <- schema_doc(schema_check("string"))
-#' schema <- schema_set_desc(schema, "$", "A non-empty label.")
-#' schema
-#'
-#' as.list(schema)$description
+#' schema_set_desc(schema, "$", "A non-empty label.")
 #'
 #' @export
 schema_set_desc <- S7::new_generic(
@@ -754,10 +751,12 @@ S7::method(schema_set_desc, SchemaDoc) <- function(x, path = "$", description = 
 #'
 #' @examples
 #' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema
+#' schema_validate(schema, list(id = 1L), mode = "test")
+#'
 #' schema <- schema_set_keys(schema, type = "named", must.include = "id")
 #' schema
-#'
-#' schema_validate(schema, list(id = 1L), mode = "test")
+#' schema_validate(schema, list(id = 1L), mode = "assert")
 #'
 #' @export
 schema_set_keys <- S7::new_generic(
@@ -846,6 +845,7 @@ S7::method(schema_del_keys, SchemaDoc) <- function(x, path = "$", error_if_missi
 #'
 #' @examples
 #' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema
 #' schema <- schema_add_field(schema, "id", schema_check("int", lower = 1))
 #' schema
 #'
@@ -907,6 +907,7 @@ S7::method(schema_add_field, SchemaDoc) <- function(x, name, field, path = "$", 
 #'
 #' @examples
 #' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema
 #' schema <- schema_add_group(schema, schema_group(c("x", "y"), schema_check("number")))
 #' schema
 #'
@@ -1061,11 +1062,11 @@ S7::method(schema_add_position, SchemaDoc) <- function(x, index, value, path = "
 #'
 #' @examples
 #' schema <- schema_doc(list(check = list(kind = "list")))
+#' schema
 #' schema <- schema_add_field(schema, "id", schema_check("int"))
+#' schema
 #' schema <- schema_del_field(schema, "id")
 #' schema
-#'
-#' names(as.list(schema)$fields)
 #'
 #' @export
 schema_del_field <- S7::new_generic(
@@ -1120,10 +1121,9 @@ S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_i
 #'     check = list(kind = "list"),
 #'     groups = list(schema_group(c("x", "y"), schema_check("number")))
 #' ))
-#' schema <- schema_del_group(schema, 1)
 #' schema
 #'
-#' as.list(schema)$groups
+#' schema_del_group(schema, 1)
 #'
 #' @export
 schema_del_group <- S7::new_generic(

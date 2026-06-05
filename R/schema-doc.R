@@ -58,6 +58,7 @@ schema_doc__defs <- function(x, path = "$`$defs`") {
 #' doc
 #'
 #' schema_validate(doc, "ok")
+#' schema_validate(doc, 1L, mode = "check")
 #'
 #' @export
 schema_doc <- function(x, path = NULL) {

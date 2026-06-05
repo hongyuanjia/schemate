@@ -25,6 +25,7 @@ Add a schema group to a container node
 }
 \examples{
 schema <- schema_doc(list(check = list(kind = "list")))
+schema
 schema <- schema_add_group(schema, schema_group(c("x", "y"), schema_check("number")))
 schema
 

@@ -40,9 +40,6 @@ To parse an existing schema DSL document, use \code{schema_doc()} or
 }
 \examples{
 payload <- list(items = list(list(id = 1L), list(id = 2L)))
-schema <- schema_infer(payload, keys = "named", arrays = "rest")
-schema
-
-as.list(schema)$fields$items$keys
+schema_infer(payload, keys = "named", arrays = "rest")
 
 }

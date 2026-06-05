@@ -31,9 +31,6 @@ schema <- schema_infer(
 )
 schema
 
-compact <- schema_compact(schema)
-compact
-
-names(as.list(compact)$fields$items$rest$fields)
+schema_compact(schema)
 
 }

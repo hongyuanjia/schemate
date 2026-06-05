@@ -26,10 +26,7 @@ NULL
 #'
 #' @examples
 #' payload <- list(items = list(list(id = 1L), list(id = 2L)))
-#' schema <- schema_infer(payload, keys = "named", arrays = "rest")
-#' schema
-#'
-#' as.list(schema)$fields$items$keys
+#' schema_infer(payload, keys = "named", arrays = "rest")
 #'
 #' @export
 schema_infer <- function(
@@ -151,7 +148,10 @@ schema_infer__array_rest <- function(x, keys, arrays) {
 schema_infer__fields <- function(x, keys, arrays) {
     if (schema_infer__has_named_elements(x)) {
         nms <- names(x)
-        return(stats::setNames(lapply(nms, function(name) schema_infer__node(x[[name]], keys = keys, arrays = arrays)), nms))
+        return(stats::setNames(
+            lapply(nms, function(name) schema_infer__node(x[[name]], keys = keys, arrays = arrays)),
+            nms
+        ))
     }
 
     NULL

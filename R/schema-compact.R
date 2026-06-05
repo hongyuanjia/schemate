@@ -238,8 +238,11 @@ schema_compact__merge_compatible_containers <- function(branches, arrays, groups
         idx <- i
         if (i < length(branches)) {
             for (j in seq.int(i + 1L, length(branches))) {
-                if (!used[[j]] && S7::S7_inherits(branches[[j]], SchemaNodeContainerCmpt) &&
-                    schema_compact__containers_can_merge(branch, branches[[j]])) {
+                if (
+                    !used[[j]] &&
+                        S7::S7_inherits(branches[[j]], SchemaNodeContainerCmpt) &&
+                        schema_compact__containers_can_merge(branch, branches[[j]])
+                ) {
                     idx <- c(idx, j)
                 }
             }
@@ -403,10 +406,7 @@ S7::method(schema_compact__node, S7::class_any) <- function(node, arrays, groups
 #' )
 #' schema
 #'
-#' compact <- schema_compact(schema)
-#' compact
-#'
-#' names(as.list(compact)$fields$items$rest$fields)
+#' schema_compact(schema)
 #'
 #' @export
 schema_compact <- function(x, arrays = TRUE, groups = TRUE) {

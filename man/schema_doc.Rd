@@ -28,5 +28,6 @@ doc <- schema_doc(list(check = list(kind = "string", min.chars = 1)))
 doc
 
 schema_validate(doc, "ok")
+schema_validate(doc, 1L, mode = "check")
 
 }

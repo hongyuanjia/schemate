@@ -24,9 +24,11 @@ Set a schema node keys rule
 }
 \examples{
 schema <- schema_doc(list(check = list(kind = "list")))
+schema
+schema_validate(schema, list(id = 1L), mode = "test")
+
 schema <- schema_set_keys(schema, type = "named", must.include = "id")
 schema
-
-schema_validate(schema, list(id = 1L), mode = "test")
+schema_validate(schema, list(id = 1L), mode = "assert")
 
 }

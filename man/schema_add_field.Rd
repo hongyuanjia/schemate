@@ -30,6 +30,7 @@ Add a field schema to a container node
 }
 \examples{
 schema <- schema_doc(list(check = list(kind = "list")))
+schema
 schema <- schema_add_field(schema, "id", schema_check("int", lower = 1))
 schema
 

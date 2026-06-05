@@ -27,8 +27,8 @@ schema_json__read_json <- function(txt) {
 #'
 #' path <- tempfile(fileext = ".json")
 #' schema_write(schema, path)
-#' restored <- schema_read(path)
-#' restored
+#'
+#' schema_read(path)
 #'
 #' @rdname schema-json
 #' @export
