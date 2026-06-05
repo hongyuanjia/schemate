@@ -77,15 +77,62 @@ writeLines(
     file.path(out_dir, "LICENSE")
 )
 
+imports <- standalone_description_field_inline(description, "Imports")
+suggests <- standalone_description_field_inline(description, "Suggests")
+optional_line <- if (nzchar(suggests)) {
+    sprintf("- Optional package: %s.", suggests)
+} else {
+    "- Optional packages: none."
+}
+
 writeLines(
     c(
-        "# schemate",
+        "# schemate standalone bundle",
         "",
-        "This branch is generated from `hongyuanjia/schemate`.",
+        "This branch contains the generated standalone schema bundle from `hongyuanjia/schemate`.",
+        "",
+        paste(
+            "Use it when another R package needs schemate's schema construction,",
+            "validation, query, and edit helpers without depending on the full development tree."
+        ),
+        "",
+        "## Install",
         "",
         "```r",
         "usethis::use_standalone(\"hongyuanjia/schemate\", \"schema\", ref = \"standalone\")",
-        "```"
+        "```",
+        "",
+        "This copies `R/standalone-schema.R` into your package.",
+        "",
+        "## Requirements",
+        "",
+        sprintf("- Required packages: %s.", imports),
+        optional_line,
+        "",
+        "Declare these dependencies in the package that vendors the standalone file.",
+        "",
+        "## Example",
+        "",
+        "```r",
+        "schema <- schema_compact(schema_infer(list(",
+        "    id = 1L,",
+        "    owner = list(login = \"alice\")",
+        ")))",
+        "",
+        "schema_validate(schema, list(",
+        "    id = 2L,",
+        "    owner = list(login = \"bob\")",
+        "))",
+        "```",
+        "",
+        "## Maintenance",
+        "",
+        sprintf("This bundle was generated from source commit `%s`.", source_commit[[1L]]),
+        "",
+        paste(
+            "Do not edit files on this branch by hand. Make changes on the main branch,",
+            "update the standalone generator or source files, and regenerate the branch."
+        )
     ),
     file.path(out_dir, "README.md")
 )
