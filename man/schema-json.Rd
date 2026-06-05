@@ -33,6 +33,7 @@ serializes schema objects to schema JSON. Both functions require the
 suggested package \code{jsonlite}.
 }
 \examples{
+\dontshow{if (requireNamespace("jsonlite", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 schema <- schema_infer(list(id = 1L))
 schema
 
@@ -40,5 +41,5 @@ path <- tempfile(fileext = ".json")
 schema_write(schema, path)
 
 schema_read(path)
-
+\dontshow{\}) # examplesIf}
 }

@@ -21,7 +21,7 @@ schema_json__read_json <- function(txt) {
 #' @return `schema_read()` returns a `SchemaDoc`. `schema_write()` invisibly
 #'   returns `path`.
 #'
-#' @examples
+#' @examplesIf requireNamespace("jsonlite", quietly = TRUE)
 #' schema <- schema_infer(list(id = 1L))
 #' schema
 #'
