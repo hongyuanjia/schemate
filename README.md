@@ -1,5 +1,5 @@
 
-# schemate
+# schemate <img src="man/figures/schemate.svg" align="right" />
 
 > A small, [checkmate](https://mllg.github.io/checkmate/)-first schema
 > DSL for R data.
