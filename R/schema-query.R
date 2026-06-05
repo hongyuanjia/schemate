@@ -668,7 +668,8 @@ schema_find <- function(x, where, defs = TRUE) {
 #'   fragment or `SchemaNode`.
 #' @param value Replacement schema fragment or `SchemaNode`.
 #' @param defs Whether to include root `$defs` entries.
-#' @param error_if_missing Whether to error when `where` matches no paths.
+#' @param missing Missing-match behavior. Use `"error"` to raise an error when
+#'   `where` matches no paths or `"ignore"` to leave the schema unchanged.
 #'
 #' @return A modified `SchemaDoc`.
 #'
@@ -690,14 +691,14 @@ schema_find <- function(x, where, defs = TRUE) {
 #' schema
 #'
 #' @export
-schema_modify_where <- function(x, where, fn, defs = TRUE, error_if_missing = FALSE) {
+schema_modify_where <- function(x, where, fn, defs = TRUE, missing = "ignore") {
     checkmate::assert_function(where)
     checkmate::assert_function(fn)
     checkmate::assert_flag(defs)
-    checkmate::assert_flag(error_if_missing)
+    missing <- match.arg(missing, c("error", "ignore"))
 
     result <- schema_query__rewrite_input(x, where, fn, defs = defs)
-    if (!result$count && error_if_missing) {
+    if (!result$count && identical(missing, "error")) {
         stop("`where` did not match any schema paths.", call. = FALSE)
     }
 
@@ -706,14 +707,14 @@ schema_modify_where <- function(x, where, fn, defs = TRUE, error_if_missing = FA
 
 #' @rdname schema_modify_where
 #' @export
-schema_replace_where <- function(x, where, value, defs = TRUE, error_if_missing = FALSE) {
+schema_replace_where <- function(x, where, value, defs = TRUE, missing = "ignore") {
     force(value)
     schema_modify_where(
         x,
         where,
         function(path, node) value,
         defs = defs,
-        error_if_missing = error_if_missing
+        missing = missing
     )
 }
 

@@ -179,7 +179,7 @@ test_that("schema_modify_where() protects against ancestor and descendant matche
     )
 })
 
-test_that("schema_modify_where() supports error_if_missing", {
+test_that("schema_modify_where() supports missing behavior", {
     doc <- schema_infer(list(id = 1L))
 
     expect_identical(
@@ -187,7 +187,7 @@ test_that("schema_modify_where() supports error_if_missing", {
         doc
     )
     expect_error(
-        schema_replace_where(doc, schema_where_path("^\\$missing$"), schema_check("string"), error_if_missing = TRUE),
+        schema_replace_where(doc, schema_where_path("^\\$missing$"), schema_check("string"), missing = "error"),
         "did not match any schema paths"
     )
 })

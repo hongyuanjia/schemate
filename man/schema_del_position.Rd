@@ -4,7 +4,7 @@
 \alias{schema_del_position}
 \title{Delete a position schema from an unnamed container node}
 \usage{
-schema_del_position(x, index, path = "$", error_if_missing = TRUE)
+schema_del_position(x, index, path = "$", missing = "error")
 }
 \arguments{
 \item{x}{A \code{SchemaDoc}.}
@@ -14,8 +14,8 @@ schema_del_position(x, index, path = "$", error_if_missing = TRUE)
 \item{path}{Path to the target unnamed container node. Use \code{$} for the root
 node.}
 
-\item{error_if_missing}{Logical flag indicating whether a missing position
-schema should raise an error.}
+\item{missing}{Missing-target behavior. Use \code{"error"} to raise an error or
+\code{"ignore"} to leave the schema unchanged.}
 }
 \value{
 A modified \code{SchemaDoc}.

@@ -5,9 +5,9 @@
 \alias{schema_replace_where}
 \title{Modify schema nodes selected by a predicate}
 \usage{
-schema_modify_where(x, where, fn, defs = TRUE, error_if_missing = FALSE)
+schema_modify_where(x, where, fn, defs = TRUE, missing = "ignore")
 
-schema_replace_where(x, where, value, defs = TRUE, error_if_missing = FALSE)
+schema_replace_where(x, where, value, defs = TRUE, missing = "ignore")
 }
 \arguments{
 \item{x}{A schema document or raw schema DSL list.}
@@ -19,7 +19,8 @@ fragment or \code{SchemaNode}.}
 
 \item{defs}{Whether to include root \verb{$defs} entries.}
 
-\item{error_if_missing}{Whether to error when \code{where} matches no paths.}
+\item{missing}{Missing-match behavior. Use \code{"error"} to raise an error when
+\code{where} matches no paths or \code{"ignore"} to leave the schema unchanged.}
 
 \item{value}{Replacement schema fragment or \code{SchemaNode}.}
 }

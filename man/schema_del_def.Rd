@@ -4,15 +4,15 @@
 \alias{schema_del_def}
 \title{Delete a schema definition}
 \usage{
-schema_del_def(x, name, error_if_missing = TRUE)
+schema_del_def(x, name, missing = "error")
 }
 \arguments{
 \item{x}{A \code{SchemaDoc}.}
 
 \item{name}{Definition name to remove.}
 
-\item{error_if_missing}{Logical flag indicating whether a missing definition
-should raise an error.}
+\item{missing}{Missing-target behavior. Use \code{"error"} to raise an error or
+\code{"ignore"} to leave the schema unchanged.}
 }
 \value{
 A modified \code{SchemaDoc}.

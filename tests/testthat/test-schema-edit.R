@@ -252,7 +252,7 @@ test_that("schema_set_keys()", {
     expect_false("keys" %in% names(as.list(without_keys)))
     expect_error(schema_set_keys(referenced, "$id", type = "named"), "only allowed on check nodes")
     expect_error(schema_del_keys(doc, "$"), "does not exist")
-    expect_identical(schema_del_keys(doc, "$", error_if_missing = FALSE), doc)
+    expect_identical(schema_del_keys(doc, "$", missing = "ignore"), doc)
 })
 
 test_that("schema_add_field()", {
@@ -499,7 +499,7 @@ test_that("schema_del_field()", {
         )
     )
     expect_error(schema_del_field(updated, "name"), "does not exist")
-    expect_identical(schema_del_field(updated, "name", error_if_missing = FALSE), updated)
+    expect_identical(schema_del_field(updated, "name", missing = "ignore"), updated)
 
     grouped <- schema_doc(list(
         check = list(kind = "list"),
@@ -538,7 +538,7 @@ test_that("schema_del_group()", {
 
     expect_error(schema_del_group(updated, 2L), "does not exist")
     expect_error(schema_del_group(updated, 0L), ">= 1|positive")
-    expect_identical(schema_del_group(updated, 2L, error_if_missing = FALSE), updated)
+    expect_identical(schema_del_group(updated, 2L, missing = "ignore"), updated)
 })
 
 test_that("schema_del_rest()", {
@@ -553,7 +553,7 @@ test_that("schema_del_rest()", {
         )
     )
     expect_error(schema_del_rest(updated), "Rest schema does not exist")
-    expect_identical(schema_del_rest(updated, error_if_missing = FALSE), updated)
+    expect_identical(schema_del_rest(updated, missing = "ignore"), updated)
 })
 
 test_that("schema_del_position()", {
@@ -577,7 +577,7 @@ test_that("schema_del_position()", {
         )
     )
     expect_error(schema_del_position(updated, 3L), "does not exist")
-    expect_identical(schema_del_position(updated, 3L, error_if_missing = FALSE), updated)
+    expect_identical(schema_del_position(updated, 3L, missing = "ignore"), updated)
 })
 
 test_that("schema_add_def()", {
@@ -597,6 +597,6 @@ test_that("schema_del_def()", {
 
     expect_false("$defs" %in% names(as.list(updated)))
     expect_error(schema_del_def(updated, "text"), "does not exist")
-    expect_identical(schema_del_def(updated, "text", error_if_missing = FALSE), updated)
+    expect_identical(schema_del_def(updated, "text", missing = "ignore"), updated)
     expect_error(schema_del_def(referenced, "text"), "still referenced")
 })

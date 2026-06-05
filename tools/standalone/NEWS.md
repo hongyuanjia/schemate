@@ -1,5 +1,10 @@
 # Standalone Changelog
 
+## 2026-06-06
+- Rename missing-target controls from `error_if_missing` to
+  `missing = "error"` / `missing = "ignore"` across schema deletion and
+  predicate-based batch edit helpers.
+
 ## 2026-06-05
 - Treat `fields`, `patterns`, and `positions` as optional child validators
   during schema validation; use `keys` and `check` rules for required keys and

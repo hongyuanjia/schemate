@@ -4,7 +4,7 @@
 \alias{schema_del_keys}
 \title{Delete a schema node keys rule}
 \usage{
-schema_del_keys(x, path = "$", error_if_missing = TRUE)
+schema_del_keys(x, path = "$", missing = "error")
 }
 \arguments{
 \item{x}{A \code{SchemaDoc}.}
@@ -14,8 +14,8 @@ field segments such as \verb{$id} implicitly traverse container \code{fields}. U
 \verb{$fields$id} to write the explicit field path. Backtick-quote field names
 that contain path operators, for example \verb{$`a$b` }.}
 
-\item{error_if_missing}{Logical flag indicating whether a missing \code{keys} rule
-should raise an error.}
+\item{missing}{Missing-target behavior. Use \code{"error"} to raise an error or
+\code{"ignore"} to leave the schema unchanged.}
 }
 \value{
 A modified \code{SchemaDoc}.

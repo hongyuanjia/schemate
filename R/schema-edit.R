@@ -853,8 +853,8 @@ S7::method(schema_set_keys, SchemaDoc) <- function(x, path = "$", ...) {
 #'   field segments such as `$id` implicitly traverse container `fields`. Use
 #'   `$fields$id` to write the explicit field path. Backtick-quote field names
 #'   that contain path operators, for example ``$`a$b` ``.
-#' @param error_if_missing Logical flag indicating whether a missing `keys` rule
-#'   should raise an error.
+#' @param missing Missing-target behavior. Use `"error"` to raise an error or
+#'   `"ignore"` to leave the schema unchanged.
 #'
 #' @return A modified `SchemaDoc`.
 #'
@@ -869,20 +869,20 @@ S7::method(schema_set_keys, SchemaDoc) <- function(x, path = "$", ...) {
 schema_del_keys <- S7::new_generic(
     "schema_del_keys",
     "x",
-    function(x, path = "$", error_if_missing = TRUE) {
+    function(x, path = "$", missing = "error") {
         S7::S7_dispatch()
     }
 )
 
-S7::method(schema_del_keys, SchemaDoc) <- function(x, path = "$", error_if_missing = TRUE) {
-    checkmate::assert_flag(error_if_missing)
+S7::method(schema_del_keys, SchemaDoc) <- function(x, path = "$", missing = "error") {
+    missing <- match.arg(missing, c("error", "ignore"))
 
     schema_edit__modify_doc(x, path, function(node) {
         if (!S7::S7_inherits(node, SchemaNodeCheck)) {
             stop("`keys` is only allowed on check nodes.", call. = FALSE)
         }
         if (is.null(node@name)) {
-            if (error_if_missing) {
+            if (identical(missing, "error")) {
                 stop(sprintf("`keys` does not exist at `%s`.", path), call. = FALSE)
             }
             return(node)
@@ -1118,8 +1118,8 @@ S7::method(schema_add_position, SchemaDoc) <- function(x, index, value, path = "
 #'   Bare field segments such as `$id` implicitly traverse container `fields`. Use
 #'   `$fields$id` to write the explicit field path. Backtick-quote field names
 #'   that contain path operators, for example ``$`a$b` ``.
-#' @param error_if_missing Logical flag indicating whether a missing field should
-#'   raise an error.
+#' @param missing Missing-target behavior. Use `"error"` to raise an error or
+#'   `"ignore"` to leave the schema unchanged.
 #'
 #' @return A modified `SchemaDoc`.
 #'
@@ -1135,18 +1135,18 @@ S7::method(schema_add_position, SchemaDoc) <- function(x, index, value, path = "
 schema_del_field <- S7::new_generic(
     "schema_del_field",
     "x",
-    function(x, name, path = "$", error_if_missing = TRUE) {
+    function(x, name, path = "$", missing = "error") {
         S7::S7_dispatch()
     }
 )
 
-S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_if_missing = TRUE) {
+S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", missing = "error") {
     checkmate::assert_string(name, min.chars = 1L)
-    checkmate::assert_flag(error_if_missing)
+    missing <- match.arg(missing, c("error", "ignore"))
 
     schema_edit__modify_doc(x, path, function(node) {
         if (!S7::S7_inherits(node, SchemaNodeContainerCmpt)) {
-            if (error_if_missing) {
+            if (identical(missing, "error")) {
                 stop(sprintf("Field `%s` does not exist at `%s`.", name, path), call. = FALSE)
             }
             return(node)
@@ -1154,7 +1154,7 @@ S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_i
 
         idx <- schema_edit__field_binding_index(node@exact, name)
         if (is.na(idx)) {
-            if (error_if_missing) {
+            if (identical(missing, "error")) {
                 stop(sprintf("Field `%s` does not exist at `%s`.", name, path), call. = FALSE)
             }
             return(node)
@@ -1174,8 +1174,8 @@ S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_i
 #'   Bare field segments such as `$id` implicitly traverse container `fields`. Use
 #'   `$fields$id` to write the explicit field path. Backtick-quote field names
 #'   that contain path operators, for example ``$`a$b` ``.
-#' @param error_if_missing Logical flag indicating whether a missing group should
-#'   raise an error.
+#' @param missing Missing-target behavior. Use `"error"` to raise an error or
+#'   `"ignore"` to leave the schema unchanged.
 #'
 #' @return A modified `SchemaDoc`.
 #'
@@ -1192,18 +1192,18 @@ S7::method(schema_del_field, SchemaDoc) <- function(x, name, path = "$", error_i
 schema_del_group <- S7::new_generic(
     "schema_del_group",
     "x",
-    function(x, index, path = "$", error_if_missing = TRUE) {
+    function(x, index, path = "$", missing = "error") {
         S7::S7_dispatch()
     }
 )
 
-S7::method(schema_del_group, SchemaDoc) <- function(x, index, path = "$", error_if_missing = TRUE) {
+S7::method(schema_del_group, SchemaDoc) <- function(x, index, path = "$", missing = "error") {
     checkmate::assert_count(index, positive = TRUE)
-    checkmate::assert_flag(error_if_missing)
+    missing <- match.arg(missing, c("error", "ignore"))
 
     schema_edit__modify_doc(x, path, function(node) {
         if (!S7::S7_inherits(node, SchemaNodeContainerCmpt)) {
-            if (error_if_missing) {
+            if (identical(missing, "error")) {
                 stop(sprintf("Group %d does not exist at `%s`.", index, path), call. = FALSE)
             }
             return(node)
@@ -1211,7 +1211,7 @@ S7::method(schema_del_group, SchemaDoc) <- function(x, index, path = "$", error_
 
         group_idx <- which(vapply(node@exact, function(binding) length(binding@keys) > 1L, logical(1L)))
         if (index > length(group_idx)) {
-            if (error_if_missing) {
+            if (identical(missing, "error")) {
                 stop(sprintf("Group %d does not exist at `%s`.", index, path), call. = FALSE)
             }
             return(node)
@@ -1230,8 +1230,8 @@ S7::method(schema_del_group, SchemaDoc) <- function(x, index, path = "$", error_
 #'   Bare field segments such as `$id` implicitly traverse container `fields`. Use
 #'   `$fields$id` to write the explicit field path. Backtick-quote field names
 #'   that contain path operators, for example ``$`a$b` ``.
-#' @param error_if_missing Logical flag indicating whether a missing `rest`
-#'   schema should raise an error.
+#' @param missing Missing-target behavior. Use `"error"` to raise an error or
+#'   `"ignore"` to leave the schema unchanged.
 #'
 #' @return A modified `SchemaDoc`.
 #'
@@ -1247,17 +1247,17 @@ S7::method(schema_del_group, SchemaDoc) <- function(x, index, path = "$", error_
 schema_del_rest <- S7::new_generic(
     "schema_del_rest",
     "x",
-    function(x, path = "$", error_if_missing = TRUE) {
+    function(x, path = "$", missing = "error") {
         S7::S7_dispatch()
     }
 )
 
-S7::method(schema_del_rest, SchemaDoc) <- function(x, path = "$", error_if_missing = TRUE) {
-    checkmate::assert_flag(error_if_missing)
+S7::method(schema_del_rest, SchemaDoc) <- function(x, path = "$", missing = "error") {
+    missing <- match.arg(missing, c("error", "ignore"))
 
     schema_edit__modify_doc(x, path, function(node) {
         if (!S7::S7_inherits(node, SchemaNodeContainerCmpt) || is.null(node@rest)) {
-            if (error_if_missing) {
+            if (identical(missing, "error")) {
                 stop(sprintf("Rest schema does not exist at `%s`.", path), call. = FALSE)
             }
             return(node)
@@ -1273,8 +1273,8 @@ S7::method(schema_del_rest, SchemaDoc) <- function(x, path = "$", error_if_missi
 #' @param index 1-based position index to remove.
 #' @param path Path to the target unnamed container node. Use `$` for the root
 #'   node.
-#' @param error_if_missing Logical flag indicating whether a missing position
-#'   schema should raise an error.
+#' @param missing Missing-target behavior. Use `"error"` to raise an error or
+#'   `"ignore"` to leave the schema unchanged.
 #'
 #' @return A modified `SchemaDoc`.
 #'
@@ -1290,18 +1290,18 @@ S7::method(schema_del_rest, SchemaDoc) <- function(x, path = "$", error_if_missi
 schema_del_position <- S7::new_generic(
     "schema_del_position",
     "x",
-    function(x, index, path = "$", error_if_missing = TRUE) {
+    function(x, index, path = "$", missing = "error") {
         S7::S7_dispatch()
     }
 )
 
-S7::method(schema_del_position, SchemaDoc) <- function(x, index, path = "$", error_if_missing = TRUE) {
+S7::method(schema_del_position, SchemaDoc) <- function(x, index, path = "$", missing = "error") {
     checkmate::assert_count(index, positive = TRUE)
-    checkmate::assert_flag(error_if_missing)
+    missing <- match.arg(missing, c("error", "ignore"))
 
     schema_edit__modify_doc(x, path, function(node) {
         if (!S7::S7_inherits(node, SchemaNodeContainerCmpt) || index > length(node@positions)) {
-            if (error_if_missing) {
+            if (identical(missing, "error")) {
                 stop(sprintf("Position %d does not exist at `%s`.", index, path), call. = FALSE)
             }
             return(node)
@@ -1372,8 +1372,8 @@ S7::method(schema_add_def, SchemaDoc) <- function(x, name, value, overwrite = FA
 #'
 #' @param x A `SchemaDoc`.
 #' @param name Definition name to remove.
-#' @param error_if_missing Logical flag indicating whether a missing definition
-#'   should raise an error.
+#' @param missing Missing-target behavior. Use `"error"` to raise an error or
+#'   `"ignore"` to leave the schema unchanged.
 #'
 #' @return A modified `SchemaDoc`.
 #'
@@ -1389,18 +1389,18 @@ S7::method(schema_add_def, SchemaDoc) <- function(x, name, value, overwrite = FA
 schema_del_def <- S7::new_generic(
     "schema_del_def",
     "x",
-    function(x, name, error_if_missing = TRUE) {
+    function(x, name, missing = "error") {
         S7::S7_dispatch()
     }
 )
 
-S7::method(schema_del_def, SchemaDoc) <- function(x, name, error_if_missing = TRUE) {
+S7::method(schema_del_def, SchemaDoc) <- function(x, name, missing = "error") {
     checkmate::assert_string(name, min.chars = 1L)
-    checkmate::assert_flag(error_if_missing)
+    missing <- match.arg(missing, c("error", "ignore"))
 
     doc <- x
     if (is.null(doc@defs[[name]])) {
-        if (error_if_missing) {
+        if (identical(missing, "error")) {
             stop(sprintf("Definition `%s` does not exist.", name), call. = FALSE)
         }
         return(doc)
