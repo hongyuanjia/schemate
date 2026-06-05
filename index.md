@@ -3,9 +3,9 @@
 > A small, [checkmate](https://mllg.github.io/checkmate/)-first schema
 > DSL for R data.
 
-[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/schemate)](http://cran.r-project.org/package=schemate)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/schemate)](https://cran.r-project.org/package=schemate)
 [![CRAN RStudio mirror
-downloads](https://cranlogs.r-pkg.org/badges/schemate)](http://cran.r-project.org/web/packages/schemate/index.md)
+downloads](https://cranlogs.r-pkg.org/badges/schemate)](https://CRAN.R-project.org/package=schemate)
 
 `schemate` provides a small,
 [checkmate](https://mllg.github.io/checkmate/)-first schema DSL for R
@@ -29,10 +29,19 @@ vocabulary. A typical workflow is:
 
 ## Installation
 
-Currently, you can install the development version from GitHub.
+``` r
+
+install.packages("schemate")
+```
+
+### Development Version
+
+To get a bug fix or to use a feature from the development version, you
+can install the development version of schemate from GitHub.
 
 ``` r
 
+# install.packages("pak")
 pak::pak("hongyuanjia/schemate")
 ```
 

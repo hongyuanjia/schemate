@@ -1,6 +1,6 @@
 # Changelog
 
-## schemate 0.0.0.9000
+## schemate 0.1.0
 
 ### New
 
