@@ -2,7 +2,9 @@
 #' Validate input against a schema
 #'
 #' `schema_validate()` validates an R object against a `SchemaDoc`,
-#' `SchemaFlat`, or compiled flat schema node.
+#' `SchemaFlat`, or compiled flat schema node. When validating many inputs
+#' against the same schema, compile it once with [schema_compile()] and reuse
+#' the compiled schema.
 #'
 #' @param schema A `SchemaDoc`, `SchemaFlat`, or compiled flat schema node.
 #' @param x Input object to validate.
@@ -24,6 +26,9 @@
 #'
 #' schema_validate(schema, list(id = 1L), mode = "test")
 #' schema_validate(schema, list(id = 0L), mode = "check", name = "payload")
+#'
+#' compiled <- schema_compile(schema)
+#' schema_validate(compiled, list(id = 2L), mode = "test")
 #'
 #' @export
 schema_validate <- S7::new_generic(
@@ -184,14 +189,17 @@ S7::method(schema_validate__impl, SchemaNodeContainerFlat) <- function(schema, x
 
     present <- schema_validate__or(raw_names, character())
     declared <- schema_flat__binding_names(schema@exact)
+    present_pos <- match(declared, present, nomatch = 0L)
 
-    for (binding in schema@exact) {
-        nm <- schema_flat__binding_name(binding)
-        if (!nm %in% present) {
+    for (i in seq_along(schema@exact)) {
+        pos <- present_pos[[i]]
+        if (!pos) {
             next
         }
 
-        res <- schema_validate__impl(binding@target, x[[nm]], schema_validate__field_path(path, nm))
+        binding <- schema@exact[[i]]
+        nm <- declared[[i]]
+        res <- schema_validate__impl(binding@target, x[[pos]], schema_validate__field_path(path, nm))
         if (!isTRUE(res)) {
             return(res)
         }

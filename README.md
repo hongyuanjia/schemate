@@ -135,6 +135,16 @@ schema |>
 
     ## [1] FALSE
 
+When validating many payloads against the same schema, compile once and
+reuse the compiled schema.
+
+``` r
+compiled <- schema_compile(schema)
+schema_validate(compiled, payload, mode = "test")
+```
+
+    ## [1] TRUE
+
 For a data frame example, see the [Get started
 article](https://hongyuanjia.github.io/schemate/articles/schemate.html).
 

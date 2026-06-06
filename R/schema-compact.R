@@ -288,15 +288,15 @@ schema_compact__compact_container_groups <- function(node, groups) {
             }
         }
         if (is.na(index)) {
-            grouped[[length(grouped) + 1L]] <- list(keys = character(), target = binding@target)
+            grouped[[length(grouped) + 1L]] <- list(keys = list(), target = binding@target)
             index <- length(grouped)
         }
-        grouped[[index]]$keys <- c(grouped[[index]]$keys, binding@keys)
+        grouped[[index]]$keys[[length(grouped[[index]]$keys) + 1L]] <- binding@keys
     }
 
     exact <- unname(lapply(grouped, function(group) {
         SchemaBindingExactCmpt(
-            keys = unique(group$keys),
+            keys = unique(unlist(group$keys, use.names = FALSE)),
             target = group$target
         )
     }))

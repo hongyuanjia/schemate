@@ -246,3 +246,17 @@ test_that("schema_validate treats keyed child constraints as optional without ex
     expect_match(schema_validate(rest_doc, list(extra = 1L), mode = "check", name = "payload"), "payload\\$extra")
     expect_match(schema_validate(rest_doc, list(1L), mode = "check", name = "payload"), "named object")
 })
+
+test_that("schema_validate handles wide exact field schemas", {
+    wide <- as.list(stats::setNames(seq_len(200L), paste0("f", seq_len(200L))))
+    schema <- schema_compile(schema_infer(wide, keys = "named"))
+
+    expect_true(schema_validate(schema, wide, mode = "test", name = "payload"))
+
+    bad <- wide
+    bad$f150 <- "bad"
+    expect_match(
+        schema_validate(schema, bad, mode = "check", name = "payload"),
+        "payload\\$f150"
+    )
+})

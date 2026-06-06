@@ -225,6 +225,49 @@ test_that("schema_flat__compile()", {
     expect_equal(flat@root@rest, SchemaNodeLeaf(value = SchemaRuleCheck(kind = "number")))
 })
 
+test_that("schema_compile() exposes compiled schemas", {
+    raw <- list(
+        `$defs` = list(text = list(check = list(kind = "string"))),
+        check = list(kind = "list"),
+        fields = list(
+            id = list(check = list(kind = "int", lower = 1L)),
+            name = list(`$ref` = "#/$defs/text")
+        )
+    )
+    doc <- schema_doc(raw, path = "schema.json")
+
+    compiled <- schema_compile(raw)
+    compiled_doc <- schema_compile(doc)
+
+    expect_s7_class(compiled, SchemaFlat)
+    expect_s7_class(compiled_doc, SchemaFlat)
+    expect_equal(compiled_doc@path, "schema.json")
+    expect_true(isTRUE(schema_validate(compiled, list(id = 1L, name = "alice"), mode = "check", name = "payload")))
+    expect_match(
+        schema_validate(compiled, list(id = 0L, name = "alice"), mode = "check", name = "payload"),
+        "payload\\$id"
+    )
+
+    flat <- SchemaFlat(root = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string")))
+    expect_identical(schema_compile(flat), flat)
+    expect_s7_class(schema_compile(flat@root), SchemaFlat)
+
+    authoring <- schema_doc(list(check = list(kind = "list"), fields = list(id = list(check = list(kind = "int")))))
+    expect_error(
+        schema_compile(authoring@root),
+        "only accepts `SchemaDoc`, flat runtime `SchemaNode`, or `SchemaFlat`"
+    )
+
+    circular <- list(
+        `$defs` = list(
+            a = list(`$ref` = "#/$defs/b"),
+            b = list(`$ref` = "#/$defs/a")
+        ),
+        `$ref` = "#/$defs/a"
+    )
+    expect_error(schema_compile(circular), "circular `\\$ref`")
+})
+
 test_that("as.list()", {
     # Contract: top-level order for SchemaCompiled is version -> root entries,
     # and root-level description is emitted before operator-specific keys.

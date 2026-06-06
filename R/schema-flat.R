@@ -221,6 +221,41 @@ S7::method(as.list, SchemaFlat) <- function(x, ...) {
 }
 # }}}
 
+# schema_compile {{{
+#' Compile a schema for repeated validation
+#'
+#' `schema_compile()` compiles a schema document, raw schema DSL list, or flat
+#' runtime schema node into a `SchemaFlat`. Reuse the compiled schema when
+#' validating many inputs against the same schema.
+#'
+#' @param x A schema document, raw schema DSL list, `SchemaFlat`, or compiled
+#'   flat schema node.
+#'
+#' @return A compiled `SchemaFlat`.
+#'
+#' @examples
+#' schema <- schema_doc(list(
+#'     check = list(kind = "list"),
+#'     fields = list(id = list(check = list(kind = "int", lower = 1)))
+#' ))
+#'
+#' compiled <- schema_compile(schema)
+#' schema_validate(compiled, list(id = 1L), mode = "test")
+#'
+#' @export
+schema_compile <- function(x) {
+    if (
+        S7::S7_inherits(x, SchemaDoc) ||
+            S7::S7_inherits(x, SchemaFlat) ||
+            S7::S7_inherits(x, SchemaNode)
+    ) {
+        return(schema_flat__compile(x))
+    }
+
+    schema_flat__compile(schema_doc(x))
+}
+# }}}
+
 # schema_flat__compile {{{
 schema_flat__rule_check <- function(x) {
     if (!length(x@args)) {

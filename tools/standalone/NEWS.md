@@ -4,6 +4,10 @@
 - Rename missing-target controls from `error_if_missing` to
   `missing = "error"` / `missing = "ignore"` across schema deletion and
   predicate-based batch edit helpers.
+- Add public `schema_compile()` for reusing compiled schemas across repeated
+  validation calls.
+- Speed up exact field validation for wide schemas and reduce key-copying
+  overhead while compacting grouped fields.
 
 ## 2026-06-05
 - Treat `fields`, `patterns`, and `positions` as optional child validators
