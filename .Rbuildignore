@@ -10,3 +10,5 @@
 ^README\.Rmd$
 ^LICENSE\.md$
 ^docs$
+^CRAN-SUBMISSION$
+^cran-comments\.md$
