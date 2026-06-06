@@ -8,6 +8,10 @@
   validation calls.
 - Speed up exact field validation for wide schemas and reduce key-copying
   overhead while compacting grouped fields.
+- Speed up schema compaction's structural equality checks by comparing S7 slots
+  directly and normalizing `keys` rules consistently with `check_names()`.
+- Reduce intermediate S7 object construction while compiling grouped fields and
+  compacting container field groups.
 
 ## 2026-06-05
 - Treat `fields`, `patterns`, and `positions` as optional child validators

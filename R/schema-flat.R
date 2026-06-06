@@ -403,13 +403,30 @@ S7::method(schema_utils__convert, SchemaBindingExactCmpt) <- function(from, to, 
 
 schema_flat__binding <- function(binding, ctx) {
     target <- schema_flat__node(binding@target, ctx)
-    lapply(binding@keys, function(key) {
-        schema_utils__convert(SchemaBindingExactCmpt(keys = key, target = target), SchemaBindingExactFlat)
-    })
+    keys <- binding@keys
+    out <- vector("list", length(keys))
+    for (i in seq_along(keys)) {
+        out[[i]] <- SchemaBindingExactFlat(keys = keys[[i]], target = target)
+    }
+
+    out
 }
 
 schema_flat__bindings <- function(bindings, ctx) {
-    compiled <- unlist(lapply(bindings, schema_flat__binding, ctx = ctx), recursive = FALSE)
+    if (!length(bindings)) {
+        return(list())
+    }
+
+    compiled <- vector("list", sum(vapply(bindings, function(binding) length(binding@keys), integer(1L))))
+    pos <- 1L
+    for (binding in bindings) {
+        target <- schema_flat__node(binding@target, ctx)
+        for (key in binding@keys) {
+            compiled[[pos]] <- SchemaBindingExactFlat(keys = key, target = target)
+            pos <- pos + 1L
+        }
+    }
+
     if (length(compiled)) {
         keys <- schema_flat__binding_names(compiled)
         dup_keys <- unique(keys[duplicated(keys)])

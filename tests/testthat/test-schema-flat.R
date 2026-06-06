@@ -24,6 +24,30 @@ test_that("SchemaBindingExactFlat", {
     )
 })
 
+test_that("schema_flat__bindings() expands grouped exact bindings", {
+    target <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"))
+    ctx <- schema_flat__context()
+
+    bindings <- schema_flat__bindings(
+        list(SchemaBindingExactCmpt(keys = c("a", "b"), target = target)),
+        ctx
+    )
+
+    expect_equal(vapply(bindings, function(binding) binding@keys, character(1L)), c("a", "b"))
+    expect_equal(bindings[[1L]], SchemaBindingExactFlat("a", target))
+    expect_equal(bindings[[2L]], SchemaBindingExactFlat("b", target))
+    expect_error(
+        schema_flat__bindings(
+            list(
+                SchemaBindingExactCmpt(keys = c("a", "b"), target = target),
+                SchemaBindingExactCmpt(keys = "a", target = target)
+            ),
+            ctx
+        ),
+        "duplicate compiled field key"
+    )
+})
+
 test_that("SchemaNodeContainerFlat", {
     expect_error(
         SchemaNodeContainerFlat(
