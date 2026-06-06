@@ -58,6 +58,11 @@ if (isTRUE(failed)) {
     stop("Invalid input unexpectedly passed schema validation.", call. = FALSE)
 }
 
+standalone_copy_tests(repo, out_dir)
+on.exit(standalone_remove_tests(out_dir), add = TRUE)
+standalone_run_tests(out_dir)
+standalone_remove_tests(out_dir)
+
 target_pkg <- tempfile("schemate-target-")
 dir.create(file.path(target_pkg, "R"), recursive = TRUE)
 file.copy(standalone_file, file.path(target_pkg, "R", "import-standalone-schema.R"))

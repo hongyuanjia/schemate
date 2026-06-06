@@ -124,3 +124,43 @@ standalone_assert_description <- function(path, source_description) {
 
     invisible(description)
 }
+
+standalone_copy_tree <- function(from, root) {
+    if (!dir.exists(from)) {
+        stop("Missing source directory: ", from, call. = FALSE)
+    }
+
+    target <- file.path(root, basename(from))
+    unlink(target, recursive = TRUE, force = TRUE)
+    ok <- file.copy(from, root, recursive = TRUE, copy.mode = FALSE, copy.date = FALSE)
+    if (!isTRUE(ok)) {
+        stop("Failed to copy directory: ", from, call. = FALSE)
+    }
+
+    target
+}
+
+standalone_copy_tests <- function(repo, root) {
+    copied <- standalone_copy_tree(file.path(repo, "tests"), root)
+
+    inst <- file.path(repo, "inst")
+    if (dir.exists(inst)) {
+        copied <- c(copied, standalone_copy_tree(inst, root))
+    }
+
+    invisible(copied)
+}
+
+standalone_remove_tests <- function(root) {
+    unlink(file.path(root, c("tests", "inst")), recursive = TRUE, force = TRUE)
+    invisible(root)
+}
+
+standalone_run_tests <- function(root) {
+    if (!requireNamespace("testthat", quietly = TRUE)) {
+        stop("Package `testthat` is required to run standalone tests.", call. = FALSE)
+    }
+
+    testthat::test_local(root, reporter = "summary", load_package = "source")
+    invisible(root)
+}

@@ -14,6 +14,8 @@
   compacting container field groups.
 - Preserve grouped field bindings when predicate-based batch edits rewrite every
   grouped field to structurally equivalent targets.
+- Run standalone local verification against a temporary copy of the full package
+  test suite, then remove the copied tests.
 
 ## 2026-06-05
 - Treat `fields`, `patterns`, and `positions` as optional child validators
