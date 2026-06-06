@@ -90,10 +90,9 @@ test_that("schema_replace_where() batch replaces CrossRef-like date-parts", {
     raw <- as.list(updated)
 
     expect_equal(length(paths), 3L)
-    expect_equal(raw$fields$issued$fields$`date-parts`$rest, list(`$ref` = "#/$defs/crossref_date_part"))
-    expect_equal(raw$fields$created$fields$`date-parts`$rest, list(`$ref` = "#/$defs/crossref_date_part"))
-    expect_equal(raw$fields$`published-online`$fields$`date-parts`$rest, list(`$ref` = "#/$defs/crossref_date_part"))
-    expect_null(raw$groups)
+    expect_null(raw$fields)
+    expect_equal(raw$groups[[1L]]$names, c("issued", "created", "published-online"))
+    expect_equal(raw$groups[[1L]]$fields$`date-parts`$rest, list(`$ref` = "#/$defs/crossref_date_part"))
 })
 
 test_that("schema_modify_where() can modify rest, position, pattern, and defs targets", {
@@ -165,6 +164,47 @@ test_that("schema_modify_where() splits groups on partial logical field edits", 
     expect_equal(raw$fields$name, list(check = list(kind = "string")))
     expect_silent(schema_validate(updated, list(id = 1L, name = "a")))
     expect_error(schema_validate(updated, list(id = "a", name = "a")), "id")
+})
+
+test_that("schema_modify_where() preserves groups on full equivalent logical field edits", {
+    doc <- schema_doc(list(
+        check = list(kind = "list"),
+        groups = list(schema_group(c("id", "name"), schema_check("string")))
+    ))
+
+    updated <- schema_replace_where(doc, schema_where_check("string"), schema_check("character"))
+    raw <- as.list(updated)
+
+    expect_null(raw$fields)
+    expect_equal(raw$groups[[1L]]$names, c("id", "name"))
+    expect_equal(raw$groups[[1L]]$check, list(kind = "character"))
+    expect_silent(schema_validate(updated, list(id = "a", name = "b")))
+    expect_error(schema_validate(updated, list(id = 1L, name = "b")), "id")
+})
+
+test_that("schema_modify_where() splits groups on differing full logical field edits", {
+    doc <- schema_doc(list(
+        check = list(kind = "list"),
+        groups = list(schema_group(c("id", "name"), schema_check("string")))
+    ))
+
+    updated <- schema_modify_where(
+        doc,
+        schema_where_check("string"),
+        function(path, node) {
+            if (identical(path, "$id")) {
+                schema_check("int")
+            } else {
+                schema_check("character")
+            }
+        }
+    )
+    raw <- as.list(updated)
+
+    expect_null(raw$groups)
+    expect_equal(raw$fields$id, list(check = list(kind = "int")))
+    expect_equal(raw$fields$name, list(check = list(kind = "character")))
+    expect_silent(schema_validate(updated, list(id = 1L, name = "a")))
 })
 
 test_that("schema_modify_where() protects against ancestor and descendant matches", {

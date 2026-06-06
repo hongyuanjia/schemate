@@ -401,17 +401,6 @@ S7::method(schema_utils__convert, SchemaBindingExactCmpt) <- function(from, to, 
     SchemaBindingExactFlat(keys = from@keys, target = from@target)
 }
 
-schema_flat__binding <- function(binding, ctx) {
-    target <- schema_flat__node(binding@target, ctx)
-    keys <- binding@keys
-    out <- vector("list", length(keys))
-    for (i in seq_along(keys)) {
-        out[[i]] <- SchemaBindingExactFlat(keys = keys[[i]], target = target)
-    }
-
-    out
-}
-
 schema_flat__bindings <- function(bindings, ctx) {
     if (!length(bindings)) {
         return(list())

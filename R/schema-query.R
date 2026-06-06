@@ -167,6 +167,39 @@ schema_query__rewrite_result <- function(node, changed = FALSE) {
     list(node = node, changed = changed)
 }
 
+schema_query__rewrite_results_same_target <- function(results) {
+    if (!length(results)) {
+        return(TRUE)
+    }
+
+    first <- results[[1L]]$node
+    all(vapply(
+        results,
+        function(result) schema_compact__same_node(first, result$node),
+        logical(1L)
+    ))
+}
+
+schema_query__rewrite_exact_binding <- function(binding, key_results, exact_constructor) {
+    all_changed <- all(vapply(key_results, function(result) result$changed, logical(1L)))
+    if (
+        length(binding@keys) > 1L &&
+            all_changed &&
+            schema_query__rewrite_results_same_target(key_results)
+    ) {
+        return(list(exact_constructor(keys = binding@keys, target = key_results[[1L]]$node)))
+    }
+
+    out <- vector("list", length(binding@keys))
+    for (i in seq_along(binding@keys)) {
+        out[[i]] <- exact_constructor(
+            keys = binding@keys[[i]],
+            target = key_results[[i]]$node
+        )
+    }
+    out
+}
+
 schema_query__compile_flat_replacement <- function(node, path, context) {
     if (schema_flat__node_is_flat(node)) {
         return(node)
@@ -279,11 +312,9 @@ schema_query__rewrite_container <- function(
         exact_changed <- exact_changed || binding_changed
 
         if (binding_changed) {
-            for (i in seq_along(binding@keys)) {
-                exact[[length(exact) + 1L]] <- exact_constructor(
-                    keys = binding@keys[[i]],
-                    target = key_results[[i]]$node
-                )
+            rewritten <- schema_query__rewrite_exact_binding(binding, key_results, exact_constructor)
+            for (new_binding in rewritten) {
+                exact[[length(exact) + 1L]] <- new_binding
             }
         } else {
             exact[[length(exact) + 1L]] <- binding
@@ -657,10 +688,12 @@ schema_find <- function(x, where, defs = TRUE) {
 #' `schema_replace_where()` is a convenience wrapper that replaces all matched
 #' nodes with the same schema fragment.
 #'
-#' Batch edits operate on logical paths. Editing paths inside a grouped schema
-#' field may split the group into per-field bindings. If `where` matches both a
-#' node and one of its descendants in the same call, the edit errors and asks you
-#' to narrow the selector.
+#' Batch edits operate on logical paths. Editing every path inside a grouped
+#' schema field preserves the group when the replacement targets are structurally
+#' equivalent; partial edits or differing replacement targets split the group
+#' into per-field bindings. If `where` matches both a node and one of its
+#' descendants in the same call, the edit errors and asks you to narrow the
+#' selector.
 #'
 #' @param x A schema document or raw schema DSL list.
 #' @param where Predicate function with signature `function(path, node)`.
@@ -719,6 +752,15 @@ schema_replace_where <- function(x, where, value, defs = TRUE, missing = "ignore
 }
 
 #' Create schema query predicates
+#'
+#' `schema_where_path()` matches logical schema paths. `schema_where_check()`
+#' matches check nodes by kind.
+#'
+#' @details
+#' `schema_where_check()` matches check nodes present in the schema tree being
+#' walked. It does not resolve `$ref` targets while querying an authoring
+#' `SchemaDoc`; use `schema_compile()` first if a query should see referenced
+#' definitions through the compiled flat schema.
 #'
 #' @param pattern Pattern passed to `grepl()` for matching schema paths.
 #' @param fixed Whether `pattern` should be matched literally.

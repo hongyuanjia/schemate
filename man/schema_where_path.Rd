@@ -20,7 +20,14 @@ schema_where_check(kind = NULL)
 A predicate function with signature \verb{function(path, node)}.
 }
 \description{
-Create schema query predicates
+\code{schema_where_path()} matches logical schema paths. \code{schema_where_check()}
+matches check nodes by kind.
+}
+\details{
+\code{schema_where_check()} matches check nodes present in the schema tree being
+walked. It does not resolve \verb{$ref} targets while querying an authoring
+\code{SchemaDoc}; use \code{schema_compile()} first if a query should see referenced
+definitions through the compiled flat schema.
 }
 \examples{
 by_path <- schema_where_path("(^|\\\\$)`date-parts`\\\\$rest$")

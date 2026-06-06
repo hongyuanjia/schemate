@@ -12,6 +12,8 @@
   directly and normalizing `keys` rules consistently with `check_names()`.
 - Reduce intermediate S7 object construction while compiling grouped fields and
   compacting container field groups.
+- Preserve grouped field bindings when predicate-based batch edits rewrite every
+  grouped field to structurally equivalent targets.
 
 ## 2026-06-05
 - Treat `fields`, `patterns`, and `positions` as optional child validators

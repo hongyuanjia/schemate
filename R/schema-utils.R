@@ -37,9 +37,17 @@ schema_utils__require_namespace <- function(pkg, reason) {
     )
 }
 
+schema_utils__checkmate_fun_cache <- new.env(parent = emptyenv())
+
 schema_utils__checkmate_fun <- function(kind) {
     checkmate::assert_string(kind)
-    utils::getFromNamespace(paste0("check_", kind), asNamespace("checkmate"))
+    fun <- schema_utils__checkmate_fun_cache[[kind]]
+    if (is.null(fun)) {
+        fun <- utils::getFromNamespace(paste0("check_", kind), asNamespace("checkmate"))
+        schema_utils__checkmate_fun_cache[[kind]] <- fun
+    }
+
+    fun
 }
 
 schema_utils__checkmate_args <- function(kind) {

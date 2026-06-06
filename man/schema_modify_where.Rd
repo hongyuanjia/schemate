@@ -33,10 +33,12 @@ A modified \code{SchemaDoc}.
 nodes with the same schema fragment.
 }
 \details{
-Batch edits operate on logical paths. Editing paths inside a grouped schema
-field may split the group into per-field bindings. If \code{where} matches both a
-node and one of its descendants in the same call, the edit errors and asks you
-to narrow the selector.
+Batch edits operate on logical paths. Editing every path inside a grouped
+schema field preserves the group when the replacement targets are structurally
+equivalent; partial edits or differing replacement targets split the group
+into per-field bindings. If \code{where} matches both a node and one of its
+descendants in the same call, the edit errors and asks you to narrow the
+selector.
 }
 \examples{
 schema <- schema_compact(schema_infer(list(
