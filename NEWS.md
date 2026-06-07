@@ -1,4 +1,4 @@
-# schemate (development version)
+# schemate 0.1.1
 
 ## Improvements
 
