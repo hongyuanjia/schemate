@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">schemate</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,17 @@
       <small>Source: <a href="https://github.com/hongyuanjia/schemate/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.1" id="schemate-011">schemate 0.1.1<a class="anchor" aria-label="anchor" href="#schemate-011"></a></h2>
+<div class="section level3">
+<h3 id="improvements-0-1-1">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-1-1"></a></h3>
+<ul><li>Add public <code><a href="../reference/schema_flatten.html">schema_flatten()</a></code> for preparing reusable flat schemas before repeated validation.</li>
+<li>Preserve grouped field bindings when predicate-based batch edits rewrite every grouped field to structurally equivalent targets.</li>
+<li>Cache fixed <code><a href="../reference/schema_modify_where.html">schema_replace_where()</a></code> replacements, including cached flat replacements for <code>SchemaFlat</code> inputs.</li>
+<li>Cache internal <code>checkmate</code> checker lookups.</li>
+<li>Use S7 double dispatch for compact structural comparisons.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="schemate-010">schemate 0.1.0<a class="anchor" aria-label="anchor" href="#schemate-010"></a></h2>
 <div class="section level3">

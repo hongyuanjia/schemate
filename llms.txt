@@ -153,6 +153,19 @@ schema |>
 ## [1] FALSE
 ```
 
+When validating many payloads against the same schema, flatten once and
+reuse the flattened schema.
+
+``` r
+
+flat <- schema_flatten(schema)
+schema_validate(flat, payload, mode = "test")
+```
+
+``` R
+## [1] TRUE
+```
+
 For a data frame example, see the [Get started
 article](https://hongyuanjia.github.io/schemate/articles/schemate.html).
 
@@ -317,8 +330,13 @@ The project is released under the terms of MIT License.
 
 ## Validate
 
+Validate data directly, or flatten a schema once and reuse it for
+repeated validation.
+
 - [`schema_validate()`](https://hongyuanjia.github.io/schemate/reference/schema_validate.md)
   : Validate input against a schema
+- [`schema_flatten()`](https://hongyuanjia.github.io/schemate/reference/schema_flatten.md)
+  : Flatten a schema for repeated validation
 
 ## Modify Schema
 

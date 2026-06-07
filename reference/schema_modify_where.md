@@ -46,10 +46,12 @@ A modified `SchemaDoc`.
 
 ## Details
 
-Batch edits operate on logical paths. Editing paths inside a grouped
-schema field may split the group into per-field bindings. If `where`
-matches both a node and one of its descendants in the same call, the
-edit errors and asks you to narrow the selector.
+Batch edits operate on logical paths. Editing every path inside a
+grouped schema field preserves the group when the replacement targets
+are structurally equivalent; partial edits or differing replacement
+targets split the group into per-field bindings. If `where` matches both
+a node and one of its descendants in the same call, the edit errors and
+asks you to narrow the selector.
 
 ## Examples
 
@@ -126,26 +128,9 @@ schema
 #>   "check": {
 #>     "kind": "list"
 #>   },
-#>   "fields": {
-#>     "issued": {
-#>       "check": {
-#>         "kind": "list"
-#>       },
-#>       "fields": {
-#>         "date-parts": {
-#>           "check": {
-#>             "kind": "list"
-#>           },
-#>           "keys": {
-#>             "type": "unnamed"
-#>           },
-#>           "rest": {
-#>             "$ref": "#/$defs/year"
-#>           }
-#>         }
-#>       }
-#>     },
-#>     "created": {
+#>   "groups": [
+#>     {
+#>       "names": ["issued", "created"],
 #>       "check": {
 #>         "kind": "list"
 #>       },
@@ -163,6 +148,6 @@ schema
 #>         }
 #>       }
 #>     }
-#>   }
+#>   ]
 #> }
 ```

@@ -2,7 +2,7 @@
 
 `schemate` provides a compact schema DSL for R data. It can infer
 schemas from example objects, edit schema documents, read and write
-schema JSON, and validate inputs against compiled schemas.
+schema JSON, and validate inputs against flattened schemas.
 
 ## See also
 

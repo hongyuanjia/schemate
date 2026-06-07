@@ -1,7 +1,10 @@
 # Validate input against a schema
 
 `schema_validate()` validates an R object against a `SchemaDoc`,
-`SchemaFlat`, or compiled flat schema node.
+`SchemaFlat`, or flattened schema node. When validating many inputs
+against the same schema, flatten it once with
+[`schema_flatten()`](https://hongyuanjia.github.io/schemate/reference/schema_flatten.md)
+and reuse the flattened schema.
 
 ## Usage
 
@@ -13,7 +16,7 @@ schema_validate(schema, x, mode = "assert", name = NULL, ...)
 
 - schema:
 
-  A `SchemaDoc`, `SchemaFlat`, or compiled flat schema node.
+  A `SchemaDoc`, `SchemaFlat`, or flattened schema node.
 
 - x:
 
@@ -64,4 +67,8 @@ schema_validate(schema, list(id = 1L), mode = "test")
 #> [1] TRUE
 schema_validate(schema, list(id = 0L), mode = "check", name = "payload")
 #> [1] "payload$id: Element 1 is not >= 1"
+
+flat <- schema_flatten(schema)
+schema_validate(flat, list(id = 2L), mode = "test")
+#> [1] TRUE
 ```

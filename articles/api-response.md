@@ -957,48 +957,6 @@ crossref_schema
 #>                   "kind": "number"
 #>                 }
 #>               },
-#>               "issued": {
-#>                 "check": {
-#>                   "kind": "list"
-#>                 },
-#>                 "keys": {
-#>                   "type": "named"
-#>                 },
-#>                 "fields": {
-#>                   "date-parts": {
-#>                     "check": {
-#>                       "kind": "list"
-#>                     },
-#>                     "keys": {
-#>                       "type": "unnamed"
-#>                     },
-#>                     "rest": {
-#>                       "$ref": "#/$defs/crossref_date_part"
-#>                     }
-#>                   }
-#>                 }
-#>               },
-#>               "published": {
-#>                 "check": {
-#>                   "kind": "list"
-#>                 },
-#>                 "keys": {
-#>                   "type": "named"
-#>                 },
-#>                 "fields": {
-#>                   "date-parts": {
-#>                     "check": {
-#>                       "kind": "list"
-#>                     },
-#>                     "keys": {
-#>                       "type": "unnamed"
-#>                     },
-#>                     "rest": {
-#>                       "$ref": "#/$defs/crossref_date_part"
-#>                     }
-#>                   }
-#>                 }
-#>               },
 #>               "published-online": {
 #>                 "check": {
 #>                   "kind": "list"
@@ -1016,68 +974,6 @@ crossref_schema
 #>                     },
 #>                     "rest": {
 #>                       "$ref": "#/$defs/crossref_date_part"
-#>                     }
-#>                   }
-#>                 }
-#>               },
-#>               "created": {
-#>                 "check": {
-#>                   "kind": "list"
-#>                 },
-#>                 "keys": {
-#>                   "type": "named"
-#>                 },
-#>                 "fields": {
-#>                   "date-parts": {
-#>                     "check": {
-#>                       "kind": "list"
-#>                     },
-#>                     "keys": {
-#>                       "type": "unnamed"
-#>                     },
-#>                     "rest": {
-#>                       "$ref": "#/$defs/crossref_date_part"
-#>                     }
-#>                   },
-#>                   "date-time": {
-#>                     "check": {
-#>                       "kind": "string"
-#>                     }
-#>                   },
-#>                   "timestamp": {
-#>                     "check": {
-#>                       "kind": "number"
-#>                     }
-#>                   }
-#>                 }
-#>               },
-#>               "deposited": {
-#>                 "check": {
-#>                   "kind": "list"
-#>                 },
-#>                 "keys": {
-#>                   "type": "named"
-#>                 },
-#>                 "fields": {
-#>                   "date-parts": {
-#>                     "check": {
-#>                       "kind": "list"
-#>                     },
-#>                     "keys": {
-#>                       "type": "unnamed"
-#>                     },
-#>                     "rest": {
-#>                       "$ref": "#/$defs/crossref_date_part"
-#>                     }
-#>                   },
-#>                   "date-time": {
-#>                     "check": {
-#>                       "kind": "string"
-#>                     }
-#>                   },
-#>                   "timestamp": {
-#>                     "check": {
-#>                       "kind": "number"
 #>                     }
 #>                   }
 #>                 }
@@ -1187,6 +1083,60 @@ crossref_schema
 #>                 "names": ["reference-count", "is-referenced-by-count", "references-count"],
 #>                 "check": {
 #>                   "kind": "int"
+#>                 }
+#>               },
+#>               {
+#>                 "names": ["issued", "published"],
+#>                 "check": {
+#>                   "kind": "list"
+#>                 },
+#>                 "keys": {
+#>                   "type": "named"
+#>                 },
+#>                 "fields": {
+#>                   "date-parts": {
+#>                     "check": {
+#>                       "kind": "list"
+#>                     },
+#>                     "keys": {
+#>                       "type": "unnamed"
+#>                     },
+#>                     "rest": {
+#>                       "$ref": "#/$defs/crossref_date_part"
+#>                     }
+#>                   }
+#>                 }
+#>               },
+#>               {
+#>                 "names": ["created", "deposited"],
+#>                 "check": {
+#>                   "kind": "list"
+#>                 },
+#>                 "keys": {
+#>                   "type": "named"
+#>                 },
+#>                 "fields": {
+#>                   "date-parts": {
+#>                     "check": {
+#>                       "kind": "list"
+#>                     },
+#>                     "keys": {
+#>                       "type": "unnamed"
+#>                     },
+#>                     "rest": {
+#>                       "$ref": "#/$defs/crossref_date_part"
+#>                     }
+#>                   },
+#>                   "date-time": {
+#>                     "check": {
+#>                       "kind": "string"
+#>                     }
+#>                   },
+#>                   "timestamp": {
+#>                     "check": {
+#>                       "kind": "number"
+#>                     }
+#>                   }
 #>                 }
 #>               }
 #>             ]

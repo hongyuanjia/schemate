@@ -153,6 +153,19 @@ schema |>
 ## [1] FALSE
 ```
 
+When validating many payloads against the same schema, flatten once and
+reuse the flattened schema.
+
+``` r
+
+flat <- schema_flatten(schema)
+schema_validate(flat, payload, mode = "test")
+```
+
+``` R
+## [1] TRUE
+```
+
 For a data frame example, see the [Get started
 article](https://hongyuanjia.github.io/schemate/articles/schemate.html).
 

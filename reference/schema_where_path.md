@@ -1,6 +1,7 @@
 # Create schema query predicates
 
-Create schema query predicates
+`schema_where_path()` matches logical schema paths.
+`schema_where_check()` matches check nodes by kind.
 
 ## Usage
 
@@ -28,6 +29,15 @@ schema_where_check(kind = NULL)
 ## Value
 
 A predicate function with signature `function(path, node)`.
+
+## Details
+
+`schema_where_check()` matches check nodes present in the schema tree
+being walked. It does not resolve `$ref` targets while querying an
+authoring `SchemaDoc`; use
+[`schema_flatten()`](https://hongyuanjia.github.io/schemate/reference/schema_flatten.md)
+first if a query should see referenced definitions through the flattened
+schema.
 
 ## Examples
 

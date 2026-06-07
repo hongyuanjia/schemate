@@ -12,13 +12,13 @@ Source:
 [`DESCRIPTION`](https://github.com/hongyuanjia/schemate/blob/main/DESCRIPTION)
 
 Jia H (2026). *schemate: Schema Inference, Editing, and Validation with
-'checkmate'*. R package version 0.1.0,
+'checkmate'*. R package version 0.1.1,
 <https://hongyuanjia.github.io/schemate/>.
 
     @Manual{,
       title = {schemate: Schema Inference, Editing, and Validation with 'checkmate'},
       author = {Hongyuan Jia},
       year = {2026},
-      note = {R package version 0.1.0},
+      note = {R package version 0.1.1},
       url = {https://hongyuanjia.github.io/schemate/},
     }

@@ -11,7 +11,7 @@ nodes with the same schema fragment."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">schemate</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,10 +93,12 @@ fragment or <code>SchemaNode</code>.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Batch edits operate on logical paths. Editing paths inside a grouped schema
-field may split the group into per-field bindings. If <code>where</code> matches both a
-node and one of its descendants in the same call, the edit errors and asks you
-to narrow the selector.</p>
+    <p>Batch edits operate on logical paths. Editing every path inside a grouped
+schema field preserves the group when the replacement targets are structurally
+equivalent; partial edits or differing replacement targets split the group
+into per-field bindings. If <code>where</code> matches both a node and one of its
+descendants in the same call, the edit errors and asks you to narrow the
+selector.</p>
     </div>
 
     <div class="section level2">
@@ -173,26 +175,9 @@ to narrow the selector.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   "check": {</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     "kind": "list"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   },</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   "fields": {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     "issued": {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       "check": {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         "kind": "list"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       },</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       "fields": {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         "date-parts": {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           "check": {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             "kind": "list"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           },</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           "keys": {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             "type": "unnamed"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           },</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           "rest": {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             "$ref": "#/$defs/year"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     },</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     "created": {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   "groups": [</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     {</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       "names": ["issued", "created"],</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       "check": {</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         "kind": "list"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       },</span>
@@ -210,7 +195,7 @@ to narrow the selector.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         }</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       }</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   }</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

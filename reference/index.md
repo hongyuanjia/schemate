@@ -17,8 +17,13 @@
 
 ## Validate
 
+Validate data directly, or flatten a schema once and reuse it for
+repeated validation.
+
 - [`schema_validate()`](https://hongyuanjia.github.io/schemate/reference/schema_validate.md)
   : Validate input against a schema
+- [`schema_flatten()`](https://hongyuanjia.github.io/schemate/reference/schema_flatten.md)
+  : Flatten a schema for repeated validation
 
 ## Modify Schema
 
