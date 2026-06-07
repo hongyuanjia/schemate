@@ -86,54 +86,13 @@ schema_compact__dedupe_equivalent_nodes <- function(x) {
     x[!duplicated(lapply(x, function(node) schema_compact__normalize_schema_list(as.list(node))))]
 }
 
-schema_compact__class_name <- function(x) {
-    cls <- class(x)[[1L]]
-    sep <- regexpr("::", cls, fixed = TRUE)[[1L]]
-    if (sep < 0L) {
-        return(cls)
-    }
+schema_compact__same <- S7::new_generic(
+    "schema_compact__same",
+    c("x", "y"),
+    function(x, y) S7::S7_dispatch()
+)
 
-    substring(cls, sep + 2L)
-}
-
-schema_compact__same_node <- function(x, y) {
-    x_class <- schema_compact__class_name(x)
-    y_class <- schema_compact__class_name(y)
-
-    if (!identical(x_class, y_class)) {
-        return(FALSE)
-    }
-
-    switch(
-        x_class,
-        SchemaNodeLeaf = identical(x@desc, y@desc) &&
-            schema_compact__same_rule_check(x@value, y@value) &&
-            schema_compact__same_rule_names(x@name, y@name),
-        SchemaNodeRef = identical(x@desc, y@desc) &&
-            identical(x@ref, y@ref),
-        SchemaNodeContainerCmpt = ,
-        SchemaNodeContainerFlat = identical(x@desc, y@desc) &&
-            schema_compact__same_rule_check(x@value, y@value) &&
-            schema_compact__same_rule_names(x@name, y@name) &&
-            schema_compact__same_exact_bindings(x@exact, y@exact) &&
-            schema_compact__same_patterns(x@patterns, y@patterns) &&
-            schema_compact__same_node_list(x@positions, y@positions) &&
-            schema_compact__same_optional_node(x@rest, y@rest),
-        SchemaNodeAllCmpt = ,
-        SchemaNodeAllFlat = ,
-        SchemaNodeAnyCmpt = ,
-        SchemaNodeAnyFlat = ,
-        SchemaNodeOneCmpt = ,
-        SchemaNodeOneFlat = identical(x@desc, y@desc) &&
-            schema_compact__same_node_list(x@branches, y@branches),
-        SchemaNodeNotCmpt = ,
-        SchemaNodeNotFlat = identical(x@desc, y@desc) &&
-            schema_compact__same_node(x@branch, y@branch),
-        FALSE
-    )
-}
-
-schema_compact__same_node_list <- function(x, y) {
+schema_compact__same_list <- function(x, y) {
     if (length(x) != length(y)) {
         return(FALSE)
     }
@@ -144,27 +103,52 @@ schema_compact__same_node_list <- function(x, y) {
 
     all(vapply(
         seq_along(x),
-        function(i) schema_compact__same_node(x[[i]], y[[i]]),
+        function(i) schema_compact__same(x[[i]], y[[i]]),
         logical(1L)
     ))
 }
 
-schema_compact__same_optional_node <- function(x, y) {
+schema_compact__same_optional <- function(x, y) {
     if (is.null(x) || is.null(y)) {
         return(is.null(x) && is.null(y))
     }
 
-    schema_compact__same_node(x, y)
+    schema_compact__same(x, y)
 }
 
-schema_compact__same_rule_check <- function(x, y) {
-    if (
-        !identical(schema_compact__class_name(x), "SchemaRuleCheck") ||
-            !identical(schema_compact__class_name(y), "SchemaRuleCheck")
-    ) {
-        return(FALSE)
-    }
+schema_compact__same_leaf <- function(x, y) {
+    identical(x@desc, y@desc) &&
+        schema_compact__same(x@value, y@value) &&
+        schema_compact__same_optional(x@name, y@name)
+}
 
+schema_compact__same_ref <- function(x, y) {
+    identical(x@desc, y@desc) &&
+        identical(x@ref, y@ref)
+}
+
+schema_compact__same_container <- function(x, y) {
+    identical(x@desc, y@desc) &&
+        schema_compact__same(x@value, y@value) &&
+        schema_compact__same_optional(x@name, y@name) &&
+        schema_compact__same_list(x@exact, y@exact) &&
+        schema_compact__same_list(x@patterns, y@patterns) &&
+        schema_compact__same_list(x@positions, y@positions) &&
+        schema_compact__same_optional(x@rest, y@rest)
+}
+
+schema_compact__same_nary <- function(x, y) {
+    identical(x@desc, y@desc) &&
+        schema_compact__same_list(x@branches, y@branches)
+}
+
+schema_compact__same_not <- function(x, y) {
+    identical(x@desc, y@desc) &&
+        schema_compact__same(x@branch, y@branch)
+}
+
+S7::method(schema_compact__same, list(SchemaSpec, SchemaSpec)) <- function(x, y) FALSE
+S7::method(schema_compact__same, list(SchemaRuleCheck, SchemaRuleCheck)) <- function(x, y) {
     if (!identical(x@kind, y@kind)) {
         return(FALSE)
     }
@@ -177,17 +161,7 @@ schema_compact__same_rule_check <- function(x, y) {
         schema_compact__normalize_check_args(y@kind, y@args)
     )
 }
-
-schema_compact__same_rule_names <- function(x, y) {
-    if (is.null(x) || is.null(y)) {
-        return(is.null(x) && is.null(y))
-    }
-    if (
-        !identical(schema_compact__class_name(x), "SchemaRuleNames") ||
-            !identical(schema_compact__class_name(y), "SchemaRuleNames")
-    ) {
-        return(FALSE)
-    }
+S7::method(schema_compact__same, list(SchemaRuleNames, SchemaRuleNames)) <- function(x, y) {
     if (identical(x@args, y@args)) {
         return(TRUE)
     }
@@ -197,50 +171,26 @@ schema_compact__same_rule_names <- function(x, y) {
         schema_compact__normalize_names_args(y@args)
     )
 }
-
-schema_compact__same_exact_bindings <- function(x, y) {
-    if (length(x) != length(y)) {
-        return(FALSE)
-    }
-
-    if (!length(x)) {
-        return(TRUE)
-    }
-
-    all(vapply(
-        seq_along(x),
-        function(i) {
-            identical(schema_compact__class_name(x[[i]]), schema_compact__class_name(y[[i]])) &&
-                identical(x[[i]]@keys, y[[i]]@keys) &&
-                schema_compact__same_node(x[[i]]@target, y[[i]]@target)
-        },
-        logical(1L)
-    ))
+S7::method(schema_compact__same, list(SchemaBindingExactCmpt, SchemaBindingExactCmpt)) <- function(x, y) {
+    identical(x@keys, y@keys) &&
+        schema_compact__same(x@target, y@target)
 }
-
-schema_compact__same_patterns <- function(x, y) {
-    if (length(x) != length(y)) {
-        return(FALSE)
-    }
-
-    if (!length(x)) {
-        return(TRUE)
-    }
-
-    identical(
-        vapply(x, function(binding) binding@pattern, character(1L)),
-        vapply(y, function(binding) binding@pattern, character(1L))
-    ) &&
-        all(vapply(
-            seq_along(x),
-            function(i) schema_compact__same_node(x[[i]]@target, y[[i]]@target),
-            logical(1L)
-        ))
+S7::method(schema_compact__same, list(SchemaBindingPatternCmpt, SchemaBindingPatternCmpt)) <- function(x, y) {
+    identical(x@pattern, y@pattern) &&
+        schema_compact__same(x@target, y@target)
 }
+S7::method(schema_compact__same, list(SchemaNodeLeaf, SchemaNodeLeaf)) <- schema_compact__same_leaf
+S7::method(schema_compact__same, list(SchemaNodeRef, SchemaNodeRef)) <- schema_compact__same_ref
+S7::method(schema_compact__same, list(SchemaNodeContainerCmpt, SchemaNodeContainerCmpt)) <-
+    schema_compact__same_container
+S7::method(schema_compact__same, list(SchemaNodeAllCmpt, SchemaNodeAllCmpt)) <- schema_compact__same_nary
+S7::method(schema_compact__same, list(SchemaNodeAnyCmpt, SchemaNodeAnyCmpt)) <- schema_compact__same_nary
+S7::method(schema_compact__same, list(SchemaNodeOneCmpt, SchemaNodeOneCmpt)) <- schema_compact__same_nary
+S7::method(schema_compact__same, list(SchemaNodeNotCmpt, SchemaNodeNotCmpt)) <- schema_compact__same_not
 
 schema_compact__find_exact_group <- function(grouped, target) {
     for (i in seq_along(grouped)) {
-        if (schema_compact__same_node(grouped[[i]]$target, target)) {
+        if (schema_compact__same(grouped[[i]]$target, target)) {
             return(i)
         }
     }
@@ -411,10 +361,10 @@ schema_compact__merge_rest <- function(x, arrays, groups) {
 }
 
 schema_compact__containers_can_merge <- function(x, y) {
-    schema_compact__same_rule_check(x@value, y@value) &&
+    schema_compact__same(x@value, y@value) &&
         schema_compact__names_mergeable(list(x@name, y@name)) &&
-        schema_compact__same_patterns(x@patterns, y@patterns) &&
-        schema_compact__same_node_list(x@positions, y@positions)
+        schema_compact__same_list(x@patterns, y@patterns) &&
+        schema_compact__same_list(x@positions, y@positions)
 }
 
 schema_compact__merge_containers <- function(x, arrays, groups) {

@@ -14,8 +14,11 @@
   compacting container field groups.
 - Preserve grouped field bindings when predicate-based batch edits rewrite every
   grouped field to structurally equivalent targets.
+- Cache fixed `schema_replace_where()` replacements, including precompiled flat
+  replacements for `SchemaFlat` inputs.
 - Run standalone local verification against a temporary copy of the full package
   test suite, then remove the copied tests.
+- Use S7 double dispatch for compact structural comparisons.
 
 ## 2026-06-05
 - Treat `fields`, `patterns`, and `positions` as optional child validators

@@ -160,6 +160,21 @@ SchemaFlat <- S7::new_class(
 )
 # }}}
 
+S7::method(schema_compact__same, list(SchemaBindingExactFlat, SchemaBindingExactFlat)) <- function(x, y) {
+    identical(x@keys, y@keys) &&
+        schema_compact__same(x@target, y@target)
+}
+S7::method(schema_compact__same, list(SchemaBindingPatternFlat, SchemaBindingPatternFlat)) <- function(x, y) {
+    identical(x@pattern, y@pattern) &&
+        schema_compact__same(x@target, y@target)
+}
+S7::method(schema_compact__same, list(SchemaNodeContainerFlat, SchemaNodeContainerFlat)) <-
+    schema_compact__same_container
+S7::method(schema_compact__same, list(SchemaNodeAllFlat, SchemaNodeAllFlat)) <- schema_compact__same_nary
+S7::method(schema_compact__same, list(SchemaNodeAnyFlat, SchemaNodeAnyFlat)) <- schema_compact__same_nary
+S7::method(schema_compact__same, list(SchemaNodeOneFlat, SchemaNodeOneFlat)) <- schema_compact__same_nary
+S7::method(schema_compact__same, list(SchemaNodeNotFlat, SchemaNodeNotFlat)) <- schema_compact__same_not
+
 # as.list.Schema {{{
 S7::method(as.list, SchemaNodeContainerFlat) <- function(x, ...) {
     out <- list(check = as.list(x@value))

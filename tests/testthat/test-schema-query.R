@@ -226,6 +226,10 @@ test_that("schema_modify_where() supports missing behavior", {
         schema_replace_where(doc, schema_where_path("^\\$missing$"), schema_check("string")),
         doc
     )
+    expect_identical(
+        schema_replace_where(doc, schema_where_path("^\\$missing$"), schema_check("missing_kind")),
+        doc
+    )
     expect_error(
         schema_replace_where(doc, schema_where_path("^\\$missing$"), schema_check("string"), missing = "error"),
         "did not match any schema paths"
@@ -246,6 +250,10 @@ test_that("schema_modify_where() wraps where and fn errors with path context", {
     expect_error(
         schema_modify_where(doc, schema_where_path("^\\$id$"), function(path, node) stop("boom")),
         "Failed to modify schema node at path `\\$id`"
+    )
+    expect_error(
+        schema_replace_where(doc, schema_where_path("^\\$id$"), schema_check("missing_kind")),
+        "Invalid replacement at path `\\$id`"
     )
 })
 
@@ -274,6 +282,29 @@ test_that("schema query and modify accept internal SchemaFlat objects", {
     expect_true(S7::S7_inherits(updated, SchemaFlat))
     expect_true(S7::S7_inherits(updated@root, SchemaNodeContainerFlat))
     expect_equal(as.list(updated)$fields$values$positions[[1L]], list(check = list(kind = "number")))
+})
+
+test_that("schema_replace_where() keeps cached raw replacements flat", {
+    flat <- schema_flat__compile(schema_doc(list(
+        check = list(kind = "list"),
+        fields = list(
+            a = schema_check("string"),
+            b = schema_check("string")
+        )
+    )))
+    replacement <- list(
+        check = list(kind = "list"),
+        fields = list(id = schema_check("int"))
+    )
+
+    updated <- schema_replace_where(flat, schema_where_check("string"), replacement)
+    raw <- as.list(updated)
+
+    expect_true(S7::S7_inherits(updated, SchemaFlat))
+    expect_true(schema_flat__node_is_flat(updated@root@exact[[1L]]@target))
+    expect_true(schema_flat__node_is_flat(updated@root@exact[[2L]]@target))
+    expect_equal(raw$fields$a$fields$id, list(check = list(kind = "int")))
+    expect_equal(raw$fields$b$fields$id, list(check = list(kind = "int")))
 })
 
 test_that("schema query and modify accept internal flat nodes", {

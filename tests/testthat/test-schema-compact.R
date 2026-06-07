@@ -220,7 +220,7 @@ test_that("schema_compact() keeps descriptions in structural grouping", {
     expect_null(as.list(compact)$groups)
 })
 
-test_that("schema_compact__same_node() compares S7 slots structurally", {
+test_that("schema_compact__same() compares S7 slots structurally", {
     string <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"))
     string_default <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string", args = list(null.ok = FALSE)))
     ref <- SchemaNodeRef(ref = "#/$defs/value")
@@ -248,27 +248,27 @@ test_that("schema_compact__same_node() compares S7 slots structurally", {
         rest = string_default
     )
 
-    expect_true(schema_compact__same_node(pattern_container, pattern_container_default))
-    expect_true(schema_compact__same_node(position_container, position_container_default))
-    expect_true(schema_compact__same_node(
+    expect_true(schema_compact__same(pattern_container, pattern_container_default))
+    expect_true(schema_compact__same(position_container, position_container_default))
+    expect_true(schema_compact__same(
         SchemaNodeAllCmpt(branches = list(pattern_container, ref)),
         SchemaNodeAllCmpt(branches = list(pattern_container_default, ref))
     ))
-    expect_true(schema_compact__same_node(
+    expect_true(schema_compact__same(
         SchemaNodeOneCmpt(branches = list(string, ref)),
         SchemaNodeOneCmpt(branches = list(string_default, ref))
     ))
-    expect_false(schema_compact__same_node(
+    expect_false(schema_compact__same(
         SchemaNodeAllCmpt(branches = list(string, ref)),
         SchemaNodeAnyCmpt(branches = list(string_default, ref))
     ))
-    expect_false(schema_compact__same_node(
+    expect_false(schema_compact__same(
         SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"), desc = "first"),
         SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"), desc = "second")
     ))
 })
 
-test_that("schema_compact__same_node() preserves exact binding shape", {
+test_that("schema_compact__same() preserves exact binding shape", {
     target <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"))
     grouped <- SchemaNodeContainerCmpt(
         value = SchemaRuleCheck(kind = "list"),
@@ -282,7 +282,43 @@ test_that("schema_compact__same_node() preserves exact binding shape", {
         )
     )
 
-    expect_false(schema_compact__same_node(grouped, separate))
+    expect_false(schema_compact__same(grouped, separate))
+})
+
+test_that("schema_compact__same() dispatches on flat node pairs", {
+    doc <- schema_doc(list(
+        check = list(kind = "list"),
+        fields = list(id = schema_check("int"))
+    ))
+    flat <- schema_flat__compile(doc)@root
+    flat_default <- schema_flat__compile(schema_doc(list(
+        check = list(kind = "list", null.ok = FALSE),
+        fields = list(id = schema_check("int", null.ok = FALSE))
+    )))@root
+
+    expect_true(schema_compact__same(flat, flat_default))
+    expect_false(schema_compact__same(doc@root, flat))
+})
+
+test_that("schema_compact__same() dispatches on rules and bindings", {
+    check_default <- SchemaRuleCheck(kind = "string", args = list(null.ok = FALSE))
+    check_implicit <- SchemaRuleCheck(kind = "string")
+    names_default <- SchemaRuleNames(args = list())
+    names_explicit <- SchemaRuleNames(args = list(type = "named", what = "names"))
+    target <- SchemaNodeLeaf(value = check_implicit)
+    flat_target <- schema_flat__node(target, schema_flat__context(list()))
+
+    expect_true(schema_compact__same(check_default, check_implicit))
+    expect_true(schema_compact__same(names_default, names_explicit))
+    expect_false(schema_compact__same(check_implicit, names_default))
+    expect_false(schema_compact__same(
+        SchemaBindingExactCmpt(keys = "id", target = target),
+        SchemaBindingExactCmpt(keys = "name", target = target)
+    ))
+    expect_false(schema_compact__same(
+        SchemaBindingExactCmpt(keys = "id", target = target),
+        SchemaBindingExactFlat(keys = "id", target = flat_target)
+    ))
 })
 
 test_that("schema_compact() is idempotent and accepts raw DSL input", {

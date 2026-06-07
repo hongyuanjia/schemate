@@ -175,7 +175,7 @@ schema_query__rewrite_results_same_target <- function(results) {
     first <- results[[1L]]$node
     all(vapply(
         results,
-        function(result) schema_compact__same_node(first, result$node),
+        function(result) schema_compact__same(first, result$node),
         logical(1L)
     ))
 }
@@ -213,21 +213,73 @@ schema_query__compile_flat_replacement <- function(node, path, context) {
     )
 }
 
-schema_query__replace_current <- function(node, path, fn, defs, flat) {
-    value <- schema_query__call_fn(fn, path, node)
-    context <- sprintf("Invalid replacement at path `%s`.", path)
-    replacement <- schema_edit__as_node(
-        value,
-        defs = defs,
-        path = path,
-        context = context
-    )
+schema_query__dynamic_replacer <- function(fn) {
+    function(path, node, defs, flat) {
+        value <- schema_query__call_fn(fn, path, node)
+        context <- sprintf("Invalid replacement at path `%s`.", path)
+        replacement <- schema_edit__as_node(
+            value,
+            defs = defs,
+            path = path,
+            context = context
+        )
 
-    if (flat) {
-        return(schema_query__compile_flat_replacement(replacement, path = path, context = context))
+        if (flat) {
+            return(schema_query__compile_flat_replacement(replacement, path = path, context = context))
+        }
+
+        replacement
+    }
+}
+
+schema_query__constant_replacer <- function(value) {
+    state <- new.env(parent = emptyenv())
+    state$value <- value
+    state$has_node <- FALSE
+    state$node <- NULL
+    state$has_flat_node <- FALSE
+    state$flat_node <- NULL
+
+    function(path, node, defs, flat) {
+        context <- sprintf("Invalid replacement at path `%s`.", path)
+        if (!state$has_node) {
+            state$node <- schema_edit__as_node(
+                state$value,
+                defs = defs,
+                path = path,
+                context = context
+            )
+            state$has_node <- TRUE
+        }
+
+        if (!flat) {
+            return(state$node)
+        }
+
+        if (!state$has_flat_node) {
+            state$flat_node <- schema_query__compile_flat_replacement(
+                state$node,
+                path = path,
+                context = context
+            )
+            state$has_flat_node <- TRUE
+        }
+
+        state$flat_node
+    }
+}
+
+schema_query__replace_current <- function(node, path, replacer, defs, flat) {
+    replacer(path = path, node = node, defs = defs, flat = flat)
+}
+
+schema_query__rewrite_apply <- function(x, where, replacer, defs, missing) {
+    result <- schema_query__rewrite_input(x, where, replacer, defs = defs)
+    if (!result$count && identical(missing, "error")) {
+        stop("`where` did not match any schema paths.", call. = FALSE)
     }
 
-    replacement
+    result$value
 }
 
 schema_query__check_match <- function(where, path, node, state, ancestor) {
@@ -251,14 +303,14 @@ schema_query__check_match <- function(where, path, node, state, ancestor) {
 schema_query__rewrite_node <- S7::new_generic(
     "schema_query__rewrite_node",
     "node",
-    function(node, path, where, fn, defs, state, ancestor = NULL, flat = FALSE) S7::S7_dispatch()
+    function(node, path, where, replacer, defs, state, ancestor = NULL, flat = FALSE) S7::S7_dispatch()
 )
 
 schema_query__rewrite_terminal <- function(
     node,
     path,
     where,
-    fn,
+    replacer,
     defs,
     state,
     ancestor = NULL,
@@ -267,7 +319,7 @@ schema_query__rewrite_terminal <- function(
     matched <- schema_query__check_match(where, path, node, state, ancestor)
     if (matched) {
         return(schema_query__rewrite_result(
-            schema_query__replace_current(node, path, fn, defs, flat = flat),
+            schema_query__replace_current(node, path, replacer, defs, flat = flat),
             changed = TRUE
         ))
     }
@@ -282,7 +334,7 @@ schema_query__rewrite_container <- function(
     node,
     path,
     where,
-    fn,
+    replacer,
     defs,
     state,
     ancestor,
@@ -301,7 +353,7 @@ schema_query__rewrite_container <- function(
                 binding@target,
                 schema_edit__path_append_field(path, key),
                 where = where,
-                fn = fn,
+                replacer = replacer,
                 defs = defs,
                 state = state,
                 ancestor = next_ancestor,
@@ -330,7 +382,7 @@ schema_query__rewrite_container <- function(
                 binding@target,
                 schema_edit__path_append(path, "patterns", binding@pattern),
                 where = where,
-                fn = fn,
+                replacer = replacer,
                 defs = defs,
                 state = state,
                 ancestor = next_ancestor,
@@ -351,7 +403,7 @@ schema_query__rewrite_container <- function(
                 positions[[i]],
                 schema_edit__path_append_index(path, "positions", i),
                 where = where,
-                fn = fn,
+                replacer = replacer,
                 defs = defs,
                 state = state,
                 ancestor = next_ancestor,
@@ -371,7 +423,7 @@ schema_query__rewrite_container <- function(
             rest,
             schema_edit__path_append(path, "rest"),
             where = where,
-            fn = fn,
+            replacer = replacer,
             defs = defs,
             state = state,
             ancestor = next_ancestor,
@@ -385,7 +437,7 @@ schema_query__rewrite_container <- function(
 
     if (matched) {
         return(schema_query__rewrite_result(
-            schema_query__replace_current(node, path, fn, defs, flat = flat),
+            schema_query__replace_current(node, path, replacer, defs, flat = flat),
             changed = TRUE
         ))
     }
@@ -408,7 +460,7 @@ schema_query__rewrite_container_method <- function(
     node,
     path,
     where,
-    fn,
+    replacer,
     defs,
     state,
     ancestor = NULL,
@@ -422,7 +474,7 @@ schema_query__rewrite_container_method <- function(
         node,
         path = path,
         where = where,
-        fn = fn,
+        replacer = replacer,
         defs = defs,
         state = state,
         ancestor = ancestor,
@@ -439,7 +491,7 @@ schema_query__rewrite_nary <- function(
     node,
     path,
     where,
-    fn,
+    replacer,
     defs,
     state,
     ancestor = NULL,
@@ -457,7 +509,7 @@ schema_query__rewrite_nary <- function(
             branches[[i]],
             schema_edit__path_append_index(path, operator, i),
             where = where,
-            fn = fn,
+            replacer = replacer,
             defs = defs,
             state = state,
             ancestor = next_ancestor,
@@ -471,7 +523,7 @@ schema_query__rewrite_nary <- function(
 
     if (matched) {
         return(schema_query__rewrite_result(
-            schema_query__replace_current(node, path, fn, defs, flat = flat),
+            schema_query__replace_current(node, path, replacer, defs, flat = flat),
             changed = TRUE
         ))
     }
@@ -490,7 +542,7 @@ schema_query__rewrite_not <- function(
     node,
     path,
     where,
-    fn,
+    replacer,
     defs,
     state,
     ancestor = NULL,
@@ -504,7 +556,7 @@ schema_query__rewrite_not <- function(
         node@branch,
         schema_edit__path_append(path, "not"),
         where = where,
-        fn = fn,
+        replacer = replacer,
         defs = defs,
         state = state,
         ancestor = next_ancestor,
@@ -513,7 +565,7 @@ schema_query__rewrite_not <- function(
 
     if (matched) {
         return(schema_query__rewrite_result(
-            schema_query__replace_current(node, path, fn, defs, flat = flat),
+            schema_query__replace_current(node, path, replacer, defs, flat = flat),
             changed = TRUE
         ))
     }
@@ -528,7 +580,7 @@ schema_query__rewrite_not <- function(
 S7::method(schema_query__rewrite_node, SchemaNodeNotCmpt) <- schema_query__rewrite_not
 S7::method(schema_query__rewrite_node, SchemaNodeNotFlat) <- schema_query__rewrite_not
 
-schema_query__rewrite_doc <- function(doc, where, fn, include_defs) {
+schema_query__rewrite_doc <- function(doc, where, replacer, include_defs) {
     state <- schema_query__rewrite_state()
     state$count <- 0L
     defs <- names(doc@defs)
@@ -537,7 +589,7 @@ schema_query__rewrite_doc <- function(doc, where, fn, include_defs) {
         doc@root,
         path = "$",
         where = where,
-        fn = fn,
+        replacer = replacer,
         defs = defs,
         state = state,
         flat = FALSE
@@ -551,7 +603,7 @@ schema_query__rewrite_doc <- function(doc, where, fn, include_defs) {
                 defs_list[[name]],
                 path = schema_edit__path_append("$", "defs", name),
                 where = where,
-                fn = fn,
+                replacer = replacer,
                 defs = defs,
                 state = state,
                 flat = FALSE
@@ -573,7 +625,7 @@ schema_query__rewrite_doc <- function(doc, where, fn, include_defs) {
     )
 }
 
-schema_query__rewrite_flat <- function(flat, where, fn) {
+schema_query__rewrite_flat <- function(flat, where, replacer) {
     state <- schema_query__rewrite_state()
     state$count <- 0L
 
@@ -581,7 +633,7 @@ schema_query__rewrite_flat <- function(flat, where, fn) {
         flat@root,
         path = "$",
         where = where,
-        fn = fn,
+        replacer = replacer,
         defs = character(),
         state = state,
         flat = TRUE
@@ -597,7 +649,7 @@ schema_query__rewrite_flat <- function(flat, where, fn) {
     )
 }
 
-schema_query__rewrite_bare_node <- function(node, where, fn) {
+schema_query__rewrite_bare_node <- function(node, where, replacer) {
     state <- schema_query__rewrite_state()
     state$count <- 0L
     flat <- schema_flat__node_is_flat(node)
@@ -606,7 +658,7 @@ schema_query__rewrite_bare_node <- function(node, where, fn) {
         node,
         path = "$",
         where = where,
-        fn = fn,
+        replacer = replacer,
         defs = character(),
         state = state,
         flat = flat
@@ -618,20 +670,20 @@ schema_query__rewrite_bare_node <- function(node, where, fn) {
     )
 }
 
-schema_query__rewrite_input <- function(x, where, fn, defs) {
+schema_query__rewrite_input <- function(x, where, replacer, defs) {
     if (S7::S7_inherits(x, SchemaDoc)) {
-        return(schema_query__rewrite_doc(x, where = where, fn = fn, include_defs = defs))
+        return(schema_query__rewrite_doc(x, where = where, replacer = replacer, include_defs = defs))
     }
 
     if (S7::S7_inherits(x, SchemaFlat)) {
-        return(schema_query__rewrite_flat(x, where = where, fn = fn))
+        return(schema_query__rewrite_flat(x, where = where, replacer = replacer))
     }
 
     if (schema_query__is_node(x)) {
-        return(schema_query__rewrite_bare_node(x, where = where, fn = fn))
+        return(schema_query__rewrite_bare_node(x, where = where, replacer = replacer))
     }
 
-    schema_query__rewrite_doc(schema_doc(x), where = where, fn = fn, include_defs = defs)
+    schema_query__rewrite_doc(schema_doc(x), where = where, replacer = replacer, include_defs = defs)
 }
 
 #' Query schema paths and matching nodes
@@ -730,22 +782,27 @@ schema_modify_where <- function(x, where, fn, defs = TRUE, missing = "ignore") {
     checkmate::assert_flag(defs)
     missing <- match.arg(missing, c("error", "ignore"))
 
-    result <- schema_query__rewrite_input(x, where, fn, defs = defs)
-    if (!result$count && identical(missing, "error")) {
-        stop("`where` did not match any schema paths.", call. = FALSE)
-    }
-
-    result$value
+    schema_query__rewrite_apply(
+        x,
+        where = where,
+        replacer = schema_query__dynamic_replacer(fn),
+        defs = defs,
+        missing = missing
+    )
 }
 
 #' @rdname schema_modify_where
 #' @export
 schema_replace_where <- function(x, where, value, defs = TRUE, missing = "ignore") {
     force(value)
-    schema_modify_where(
+    checkmate::assert_function(where)
+    checkmate::assert_flag(defs)
+    missing <- match.arg(missing, c("error", "ignore"))
+
+    schema_query__rewrite_apply(
         x,
-        where,
-        function(path, node) value,
+        where = where,
+        replacer = schema_query__constant_replacer(value),
         defs = defs,
         missing = missing
     )
