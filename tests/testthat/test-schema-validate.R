@@ -249,7 +249,7 @@ test_that("schema_validate treats keyed child constraints as optional without ex
 
 test_that("schema_validate handles wide exact field schemas", {
     wide <- as.list(stats::setNames(seq_len(200L), paste0("f", seq_len(200L))))
-    schema <- schema_compile(schema_infer(wide, keys = "named"))
+    schema <- schema_flatten(schema_infer(wide, keys = "named"))
 
     expect_true(schema_validate(schema, wide, mode = "test", name = "payload"))
 

@@ -4,7 +4,7 @@
 - Rename missing-target controls from `error_if_missing` to
   `missing = "error"` / `missing = "ignore"` across schema deletion and
   predicate-based batch edit helpers.
-- Add public `schema_compile()` for reusing compiled schemas across repeated
+- Add public `schema_flatten()` for reusing flattened schemas across repeated
   validation calls.
 - Speed up exact field validation for wide schemas and reduce key-copying
   overhead while compacting grouped fields.
@@ -14,7 +14,7 @@
   compacting container field groups.
 - Preserve grouped field bindings when predicate-based batch edits rewrite every
   grouped field to structurally equivalent targets.
-- Cache fixed `schema_replace_where()` replacements, including precompiled flat
+- Cache fixed `schema_replace_where()` replacements, including cached flat
   replacements for `SchemaFlat` inputs.
 - Run standalone local verification against a temporary copy of the full package
   test suite, then remove the copied tests.

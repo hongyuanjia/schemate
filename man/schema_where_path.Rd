@@ -26,8 +26,8 @@ matches check nodes by kind.
 \details{
 \code{schema_where_check()} matches check nodes present in the schema tree being
 walked. It does not resolve \verb{$ref} targets while querying an authoring
-\code{SchemaDoc}; use \code{schema_compile()} first if a query should see referenced
-definitions through the compiled flat schema.
+\code{SchemaDoc}; use \code{schema_flatten()} first if a query should see referenced
+definitions through the flattened schema.
 }
 \examples{
 by_path <- schema_where_path("(^|\\\\$)`date-parts`\\\\$rest$")

@@ -22,8 +22,12 @@ reference:
       - schema_write
 
   - title: Validate
+    desc: >
+      Validate data directly, or flatten a schema once and reuse it for repeated
+      validation.
     contents:
       - schema_validate
+      - schema_flatten
 
   - title: Modify Schema
     desc: >

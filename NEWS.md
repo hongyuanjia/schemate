@@ -2,9 +2,11 @@
 
 ## Improvements
 
+- Add public `schema_flatten()` for preparing reusable flat schemas before
+  repeated validation.
 - Preserve grouped field bindings when predicate-based batch edits rewrite every
   grouped field to structurally equivalent targets.
-- Cache fixed `schema_replace_where()` replacements, including precompiled flat
+- Cache fixed `schema_replace_where()` replacements, including cached flat
   replacements for `SchemaFlat` inputs.
 - Cache internal `checkmate` checker lookups.
 - Use S7 double dispatch for compact structural comparisons.

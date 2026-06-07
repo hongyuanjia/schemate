@@ -188,7 +188,7 @@ test_that("schema_flat__compile()", {
 
     bad_runtime_ref <- SchemaNodeRef(ref = "#/$defs/missing")
     bad_ctx <- schema_flat__context()
-    expect_error(schema_flat__node(bad_runtime_ref, bad_ctx), "is not available during compilation")
+    expect_error(schema_flat__node(bad_runtime_ref, bad_ctx), "is not available during flattening")
 
     runtime <- SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string"))
     flat <- SchemaFlat(root = runtime, version = "1.0.0")
@@ -204,7 +204,7 @@ test_that("schema_flat__compile()", {
 
     expect_error(
         schema_flat__compile(authoring@root),
-        "only accepts `SchemaDoc`, flat runtime `SchemaNode`, or `SchemaFlat`"
+        "only accepts a schema document, raw schema DSL list, `SchemaFlat`, or flat runtime `SchemaNode`"
     )
     expect_equal(schema_flat__node(runtime, schema_flat__context()), runtime)
 
@@ -249,7 +249,7 @@ test_that("schema_flat__compile()", {
     expect_equal(flat@root@rest, SchemaNodeLeaf(value = SchemaRuleCheck(kind = "number")))
 })
 
-test_that("schema_compile() exposes compiled schemas", {
+test_that("schema_flatten() exposes flattened schemas", {
     raw <- list(
         `$defs` = list(text = list(check = list(kind = "string"))),
         check = list(kind = "list"),
@@ -260,26 +260,26 @@ test_that("schema_compile() exposes compiled schemas", {
     )
     doc <- schema_doc(raw, path = "schema.json")
 
-    compiled <- schema_compile(raw)
-    compiled_doc <- schema_compile(doc)
+    flat <- schema_flatten(raw)
+    flat_doc <- schema_flatten(doc)
 
-    expect_s7_class(compiled, SchemaFlat)
-    expect_s7_class(compiled_doc, SchemaFlat)
-    expect_equal(compiled_doc@path, "schema.json")
-    expect_true(isTRUE(schema_validate(compiled, list(id = 1L, name = "alice"), mode = "check", name = "payload")))
+    expect_s7_class(flat, SchemaFlat)
+    expect_s7_class(flat_doc, SchemaFlat)
+    expect_equal(flat_doc@path, "schema.json")
+    expect_true(isTRUE(schema_validate(flat, list(id = 1L, name = "alice"), mode = "check", name = "payload")))
     expect_match(
-        schema_validate(compiled, list(id = 0L, name = "alice"), mode = "check", name = "payload"),
+        schema_validate(flat, list(id = 0L, name = "alice"), mode = "check", name = "payload"),
         "payload\\$id"
     )
 
-    flat <- SchemaFlat(root = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string")))
-    expect_identical(schema_compile(flat), flat)
-    expect_s7_class(schema_compile(flat@root), SchemaFlat)
+    flat_schema <- SchemaFlat(root = SchemaNodeLeaf(value = SchemaRuleCheck(kind = "string")))
+    expect_identical(schema_flatten(flat_schema), flat_schema)
+    expect_s7_class(schema_flatten(flat_schema@root), SchemaFlat)
 
     authoring <- schema_doc(list(check = list(kind = "list"), fields = list(id = list(check = list(kind = "int")))))
     expect_error(
-        schema_compile(authoring@root),
-        "only accepts `SchemaDoc`, flat runtime `SchemaNode`, or `SchemaFlat`"
+        schema_flatten(authoring@root),
+        "only accepts a schema document, raw schema DSL list, `SchemaFlat`, or flat runtime `SchemaNode`"
     )
 
     circular <- list(
@@ -289,11 +289,12 @@ test_that("schema_compile() exposes compiled schemas", {
         ),
         `$ref` = "#/$defs/a"
     )
-    expect_error(schema_compile(circular), "circular `\\$ref`")
+    expect_error(schema_flatten(circular), "circular `\\$ref`")
+    expect_false("schema_compile" %in% getNamespaceExports("schemate"))
 })
 
 test_that("as.list()", {
-    # Contract: top-level order for SchemaCompiled is version -> root entries,
+    # Contract: top-level order for SchemaFlat is version -> root entries,
     # and root-level description is emitted before operator-specific keys.
     rule_check <- SchemaRuleCheck(kind = "string", args = list(min.chars = 1L))
     rule_names <- SchemaRuleNames(args = list(type = "unique", must.include = c("id", "label")))

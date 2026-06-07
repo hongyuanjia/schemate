@@ -816,8 +816,8 @@ schema_replace_where <- function(x, where, value, defs = TRUE, missing = "ignore
 #' @details
 #' `schema_where_check()` matches check nodes present in the schema tree being
 #' walked. It does not resolve `$ref` targets while querying an authoring
-#' `SchemaDoc`; use `schema_compile()` first if a query should see referenced
-#' definitions through the compiled flat schema.
+#' `SchemaDoc`; use `schema_flatten()` first if a query should see referenced
+#' definitions through the flattened schema.
 #'
 #' @param pattern Pattern passed to `grepl()` for matching schema paths.
 #' @param fixed Whether `pattern` should be matched literally.

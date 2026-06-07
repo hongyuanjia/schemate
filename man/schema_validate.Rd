@@ -7,7 +7,7 @@
 schema_validate(schema, x, mode = "assert", name = NULL, ...)
 }
 \arguments{
-\item{schema}{A \code{SchemaDoc}, \code{SchemaFlat}, or compiled flat schema node.}
+\item{schema}{A \code{SchemaDoc}, \code{SchemaFlat}, or flattened schema node.}
 
 \item{x}{Input object to validate.}
 
@@ -25,9 +25,9 @@ expectation object.
 }
 \description{
 \code{schema_validate()} validates an R object against a \code{SchemaDoc},
-\code{SchemaFlat}, or compiled flat schema node. When validating many inputs
-against the same schema, compile it once with \code{\link[=schema_compile]{schema_compile()}} and reuse
-the compiled schema.
+\code{SchemaFlat}, or flattened schema node. When validating many inputs against
+the same schema, flatten it once with \code{\link[=schema_flatten]{schema_flatten()}} and reuse the
+flattened schema.
 }
 \examples{
 schema <- schema_doc(list(
@@ -39,7 +39,7 @@ schema
 schema_validate(schema, list(id = 1L), mode = "test")
 schema_validate(schema, list(id = 0L), mode = "check", name = "payload")
 
-compiled <- schema_compile(schema)
-schema_validate(compiled, list(id = 2L), mode = "test")
+flat <- schema_flatten(schema)
+schema_validate(flat, list(id = 2L), mode = "test")
 
 }

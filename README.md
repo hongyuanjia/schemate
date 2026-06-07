@@ -135,12 +135,12 @@ schema |>
 
     ## [1] FALSE
 
-When validating many payloads against the same schema, compile once and
-reuse the compiled schema.
+When validating many payloads against the same schema, flatten once and
+reuse the flattened schema.
 
 ``` r
-compiled <- schema_compile(schema)
-schema_validate(compiled, payload, mode = "test")
+flat <- schema_flatten(schema)
+schema_validate(flat, payload, mode = "test")
 ```
 
     ## [1] TRUE

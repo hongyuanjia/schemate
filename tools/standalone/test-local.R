@@ -42,7 +42,7 @@ if (!identical(schema_find(schema, schema_where_check("int")), "$id")) {
 }
 schema <- schema_replace_where(schema, schema_where_path("^\\$id$"), schema_check("int", lower = 1))
 schema_validate(schema, list(id = 2L, name = "bob"))
-schema_validate(schema_compile(schema), list(id = 2L, name = "bob"))
+schema_validate(schema_flatten(schema), list(id = 2L, name = "bob"))
 
 if (requireNamespace("jsonlite", quietly = TRUE)) {
     json_path <- tempfile(fileext = ".json")

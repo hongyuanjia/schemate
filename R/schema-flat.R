@@ -236,17 +236,17 @@ S7::method(as.list, SchemaFlat) <- function(x, ...) {
 }
 # }}}
 
-# schema_compile {{{
-#' Compile a schema for repeated validation
+# schema_flatten {{{
+#' Flatten a schema for repeated validation
 #'
-#' `schema_compile()` compiles a schema document, raw schema DSL list, or flat
-#' runtime schema node into a `SchemaFlat`. Reuse the compiled schema when
+#' `schema_flatten()` converts a schema document, raw schema DSL list, or flat
+#' runtime schema node into a `SchemaFlat`. Reuse the flattened schema when
 #' validating many inputs against the same schema.
 #'
-#' @param x A schema document, raw schema DSL list, `SchemaFlat`, or compiled
+#' @param x A schema document, raw schema DSL list, `SchemaFlat`, or flattened
 #'   flat schema node.
 #'
-#' @return A compiled `SchemaFlat`.
+#' @return A flattened `SchemaFlat`.
 #'
 #' @examples
 #' schema <- schema_doc(list(
@@ -254,11 +254,11 @@ S7::method(as.list, SchemaFlat) <- function(x, ...) {
 #'     fields = list(id = list(check = list(kind = "int", lower = 1)))
 #' ))
 #'
-#' compiled <- schema_compile(schema)
-#' schema_validate(compiled, list(id = 1L), mode = "test")
+#' flat <- schema_flatten(schema)
+#' schema_validate(flat, list(id = 1L), mode = "test")
 #'
 #' @export
-schema_compile <- function(x) {
+schema_flatten <- function(x) {
     if (
         S7::S7_inherits(x, SchemaDoc) ||
             S7::S7_inherits(x, SchemaFlat) ||
@@ -366,12 +366,12 @@ S7::method(schema_flat__overlay_desc, SchemaNode) <- function(x, desc) {
         return(x)
     }
 
-    stop("unsupported compiled schema node.", call. = FALSE)
+    stop("unsupported flattened schema node.", call. = FALSE)
 }
 
 schema_flat__def <- function(name, ctx) {
     if (is.null(ctx$defs[[name]])) {
-        stop(sprintf("`$ref` target `#/$defs/%s` is not available during compilation.", name), call. = FALSE)
+        stop(sprintf("`$ref` target `#/$defs/%s` is not available during flattening.", name), call. = FALSE)
     }
 
     if (name %in% ctx$stack) {
@@ -567,7 +567,7 @@ S7::method(schema_flat__compile, SchemaDoc) <- function(x) {
 S7::method(schema_flat__compile, S7::class_any) <- function(x) {
     stop(
         paste(
-            "`schema_flat__compile()` only accepts `SchemaDoc`, flat runtime `SchemaNode`, or `SchemaFlat`.",
+            "`schema_flatten()` only accepts a schema document, raw schema DSL list, `SchemaFlat`, or flat runtime `SchemaNode`.",
             "Use `schema_flat__node()` internally for authoring `SchemaNode` values."
         ),
         call. = FALSE

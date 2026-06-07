@@ -2,11 +2,11 @@
 #' Validate input against a schema
 #'
 #' `schema_validate()` validates an R object against a `SchemaDoc`,
-#' `SchemaFlat`, or compiled flat schema node. When validating many inputs
-#' against the same schema, compile it once with [schema_compile()] and reuse
-#' the compiled schema.
+#' `SchemaFlat`, or flattened schema node. When validating many inputs against
+#' the same schema, flatten it once with [schema_flatten()] and reuse the
+#' flattened schema.
 #'
-#' @param schema A `SchemaDoc`, `SchemaFlat`, or compiled flat schema node.
+#' @param schema A `SchemaDoc`, `SchemaFlat`, or flattened schema node.
 #' @param x Input object to validate.
 #' @param mode One of `"assert"`, `"check"`, `"test"`, or `"expect"`.
 #' @param name Optional display name used in validation messages.
@@ -27,8 +27,8 @@
 #' schema_validate(schema, list(id = 1L), mode = "test")
 #' schema_validate(schema, list(id = 0L), mode = "check", name = "payload")
 #'
-#' compiled <- schema_compile(schema)
-#' schema_validate(compiled, list(id = 2L), mode = "test")
+#' flat <- schema_flatten(schema)
+#' schema_validate(flat, list(id = 2L), mode = "test")
 #'
 #' @export
 schema_validate <- S7::new_generic(
@@ -299,11 +299,11 @@ S7::method(schema_validate__impl, SchemaNodeNotFlat) <- function(schema, x, path
 }
 
 S7::method(schema_validate__impl, SchemaNode) <- function(schema, x, path) {
-    stop("unsupported compiled schema node.", call. = FALSE)
+    stop("unsupported flattened schema node.", call. = FALSE)
 }
 
 S7::method(schema_validate__impl, S7::class_any) <- function(schema, x, path) {
-    stop("unsupported compiled schema node.", call. = FALSE)
+    stop("unsupported flattened schema node.", call. = FALSE)
 }
 
 schema_validate__dispatch <- function(result, x, mode) {
