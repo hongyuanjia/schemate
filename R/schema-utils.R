@@ -104,15 +104,52 @@ schema_utils__checkmate_any <- function(...) {
     )
 }
 
+schema_utils__base_type <- function(value) {
+    switch(
+        typeof(value),
+        closure = ,
+        builtin = ,
+        special = "function",
+        language = "call",
+        symbol = "name",
+        typeof(value)
+    )
+}
+
+schema_utils__match_class <- function(value, class) {
+    if (is.null(class)) {
+        return(is.null(value))
+    }
+    if (inherits(class, "S7_any")) {
+        return(TRUE)
+    }
+    if (inherits(class, "S7_missing")) {
+        return(missing(value))
+    }
+    if (inherits(class, "S7_base_class")) {
+        return(identical(schema_utils__base_type(value), class$class))
+    }
+    if (inherits(class, "S7_union")) {
+        return(any(vapply(class$classes, schema_utils__match_class, logical(1L), value = value)))
+    }
+    if (inherits(class, "S7_S3_class")) {
+        return(!isS4(value) && all(class$class %in% class(value)))
+    }
+    if (inherits(class, "S7_class")) {
+        return(S7::S7_inherits(value, class))
+    }
+    if (isS4(class)) {
+        return(isS4(value) && inherits(value, class@className))
+    }
+
+    inherits(value, class)
+}
+
 schema_utils__checkmate_match_rule <- function(value, rules) {
     for (i in seq_along(rules)) {
         rule_class <- rules[[i]]$class
 
-        if (is.null(rule_class)) {
-            if (is.null(value)) {
-                return(i)
-            }
-        } else if (inherits(value, rule_class)) {
+        if (schema_utils__match_class(value, rule_class)) {
             return(i)
         }
     }
@@ -157,7 +194,10 @@ schema_utils__checkmate_property <- function(
             )
         }
         if (!is.null(label)) {
-            stop("When `class` is a `CheckmateSpec`, `label` must be supplied in `schema_utils__checkmate_rule()`.", call. = FALSE)
+            stop(
+                "When `class` is a `CheckmateSpec`, `label` must be supplied in `schema_utils__checkmate_rule()`.",
+                call. = FALSE
+            )
         }
 
         return(S7::new_property(
@@ -366,7 +406,15 @@ schema_utils__json_convert_list <- function(x, depth, pretty, auto_unbox) {
             return(paste0("[", paste(values, collapse = ","), "]"))
         }
 
-        return(paste0("[", newline, child_indent, paste(values, collapse = paste0(",", newline, child_indent)), newline, indent, "]"))
+        return(paste0(
+            "[",
+            newline,
+            child_indent,
+            paste(values, collapse = paste0(",", newline, child_indent)),
+            newline,
+            indent,
+            "]"
+        ))
     }
 
     keys <- schema_utils__json_quote(nms)
@@ -375,7 +423,15 @@ schema_utils__json_convert_list <- function(x, depth, pretty, auto_unbox) {
         return(paste0("{", paste(entries, collapse = ","), "}"))
     }
 
-    paste0("{", newline, child_indent, paste(entries, collapse = paste0(",", newline, child_indent)), newline, indent, "}")
+    paste0(
+        "{",
+        newline,
+        child_indent,
+        paste(entries, collapse = paste0(",", newline, child_indent)),
+        newline,
+        indent,
+        "}"
+    )
 }
 
 schema_utils__json_convert_atom <- function(x, depth, pretty, auto_unbox) {
@@ -411,7 +467,15 @@ schema_utils__json_convert_atom <- function(x, depth, pretty, auto_unbox) {
         return(paste0("[", paste(values, collapse = ","), "]"))
     }
 
-    paste0("[", newline, child_indent, paste(values, collapse = paste0(",", newline, child_indent)), newline, indent, "]")
+    paste0(
+        "[",
+        newline,
+        child_indent,
+        paste(values, collapse = paste0(",", newline, child_indent)),
+        newline,
+        indent,
+        "]"
+    )
 }
 
 schema_utils__to_json_fallback <- function(x, pretty = TRUE, auto_unbox = TRUE) {

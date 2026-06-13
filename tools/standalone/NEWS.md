@@ -1,5 +1,8 @@
 # Standalone Changelog
 
+## 2026-06-13
+- Match S7 base classes in checkmate rules.
+
 ## 2026-06-06
 - Rename missing-target controls from `error_if_missing` to
   `missing = "error"` / `missing = "ignore"` across schema deletion and

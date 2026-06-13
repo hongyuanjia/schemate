@@ -1,3 +1,9 @@
+# schemate (development version)
+
+## Improvements
+
+- Match S7 base classes in checkmate rules.
+
 # schemate 0.1.1
 
 ## Improvements
