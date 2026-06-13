@@ -3,6 +3,8 @@ name: pkgdown
 on:
   push:
     branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -39,3 +41,4 @@ jobs:
         with:
           branch: gh-pages
           folder: docs
+          clean: false
