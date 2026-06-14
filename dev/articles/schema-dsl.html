@@ -146,30 +146,83 @@ positions</td>
 inference cannot know.</p>
 </div>
 <div class="section level3">
+<h3 id="validation-examples">Validation examples<a class="anchor" aria-label="anchor" href="#validation-examples"></a>
+</h3>
+<p>Most examples below show the JSON DSL shape first, then read the same
+JSON text as a schema:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{ ... }'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span></code></pre></div>
+<p>The <code>test</code> call shows a valid input as a boolean result.
+The <code>check</code> call shows the diagnostic string for an invalid
+input without interrupting the vignette.</p>
+</div>
+<div class="section level3">
 <h3 id="common-schema-shapes">Common schema shapes<a class="anchor" aria-label="anchor" href="#common-schema-shapes"></a>
 </h3>
 <p>A scalar schema is just a <code>check</code> node:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"min.chars"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"min.chars"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "string", "min.chars": 1 }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="st">"run-001"</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="st">""</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload: All elements must have at least 1 characters, but element 1 has 0 characters"</span></span></code></pre></div>
 <p>A named container uses <code>fields</code> for exact child names and
 can use <code>rest</code> for the remaining fields:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"named"</span> <span class="fu">},</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    <span class="dt">"id"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"named"</span> <span class="fu">},</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    <span class="dt">"id"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "keys": { "type": "named" },</span></span>
+<span><span class="st">  "fields": {</span></span>
+<span><span class="st">    "id": { "check": { "kind": "int", "lower": 1 } }</span></span>
+<span><span class="st">  },</span></span>
+<span><span class="st">  "rest": { "check": { "kind": "string" } }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1L</span>, label <span class="op">=</span> <span class="st">"alpha"</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1L</span>, label <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload$label: Must be of type 'string', not 'integer'"</span></span></code></pre></div>
 <p>An unnamed JSON-like array uses <code>keys.type = "unnamed"</code>.
 Use <code>rest</code> for a homogeneous array and <code>positions</code>
 when the first positions have tuple-like meaning:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "keys": { "type": "unnamed" },</span></span>
+<span><span class="st">  "rest": { "check": { "kind": "string" } }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"alpha"</span>, <span class="st">"beta"</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"alpha"</span>, <span class="fl">2L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload[[2]]: Must be of type 'string', not 'integer'"</span></span></code></pre></div>
 <p>The rest of this article is a reference for the same building blocks.
 The container-child sections explain <code>fields</code>,
 <code>groups</code>, <code>patterns</code>, <code>positions</code>, and
@@ -342,14 +395,14 @@ inside:</p>
 <li>exactly one root schema node</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"1.0.0"</span><span class="fu">,</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="dt">"text"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"root alias"</span><span class="fu">,</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"1.0.0"</span><span class="fu">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="dt">"text"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"root alias"</span><span class="fu">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p><code>version</code> is document metadata only. It describes the
 schema document version and does not alter node parsing or validation
 semantics.</p>
@@ -378,6 +431,9 @@ container checks:</p>
 <li><code>keys</code></li>
 <li><code>fields</code></li>
 <li><code>groups</code></li>
+<li><code>patterns</code></li>
+<li><code>positions</code></li>
+<li><code>rest</code></li>
 </ul>
 <p>All non-container <code>check.kind</code> values must reject these
 keys.</p>
@@ -389,13 +445,28 @@ keys.</p>
 <h4 id="check-node">Check node<a class="anchor" aria-label="anchor" href="#check-node"></a>
 </h4>
 <p>A check node has the form:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span><span class="fu">,</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>    <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": {</span></span>
+<span><span class="st">    "kind": "string",</span></span>
+<span><span class="st">    "pattern": "^[0-9]+$",</span></span>
+<span><span class="st">    "null.ok": true</span></span>
+<span><span class="st">  }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="st">"123"</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="st">"abc"</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload: Must comply to pattern '^[0-9]+$'"</span></span></code></pre></div>
 <p>Rules:</p>
 <ul>
 <li>
@@ -444,12 +515,26 @@ parsing.</p>
 <p>The node is valid only if <strong>all</strong> child schemas validate
 successfully.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="dt">"all"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span> <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"a"</span><span class="ot">,</span> <span class="st">"b"</span><span class="ot">,</span> <span class="st">"c"</span><span class="ot">]</span> <span class="fu">}</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="dt">"all"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span> <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"a"</span><span class="ot">,</span> <span class="st">"b"</span><span class="ot">,</span> <span class="st">"c"</span><span class="ot">]</span> <span class="fu">}</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "all": [</span></span>
+<span><span class="st">    { "kind": "string" },</span></span>
+<span><span class="st">    { "kind": "choice", "choices": ["a", "b", "c"] }</span></span>
+<span><span class="st">  ]</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="st">"a"</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="st">"z"</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload: Must be element of set {'a','b','c'}, but is 'z'"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="any">
@@ -459,12 +544,26 @@ successfully.</p>
 <p>The node is valid if <strong>at least one</strong> child schema
 validates successfully.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "any": [</span></span>
+<span><span class="st">    { "kind": "int", "lower": 0 },</span></span>
+<span><span class="st">    { "kind": "string", "pattern": "^[0-9]+$" }</span></span>
+<span><span class="st">  ]</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="st">"123"</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload failed all branches of `any`: [1] payload: Must be of type 'single integerish value', not 'logical' | [2] payload: Must be of type 'string', not 'logical'"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="one">
@@ -474,12 +573,30 @@ validates successfully.</p>
 <p>The node is valid if <strong>exactly one</strong> child schema
 validates successfully.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="dt">"one"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"flag"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span> <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"true"</span><span class="ot">,</span> <span class="st">"false"</span><span class="ot">]</span> <span class="fu">}</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="dt">"one"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "one": [</span></span>
+<span><span class="st">    { "kind": "string" },</span></span>
+<span><span class="st">    { "kind": "string", "pattern": "^[0-9]+$" }</span></span>
+<span><span class="st">  ]</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="st">"abc"</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload matched no branches of `one`: [1] payload: Must be of type 'string', not 'logical' | [2] payload: Must be of type 'string', not 'logical'"</span></span>
+<span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="st">"123"</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload matched multiple branches of `one` (2)."</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="not">
@@ -489,9 +606,20 @@ validates successfully.</p>
 <p>The node is valid only if the child schema does <strong>not</strong>
 validate successfully.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="dt">"not"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"null"</span> <span class="fu">}</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  <span class="dt">"not"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"null"</span> <span class="fu">}</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "not": { "kind": "null" }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="st">"x"</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload: `not` branch matched."</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="ref">
@@ -509,11 +637,11 @@ supported.</li>
 <li>Other node-level schema keys must not appear alongside
 <code>$ref</code>.</li>
 </ul>
-<p>Example:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span><span class="fu">,</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"user-facing label"</span></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>A <code>$ref</code> node looks like:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span><span class="fu">,</span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"user-facing label"</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -527,14 +655,14 @@ supported.</li>
 <li><code>not</code></li>
 </ul>
 <p>the DSL allows a shorthand form for a <code>check</code> node:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span></code></pre></div>
 <p>This is equivalent to:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Rules for shorthand check objects:</p>
 <ul>
 <li>They must contain <code>kind</code>.</li>
@@ -565,26 +693,45 @@ container kinds such as <code>list</code>, <code>data_frame</code>,
 <p>If a combinator branch needs node-level metadata or adjunct schema
 features, write it as a full node instead of shorthand.</p>
 <p>Allowed examples:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"data_frame"</span><span class="fu">,</span> <span class="dt">"min.rows"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"data_frame"</span><span class="fu">,</span> <span class="dt">"min.rows"</span><span class="fu">:</span> <span class="dv">1</span> <span class="fu">}</span></span></code></pre></div>
 <p>Disallowed examples:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"metadata is not allowed in shorthand"</span> <span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"metadata is not allowed in shorthand"</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span> <span class="fu">}</span></span></code></pre></div>
 <p>Example:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>    <span class="fu">{</span></span>
-<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>      <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a>        <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a>      <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>        <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "any": [</span></span>
+<span><span class="st">    { "kind": "string" },</span></span>
+<span><span class="st">    {</span></span>
+<span><span class="st">      "check": { "kind": "list" },</span></span>
+<span><span class="st">      "fields": {</span></span>
+<span><span class="st">        "value": { "check": { "kind": "string" } }</span></span>
+<span><span class="st">      }</span></span>
+<span><span class="st">    }</span></span>
+<span><span class="st">  ]</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>value <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>value <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload failed all branches of `any`: [1] payload: Must be of type 'string', not 'list' | [2] payload$value: Must be of type 'string', not 'integer'"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="defs-and-ref">
@@ -607,18 +754,38 @@ schema nodes.</li>
 directly; they are only targets for <code>$ref</code>.</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>    <span class="dt">"scalar_text"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span></span>
-<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a>    <span class="dt">"name"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span> <span class="fu">}</span></span>
-<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span> <span class="fu">}</span></span>
-<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>    <span class="dt">"scalar_text"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span></span>
+<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb31-7"><a href="#cb31-7" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb31-8"><a href="#cb31-8" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb31-9"><a href="#cb31-9" tabindex="-1"></a>    <span class="dt">"name"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span> <span class="fu">}</span></span>
+<span id="cb31-10"><a href="#cb31-10" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb31-11"><a href="#cb31-11" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/scalar_text"</span> <span class="fu">}</span></span>
+<span id="cb31-12"><a href="#cb31-12" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "$defs": {</span></span>
+<span><span class="st">    "scalar_text": {</span></span>
+<span><span class="st">      "check": { "kind": "string" }</span></span>
+<span><span class="st">    }</span></span>
+<span><span class="st">  },</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "fields": {</span></span>
+<span><span class="st">    "name": { "$ref": "#/$defs/scalar_text" }</span></span>
+<span><span class="st">  },</span></span>
+<span><span class="st">  "rest": { "$ref": "#/$defs/scalar_text" }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"alice"</span>, label <span class="op">=</span> <span class="st">"admin"</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"alice"</span>, label <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload$label: Must be of type 'string', not 'integer'"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="ref-1">
@@ -649,13 +816,31 @@ schema nodes. The field name <code>"*"</code> has no special meaning; it
 is treated like any other literal field name. Use <code>rest</code> for
 otherwise unspecified fields.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>    <span class="dt">"field1"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
-<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>    <span class="dt">"field2"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb33-2"><a href="#cb33-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb33-3"><a href="#cb33-3" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb33-4"><a href="#cb33-4" tabindex="-1"></a>    <span class="dt">"field1"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
+<span id="cb33-5"><a href="#cb33-5" tabindex="-1"></a>    <span class="dt">"field2"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb33-6"><a href="#cb33-6" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb33-7"><a href="#cb33-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "fields": {</span></span>
+<span><span class="st">    "field1": { "check": { "kind": "string" } },</span></span>
+<span><span class="st">    "field2": { "check": { "kind": "int" } }</span></span>
+<span><span class="st">  }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>field1 <span class="op">=</span> <span class="st">"x"</span>, field2 <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>field1 <span class="op">=</span> <span class="st">"x"</span>, field2 <span class="op">=</span> <span class="st">"1"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload$field2: Must be of type 'single integerish value', not 'character'"</span></span></code></pre></div>
+<p><code>fields</code> does not make fields required. A missing field is
+simply not validated; use <code>keys.must.include</code> when a field
+must be present.</p>
 <div class="section level4">
 <h4 id="pattern-fields">Pattern fields<a class="anchor" aria-label="anchor" href="#pattern-fields"></a>
 </h4>
@@ -663,13 +848,28 @@ otherwise unspecified fields.</p>
 Patterns are applied only to fields that are not already covered by
 <code>fields</code> or <code>groups</code>.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>  <span class="dt">"patterns"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a>    <span class="dt">"^meta_"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
-<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a>    <span class="dt">"_count$"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a>  <span class="dt">"patterns"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb35-4"><a href="#cb35-4" tabindex="-1"></a>    <span class="dt">"^meta_"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
+<span id="cb35-5"><a href="#cb35-5" tabindex="-1"></a>    <span class="dt">"_count$"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb35-6"><a href="#cb35-6" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb35-7"><a href="#cb35-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "patterns": {</span></span>
+<span><span class="st">    "^meta_": { "check": { "kind": "string" } },</span></span>
+<span><span class="st">    "_count$": { "check": { "kind": "int" } }</span></span>
+<span><span class="st">  }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>meta_title <span class="op">=</span> <span class="st">"report"</span>, row_count <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>meta_title <span class="op">=</span> <span class="fl">1L</span>, row_count <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload$meta_title: Must be of type 'string', not 'integer'"</span></span></code></pre></div>
 <p>If a field matches multiple patterns, it must satisfy every matching
 schema.</p>
 </div>
@@ -679,21 +879,65 @@ schema.</p>
 <p><code>rest</code> is the child schema for otherwise unspecified
 fields.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "rest": { "check": { "kind": "string" } }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>a <span class="op">=</span> <span class="st">"x"</span>, b <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>a <span class="op">=</span> <span class="st">"x"</span>, b <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload$b: Must be of type 'string', not 'integer'"</span></span></code></pre></div>
 <p>This means that any field not covered by <code>fields</code>,
 <code>groups</code>, or <code>patterns</code> must satisfy the
 <code>rest</code> schema.</p>
 </div>
 <div class="section level4">
-<h4 id="closed-schema-rule">Closed schema rule<a class="anchor" aria-label="anchor" href="#closed-schema-rule"></a>
+<h4 id="closed-field-sets-with-keys">Closed field sets with <code>keys</code><a class="anchor" aria-label="anchor" href="#closed-field-sets-with-keys"></a>
 </h4>
-<p>If a container-check node has <code>fields</code>,
-<code>groups</code>, or <code>patterns</code> but no <code>rest</code>,
-then the node is treated as a closed schema: unspecified fields are not
-allowed.</p>
+<p><code>fields</code>, <code>groups</code>, and <code>patterns</code>
+validate matching fields, but they do not close the set of allowed names
+by themselves. Use <code>keys.subset.of</code> to reject unknown names,
+and <code>keys.must.include</code> when fields are required.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb39-3"><a href="#cb39-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb39-4"><a href="#cb39-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
+<span id="cb39-5"><a href="#cb39-5" tabindex="-1"></a>    <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"field1"</span><span class="ot">,</span> <span class="st">"field2"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb39-6"><a href="#cb39-6" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"field1"</span><span class="ot">,</span> <span class="st">"field2"</span><span class="ot">]</span></span>
+<span id="cb39-7"><a href="#cb39-7" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb39-8"><a href="#cb39-8" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb39-9"><a href="#cb39-9" tabindex="-1"></a>    <span class="dt">"field1"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
+<span id="cb39-10"><a href="#cb39-10" tabindex="-1"></a>    <span class="dt">"field2"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb39-11"><a href="#cb39-11" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb39-12"><a href="#cb39-12" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "keys": {</span></span>
+<span><span class="st">    "type": "unique",</span></span>
+<span><span class="st">    "must.include": ["field1", "field2"],</span></span>
+<span><span class="st">    "subset.of": ["field1", "field2"]</span></span>
+<span><span class="st">  },</span></span>
+<span><span class="st">  "fields": {</span></span>
+<span><span class="st">    "field1": { "check": { "kind": "string" } },</span></span>
+<span><span class="st">    "field2": { "check": { "kind": "int" } }</span></span>
+<span><span class="st">  }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>field1 <span class="op">=</span> <span class="st">"x"</span>, field2 <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>field1 <span class="op">=</span> <span class="st">"x"</span>, field2 <span class="op">=</span> <span class="fl">1L</span>, extra <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload: Names must be a subset of {'field1','field2'}, but has additional elements {'extra'}"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="precedence-rule">Precedence rule<a class="anchor" aria-label="anchor" href="#precedence-rule"></a>
@@ -731,27 +975,61 @@ Missing positions do not fail by themselves; use <code>len</code>,
 <code>min.len</code>, or <code>max.len</code> inside the
 <code>check</code> rule when length matters.</p>
 <p>Example, similar to a CrossRef <code>date-parts</code> item:</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"min.len"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"max.len"</span><span class="fu">:</span> <span class="dv">3</span> <span class="fu">},</span></span>
-<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>  <span class="dt">"positions"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"upper"</span><span class="fu">:</span> <span class="dv">12</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"upper"</span><span class="fu">:</span> <span class="dv">31</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb25-9"><a href="#cb25-9" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span><span class="fu">,</span> <span class="dt">"min.len"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"max.len"</span><span class="fu">:</span> <span class="dv">3</span> <span class="fu">},</span></span>
+<span id="cb41-3"><a href="#cb41-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb41-4"><a href="#cb41-4" tabindex="-1"></a>  <span class="dt">"positions"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb41-5"><a href="#cb41-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb41-6"><a href="#cb41-6" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"upper"</span><span class="fu">:</span> <span class="dv">12</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb41-7"><a href="#cb41-7" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span> <span class="dt">"upper"</span><span class="fu">:</span> <span class="dv">31</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb41-8"><a href="#cb41-8" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb41-9"><a href="#cb41-9" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list", "min.len": 1, "max.len": 3 },</span></span>
+<span><span class="st">  "keys": { "type": "unnamed" },</span></span>
+<span><span class="st">  "positions": [</span></span>
+<span><span class="st">    { "check": { "kind": "int", "lower": 0 } },</span></span>
+<span><span class="st">    { "check": { "kind": "int", "lower": 1, "upper": 12 } },</span></span>
+<span><span class="st">    { "check": { "kind": "int", "lower": 1, "upper": 31 } }</span></span>
+<span><span class="st">  ]</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">2024L</span>, <span class="fl">6L</span>, <span class="fl">14L</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">2024L</span>, <span class="fl">13L</span>, <span class="fl">14L</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload[[2]]: Element 1 is not &lt;= 12"</span></span></code></pre></div>
 <p>When <code>positions</code> is combined with <code>rest</code>,
 declared positions are validated first and all remaining positions are
 validated with <code>rest</code>:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>  <span class="dt">"positions"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"number"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb43-3"><a href="#cb43-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb43-4"><a href="#cb43-4" tabindex="-1"></a>  <span class="dt">"positions"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb43-5"><a href="#cb43-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb43-6"><a href="#cb43-6" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb43-7"><a href="#cb43-7" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb43-8"><a href="#cb43-8" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"number"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb43-9"><a href="#cb43-9" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "keys": { "type": "unnamed" },</span></span>
+<span><span class="st">  "positions": [</span></span>
+<span><span class="st">    { "check": { "kind": "string" } },</span></span>
+<span><span class="st">    { "check": { "kind": "int" } }</span></span>
+<span><span class="st">  ],</span></span>
+<span><span class="st">  "rest": { "check": { "kind": "number" } }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"run"</span>, <span class="fl">1L</span>, <span class="fl">2.5</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"run"</span>, <span class="fl">1L</span>, <span class="st">"extra"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload[[3]]: Must be of type 'number', not 'character'"</span></span></code></pre></div>
 <p>With <code>keys.type = "unnamed"</code>, <code>positions</code> and
 <code>rest</code> are allowed. <code>fields</code>, <code>groups</code>,
 and <code>patterns</code> are named-object constraints and must not be
@@ -799,37 +1077,37 @@ nested list</li>
 every expanded field in that group and overrides the referenced node’s
 own description.</p>
 <p>Valid examples:</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"name"</span><span class="ot">,</span> <span class="st">"label"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span></span>
-<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb28"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"name"</span><span class="ot">,</span> <span class="st">"label"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>  <span class="dt">"all"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb45-1"><a href="#cb45-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb45-2"><a href="#cb45-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"name"</span><span class="ot">,</span> <span class="st">"label"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb45-3"><a href="#cb45-3" tabindex="-1"></a>  <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span></span>
+<span id="cb45-4"><a href="#cb45-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb46-1"><a href="#cb46-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb46-2"><a href="#cb46-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"name"</span><span class="ot">,</span> <span class="st">"label"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb46-3"><a href="#cb46-3" tabindex="-1"></a>  <span class="dt">"all"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb46-4"><a href="#cb46-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/text"</span> <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb46-5"><a href="#cb46-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb46-6"><a href="#cb46-6" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb46-7"><a href="#cb46-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Groups can also share a container schema. This is useful after
 compacting API payload schemas where several fields have the same nested
 structure:</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"issued"</span><span class="ot">,</span> <span class="st">"created"</span><span class="ot">,</span> <span class="st">"published-print"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a>    <span class="dt">"date-parts"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>      <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>      <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a>        <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
-<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a>        <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a>  <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"issued"</span><span class="ot">,</span> <span class="st">"created"</span><span class="ot">,</span> <span class="st">"published-print"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb47-3"><a href="#cb47-3" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb47-4"><a href="#cb47-4" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb47-5"><a href="#cb47-5" tabindex="-1"></a>    <span class="dt">"date-parts"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb47-6"><a href="#cb47-6" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb47-7"><a href="#cb47-7" tabindex="-1"></a>      <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb47-8"><a href="#cb47-8" tabindex="-1"></a>      <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb47-9"><a href="#cb47-9" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb47-10"><a href="#cb47-10" tabindex="-1"></a>        <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unnamed"</span> <span class="fu">},</span></span>
+<span id="cb47-11"><a href="#cb47-11" tabindex="-1"></a>        <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb47-12"><a href="#cb47-12" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb47-13"><a href="#cb47-13" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb47-14"><a href="#cb47-14" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb47-15"><a href="#cb47-15" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Invalid example (R-list shape):</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"label"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`$ref` <span class="op">=</span> <span class="st">"#/$defs/text"</span>, check <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"string"</span><span class="op">)</span><span class="op">)</span></span>
@@ -840,22 +1118,46 @@ structure:</p>
 <li>the inner object contains more than one primary operator</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>    <span class="dt">"flag_param"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span>
-<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb31-7"><a href="#cb31-7" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb31-8"><a href="#cb31-8" tabindex="-1"></a>  <span class="dt">"groups"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb31-9"><a href="#cb31-9" tabindex="-1"></a>    <span class="fu">{</span></span>
-<span id="cb31-10"><a href="#cb31-10" tabindex="-1"></a>      <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"latest"</span><span class="ot">,</span> <span class="st">"distrib"</span><span class="ot">,</span> <span class="st">"replica"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb31-11"><a href="#cb31-11" tabindex="-1"></a>      <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/flag_param"</span><span class="fu">,</span></span>
-<span id="cb31-12"><a href="#cb31-12" tabindex="-1"></a>      <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"boolean control parameters"</span></span>
-<span id="cb31-13"><a href="#cb31-13" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb31-14"><a href="#cb31-14" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb31-15"><a href="#cb31-15" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/flag_param"</span> <span class="fu">}</span></span>
-<span id="cb31-16"><a href="#cb31-16" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb49-2"><a href="#cb49-2" tabindex="-1"></a>  <span class="dt">"$defs"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb49-3"><a href="#cb49-3" tabindex="-1"></a>    <span class="dt">"flag_param"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb49-4"><a href="#cb49-4" tabindex="-1"></a>      <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"flag"</span><span class="fu">,</span> <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span> <span class="fu">}</span></span>
+<span id="cb49-5"><a href="#cb49-5" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb49-6"><a href="#cb49-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb49-7"><a href="#cb49-7" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb49-8"><a href="#cb49-8" tabindex="-1"></a>  <span class="dt">"groups"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb49-9"><a href="#cb49-9" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb49-10"><a href="#cb49-10" tabindex="-1"></a>      <span class="dt">"names"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"latest"</span><span class="ot">,</span> <span class="st">"distrib"</span><span class="ot">,</span> <span class="st">"replica"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb49-11"><a href="#cb49-11" tabindex="-1"></a>      <span class="dt">"$ref"</span><span class="fu">:</span> <span class="st">"#/$defs/flag_param"</span><span class="fu">,</span></span>
+<span id="cb49-12"><a href="#cb49-12" tabindex="-1"></a>      <span class="dt">"description"</span><span class="fu">:</span> <span class="st">"boolean control parameters"</span></span>
+<span id="cb49-13"><a href="#cb49-13" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb49-14"><a href="#cb49-14" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb49-15"><a href="#cb49-15" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
+<span id="cb49-16"><a href="#cb49-16" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "$defs": {</span></span>
+<span><span class="st">    "flag_param": {</span></span>
+<span><span class="st">      "check": { "kind": "flag", "null.ok": true }</span></span>
+<span><span class="st">    }</span></span>
+<span><span class="st">  },</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "groups": [</span></span>
+<span><span class="st">    {</span></span>
+<span><span class="st">      "names": ["latest", "distrib", "replica"],</span></span>
+<span><span class="st">      "$ref": "#/$defs/flag_param",</span></span>
+<span><span class="st">      "description": "boolean control parameters"</span></span>
+<span><span class="st">    }</span></span>
+<span><span class="st">  ],</span></span>
+<span><span class="st">  "rest": { "check": { "kind": "string" } }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>latest <span class="op">=</span> <span class="cn">TRUE</span>, distrib <span class="op">=</span> <span class="cn">FALSE</span>, replica <span class="op">=</span> <span class="cn">NULL</span>, project <span class="op">=</span> <span class="st">"CMIP6"</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>latest <span class="op">=</span> <span class="st">"yes"</span>, distrib <span class="op">=</span> <span class="cn">FALSE</span>, replica <span class="op">=</span> <span class="cn">NULL</span>, project <span class="op">=</span> <span class="st">"CMIP6"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload$latest: Must be of type 'logical flag' (or 'NULL'), not 'character'"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="keys">
@@ -864,20 +1166,33 @@ structure:</p>
 <p><code>keys</code> is only valid on container <code>check</code>
 nodes.</p>
 <p><code>keys</code> encodes arguments for:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">checkmate</span><span class="fu">::</span><span class="fu"><a href="https://mllg.github.io/checkmate/reference/checkNames.html" class="external-link">check_names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
 <div class="section level4">
-<h4 id="scalar-form">Scalar form<a class="anchor" aria-label="anchor" href="#scalar-form"></a>
+<h4 id="minimal-object-form">Minimal object form<a class="anchor" aria-label="anchor" href="#minimal-object-form"></a>
 </h4>
-<p>If <code>keys</code> is a scalar value, it is shorthand for:</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"..."</span> <span class="fu">}</span></span></code></pre></div>
-<p>That scalar value is therefore interpreted as the <code>type</code>
-argument of <code><a href="https://mllg.github.io/checkmate/reference/checkNames.html" class="external-link">checkmate::check_names()</a></code>.</p>
+<p>Even when only the name-check type is needed, <code>keys</code> is
+written as an object:</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb52-1"><a href="#cb52-1" tabindex="-1"></a><span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"..."</span> <span class="fu">}</span></span></code></pre></div>
+<p>The <code>type</code> value is passed to the <code>type</code>
+argument of <code>checkmate::check_names(names(x), ...)</code>.</p>
 <p>Example:</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="st">"unique"</span></span>
-<span id="cb34-4"><a href="#cb34-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb53-1"><a href="#cb53-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb53-2"><a href="#cb53-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb53-3"><a href="#cb53-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span> <span class="fu">}</span></span>
+<span id="cb53-4"><a href="#cb53-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "keys": { "type": "unique" }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span>, b <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span>, a <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload: Must have unique names, but element 2 is duplicated"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="object-form">Object form<a class="anchor" aria-label="anchor" href="#object-form"></a>
@@ -892,22 +1207,38 @@ argument of <code><a href="https://mllg.github.io/checkmate/reference/checkNames
 type</li>
 </ul>
 <p>Example:</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb35-4"><a href="#cb35-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
-<span id="cb35-5"><a href="#cb35-5" tabindex="-1"></a>    <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb35-6"><a href="#cb35-6" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">,</span> <span class="st">"negate"</span><span class="ot">]</span></span>
-<span id="cb35-7"><a href="#cb35-7" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb35-8"><a href="#cb35-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb55-1"><a href="#cb55-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb55-2"><a href="#cb55-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb55-3"><a href="#cb55-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb55-4"><a href="#cb55-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
+<span id="cb55-5"><a href="#cb55-5" tabindex="-1"></a>    <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb55-6"><a href="#cb55-6" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">,</span> <span class="st">"negate"</span><span class="ot">]</span></span>
+<span id="cb55-7"><a href="#cb55-7" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb55-8"><a href="#cb55-8" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>This represents:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">checkmate</span><span class="fu">::</span><span class="fu"><a href="https://mllg.github.io/checkmate/reference/checkNames.html" class="external-link">check_names</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"unique"</span>,</span>
 <span>  must.include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kind"</span>, <span class="st">"value"</span><span class="op">)</span>,</span>
 <span>  subset.of <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kind"</span>, <span class="st">"value"</span>, <span class="st">"negate"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "keys": {</span></span>
+<span><span class="st">    "type": "unique",</span></span>
+<span><span class="st">    "must.include": ["kind", "value"],</span></span>
+<span><span class="st">    "subset.of": ["kind", "value", "negate"]</span></span>
+<span><span class="st">  }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"facet"</span>, value <span class="op">=</span> <span class="st">"tas"</span>, negate <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"facet"</span>, value <span class="op">=</span> <span class="st">"tas"</span>, extra <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload: Names must be a subset of {'kind','value','negate'}, but has additional elements {'extra'}"</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -1056,9 +1387,9 @@ kind.</li>
 <code>keys</code> is only allowed on container <code>check</code>
 nodes.</li>
 <li>
-<code>keys</code> must be either a scalar or an object.</li>
-<li>If <code>keys</code> is an object, all of its arguments are
-forwarded to <code><a href="https://mllg.github.io/checkmate/reference/checkNames.html" class="external-link">checkmate::check_names()</a></code>.</li>
+<code>keys</code> must be an object.</li>
+<li>All <code>keys</code> arguments are forwarded to
+<code><a href="https://mllg.github.io/checkmate/reference/checkNames.html" class="external-link">checkmate::check_names()</a></code>.</li>
 <li>
 <code>keys.check</code> is invalid.</li>
 <li>Each <code>groups[]</code> item must contain <code>names</code> plus
@@ -1094,88 +1425,92 @@ present.</li>
 <h3 id="additional-examples">Additional examples<a class="anchor" aria-label="anchor" href="#additional-examples"></a>
 </h3>
 <div class="section level4">
-<h4 id="simple-scalar-schema">Simple scalar schema<a class="anchor" aria-label="anchor" href="#simple-scalar-schema"></a>
-</h4>
-<div class="sourceCode" id="cb37"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a>    <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span></span>
-<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a>    <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span></span>
-<span id="cb37-5"><a href="#cb37-5" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb37-6"><a href="#cb37-6" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="any-with-shorthand-checks">
-<code>any</code> with shorthand checks<a class="anchor" aria-label="anchor" href="#any-with-shorthand-checks"></a>
-</h4>
-<div class="sourceCode" id="cb38"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a>  <span class="dt">"any"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span><span class="fu">,</span> <span class="dt">"lower"</span><span class="fu">:</span> <span class="dv">0</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb38-4"><a href="#cb38-4" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span><span class="fu">,</span> <span class="dt">"pattern"</span><span class="fu">:</span> <span class="st">"^[0-9]+$"</span> <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb38-5"><a href="#cb38-5" tabindex="-1"></a>    <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">}</span></span>
-<span id="cb38-6"><a href="#cb38-6" tabindex="-1"></a>  <span class="ot">]</span></span>
-<span id="cb38-7"><a href="#cb38-7" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="closed-list-schema">Closed list schema<a class="anchor" aria-label="anchor" href="#closed-list-schema"></a>
-</h4>
-<div class="sourceCode" id="cb39"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb39-3"><a href="#cb39-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb39-4"><a href="#cb39-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
-<span id="cb39-5"><a href="#cb39-5" tabindex="-1"></a>    <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"field1"</span><span class="ot">,</span> <span class="st">"field2"</span><span class="ot">]</span></span>
-<span id="cb39-6"><a href="#cb39-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb39-7"><a href="#cb39-7" tabindex="-1"></a>  <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb39-8"><a href="#cb39-8" tabindex="-1"></a>    <span class="dt">"field1"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">},</span></span>
-<span id="cb39-9"><a href="#cb39-9" tabindex="-1"></a>    <span class="dt">"field2"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"int"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb39-10"><a href="#cb39-10" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb39-11"><a href="#cb39-11" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="rest-list-schema">Rest list schema<a class="anchor" aria-label="anchor" href="#rest-list-schema"></a>
-</h4>
-<div class="sourceCode" id="cb40"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"string"</span> <span class="fu">}</span> <span class="fu">}</span></span>
-<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-</div>
-<div class="section level4">
 <h4 id="parameter-like-schema">Parameter-like schema<a class="anchor" aria-label="anchor" href="#parameter-like-schema"></a>
 </h4>
-<div class="sourceCode" id="cb41"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb41-3"><a href="#cb41-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-4"><a href="#cb41-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
-<span id="cb41-5"><a href="#cb41-5" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"project"</span><span class="ot">,</span> <span class="st">"activity_id"</span><span class="ot">,</span> <span class="st">"experiment_id"</span><span class="ot">]</span></span>
-<span id="cb41-6"><a href="#cb41-6" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb41-7"><a href="#cb41-7" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-8"><a href="#cb41-8" tabindex="-1"></a>    <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
-<span id="cb41-9"><a href="#cb41-9" tabindex="-1"></a>    <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-10"><a href="#cb41-10" tabindex="-1"></a>      <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
-<span id="cb41-11"><a href="#cb41-11" tabindex="-1"></a>      <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb41-12"><a href="#cb41-12" tabindex="-1"></a>      <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">,</span> <span class="st">"negate"</span><span class="ot">]</span></span>
-<span id="cb41-13"><a href="#cb41-13" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb41-14"><a href="#cb41-14" tabindex="-1"></a>    <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-15"><a href="#cb41-15" tabindex="-1"></a>      <span class="dt">"kind"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-16"><a href="#cb41-16" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-17"><a href="#cb41-17" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span></span>
-<span id="cb41-18"><a href="#cb41-18" tabindex="-1"></a>          <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"facet"</span><span class="ot">,</span> <span class="st">"datetime_start"</span><span class="ot">,</span> <span class="st">"datetime_stop"</span><span class="ot">]</span></span>
-<span id="cb41-19"><a href="#cb41-19" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb41-20"><a href="#cb41-20" tabindex="-1"></a>      <span class="fu">},</span></span>
-<span id="cb41-21"><a href="#cb41-21" tabindex="-1"></a>      <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-22"><a href="#cb41-22" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-23"><a href="#cb41-23" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"atomic"</span><span class="fu">,</span></span>
-<span id="cb41-24"><a href="#cb41-24" tabindex="-1"></a>          <span class="dt">"any.missing"</span><span class="fu">:</span> <span class="kw">false</span></span>
-<span id="cb41-25"><a href="#cb41-25" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb41-26"><a href="#cb41-26" tabindex="-1"></a>      <span class="fu">},</span></span>
-<span id="cb41-27"><a href="#cb41-27" tabindex="-1"></a>      <span class="dt">"negate"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-28"><a href="#cb41-28" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb41-29"><a href="#cb41-29" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"flag"</span><span class="fu">,</span></span>
-<span id="cb41-30"><a href="#cb41-30" tabindex="-1"></a>          <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb41-31"><a href="#cb41-31" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb41-32"><a href="#cb41-32" tabindex="-1"></a>      <span class="fu">}</span></span>
-<span id="cb41-33"><a href="#cb41-33" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb41-34"><a href="#cb41-34" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb41-35"><a href="#cb41-35" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb58-1"><a href="#cb58-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb58-2"><a href="#cb58-2" tabindex="-1"></a>  <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb58-3"><a href="#cb58-3" tabindex="-1"></a>  <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-4"><a href="#cb58-4" tabindex="-1"></a>    <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
+<span id="cb58-5"><a href="#cb58-5" tabindex="-1"></a>    <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"project"</span><span class="ot">,</span> <span class="st">"activity_id"</span><span class="ot">,</span> <span class="st">"experiment_id"</span><span class="ot">]</span></span>
+<span id="cb58-6"><a href="#cb58-6" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb58-7"><a href="#cb58-7" tabindex="-1"></a>  <span class="dt">"rest"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-8"><a href="#cb58-8" tabindex="-1"></a>    <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"list"</span> <span class="fu">},</span></span>
+<span id="cb58-9"><a href="#cb58-9" tabindex="-1"></a>    <span class="dt">"keys"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-10"><a href="#cb58-10" tabindex="-1"></a>      <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"unique"</span><span class="fu">,</span></span>
+<span id="cb58-11"><a href="#cb58-11" tabindex="-1"></a>      <span class="dt">"must.include"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb58-12"><a href="#cb58-12" tabindex="-1"></a>      <span class="dt">"subset.of"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"kind"</span><span class="ot">,</span> <span class="st">"value"</span><span class="ot">,</span> <span class="st">"negate"</span><span class="ot">]</span></span>
+<span id="cb58-13"><a href="#cb58-13" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb58-14"><a href="#cb58-14" tabindex="-1"></a>    <span class="dt">"fields"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-15"><a href="#cb58-15" tabindex="-1"></a>      <span class="dt">"kind"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-16"><a href="#cb58-16" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-17"><a href="#cb58-17" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"choice"</span><span class="fu">,</span></span>
+<span id="cb58-18"><a href="#cb58-18" tabindex="-1"></a>          <span class="dt">"choices"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"facet"</span><span class="ot">,</span> <span class="st">"datetime_start"</span><span class="ot">,</span> <span class="st">"datetime_stop"</span><span class="ot">]</span></span>
+<span id="cb58-19"><a href="#cb58-19" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb58-20"><a href="#cb58-20" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb58-21"><a href="#cb58-21" tabindex="-1"></a>      <span class="dt">"value"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-22"><a href="#cb58-22" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-23"><a href="#cb58-23" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"atomic"</span><span class="fu">,</span></span>
+<span id="cb58-24"><a href="#cb58-24" tabindex="-1"></a>          <span class="dt">"any.missing"</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb58-25"><a href="#cb58-25" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb58-26"><a href="#cb58-26" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb58-27"><a href="#cb58-27" tabindex="-1"></a>      <span class="dt">"negate"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-28"><a href="#cb58-28" tabindex="-1"></a>        <span class="dt">"check"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-29"><a href="#cb58-29" tabindex="-1"></a>          <span class="dt">"kind"</span><span class="fu">:</span> <span class="st">"flag"</span><span class="fu">,</span></span>
+<span id="cb58-30"><a href="#cb58-30" tabindex="-1"></a>          <span class="dt">"null.ok"</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb58-31"><a href="#cb58-31" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb58-32"><a href="#cb58-32" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb58-33"><a href="#cb58-33" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb58-34"><a href="#cb58-34" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb58-35"><a href="#cb58-35" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">param_schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/schema-json.html">schema_read</a></span><span class="op">(</span><span class="st">'{</span></span>
+<span><span class="st">  "check": { "kind": "list" },</span></span>
+<span><span class="st">  "keys": {</span></span>
+<span><span class="st">    "type": "unique",</span></span>
+<span><span class="st">    "subset.of": ["project", "activity_id", "experiment_id"]</span></span>
+<span><span class="st">  },</span></span>
+<span><span class="st">  "rest": {</span></span>
+<span><span class="st">    "check": { "kind": "list" },</span></span>
+<span><span class="st">    "keys": {</span></span>
+<span><span class="st">      "type": "unique",</span></span>
+<span><span class="st">      "must.include": ["kind", "value"],</span></span>
+<span><span class="st">      "subset.of": ["kind", "value", "negate"]</span></span>
+<span><span class="st">    },</span></span>
+<span><span class="st">    "fields": {</span></span>
+<span><span class="st">      "kind": {</span></span>
+<span><span class="st">        "check": {</span></span>
+<span><span class="st">          "kind": "choice",</span></span>
+<span><span class="st">          "choices": ["facet", "datetime_start", "datetime_stop"]</span></span>
+<span><span class="st">        }</span></span>
+<span><span class="st">      },</span></span>
+<span><span class="st">      "value": {</span></span>
+<span><span class="st">        "check": {</span></span>
+<span><span class="st">          "kind": "atomic",</span></span>
+<span><span class="st">          "any.missing": false</span></span>
+<span><span class="st">        }</span></span>
+<span><span class="st">      },</span></span>
+<span><span class="st">      "negate": {</span></span>
+<span><span class="st">        "check": {</span></span>
+<span><span class="st">          "kind": "flag",</span></span>
+<span><span class="st">          "null.ok": true</span></span>
+<span><span class="st">        }</span></span>
+<span><span class="st">      }</span></span>
+<span><span class="st">    }</span></span>
+<span><span class="st">  }</span></span>
+<span><span class="st">}'</span><span class="op">)</span></span>
+<span><span class="va">good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    project <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"facet"</span>, value <span class="op">=</span> <span class="st">"CMIP6"</span>, negate <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>    activity_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"facet"</span>, value <span class="op">=</span> <span class="st">"ScenarioMIP"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    project <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"unknown"</span>, value <span class="op">=</span> <span class="st">"CMIP6"</span><span class="op">)</span>,</span>
+<span>    activity_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kind <span class="op">=</span> <span class="st">"facet"</span>, value <span class="op">=</span> <span class="st">"ScenarioMIP"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">param_schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">param_schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "payload$project$kind: Must be element of set {'facet','datetime_start','datetime_stop'}, but is 'unknown'"</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">

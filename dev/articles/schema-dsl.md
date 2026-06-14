@@ -38,6 +38,22 @@ For most workflows, start with
 inspect `as.list(schema)`, then use edit verbs to add the few rules
 inference cannot know.
 
+### Validation examples
+
+Most examples below show the JSON DSL shape first, then read the same
+JSON text as a schema:
+
+``` r
+
+schema <- schema_read('{ ... }')
+schema_validate(schema, good, mode = "test", name = "payload")
+schema_validate(schema, bad, mode = "check", name = "payload")
+```
+
+The `test` call shows a valid input as a boolean result. The `check`
+call shows the diagnostic string for an invalid input without
+interrupting the vignette.
+
 ### Common schema shapes
 
 A scalar schema is just a `check` node:
@@ -46,6 +62,20 @@ A scalar schema is just a `check` node:
 {
   "check": { "kind": "string", "min.chars": 1 }
 }
+```
+
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "string", "min.chars": 1 }
+}')
+good <- "run-001"
+bad <- ""
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload: All elements must have at least 1 characters, but element 1 has 0 characters"
 ```
 
 A named container uses `fields` for exact child names and can use `rest`
@@ -62,6 +92,25 @@ for the remaining fields:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "keys": { "type": "named" },
+  "fields": {
+    "id": { "check": { "kind": "int", "lower": 1 } }
+  },
+  "rest": { "check": { "kind": "string" } }
+}')
+good <- list(id = 1L, label = "alpha")
+bad <- list(id = 1L, label = 2L)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload$label: Must be of type 'string', not 'integer'"
+```
+
 An unnamed JSON-like array uses `keys.type = "unnamed"`. Use `rest` for
 a homogeneous array and `positions` when the first positions have
 tuple-like meaning:
@@ -72,6 +121,22 @@ tuple-like meaning:
   "keys": { "type": "unnamed" },
   "rest": { "check": { "kind": "string" } }
 }
+```
+
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "keys": { "type": "unnamed" },
+  "rest": { "check": { "kind": "string" } }
+}')
+good <- list("alpha", "beta")
+bad <- list("alpha", 2L)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload[[2]]: Must be of type 'string', not 'integer'"
 ```
 
 The rest of this article is a reference for the same building blocks.
@@ -233,6 +298,9 @@ Only these container checks may carry:
 - `keys`
 - `fields`
 - `groups`
+- `patterns`
+- `positions`
+- `rest`
 
 All non-container `check.kind` values must reject these keys.
 
@@ -250,6 +318,24 @@ A check node has the form:
     "null.ok": true
   }
 }
+```
+
+``` r
+
+schema <- schema_read('{
+  "check": {
+    "kind": "string",
+    "pattern": "^[0-9]+$",
+    "null.ok": true
+  }
+}')
+good <- "123"
+bad <- "abc"
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload: Must comply to pattern '^[0-9]+$'"
 ```
 
 Rules:
@@ -288,6 +374,23 @@ Example:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "all": [
+    { "kind": "string" },
+    { "kind": "choice", "choices": ["a", "b", "c"] }
+  ]
+}')
+good <- "a"
+bad <- "z"
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload: Must be element of set {'a','b','c'}, but is 'z'"
+```
+
 #### `any`
 
 `any` is a non-empty array of child schemas.
@@ -306,6 +409,23 @@ Example:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "any": [
+    { "kind": "int", "lower": 0 },
+    { "kind": "string", "pattern": "^[0-9]+$" }
+  ]
+}')
+good <- "123"
+bad <- TRUE
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload failed all branches of `any`: [1] payload: Must be of type 'single integerish value', not 'logical' | [2] payload: Must be of type 'string', not 'logical'"
+```
+
 #### `one`
 
 `one` is a non-empty array of child schemas.
@@ -318,10 +438,31 @@ Example:
 ``` json
 {
   "one": [
-    { "kind": "flag" },
-    { "kind": "choice", "choices": ["true", "false"] }
+    { "kind": "string" },
+    { "kind": "string", "pattern": "^[0-9]+$" }
   ]
 }
+```
+
+``` r
+
+schema <- schema_read('{
+  "one": [
+    { "kind": "string" },
+    { "kind": "string", "pattern": "^[0-9]+$" }
+  ]
+}')
+good <- "abc"
+bad <- TRUE
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload matched no branches of `one`: [1] payload: Must be of type 'string', not 'logical' | [2] payload: Must be of type 'string', not 'logical'"
+
+bad <- "123"
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload matched multiple branches of `one` (2)."
 ```
 
 #### `not`
@@ -339,6 +480,20 @@ Example:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "not": { "kind": "null" }
+}')
+good <- "x"
+bad <- NULL
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload: `not` branch matched."
+```
+
 #### `$ref`
 
 `$ref` is a local definition reference.
@@ -350,7 +505,7 @@ Rules:
 - A `$ref` node may optionally include `description`.
 - Other node-level schema keys must not appear alongside `$ref`.
 
-Example:
+A `$ref` node looks like:
 
 ``` json
 {
@@ -456,6 +611,28 @@ Example:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "any": [
+    { "kind": "string" },
+    {
+      "check": { "kind": "list" },
+      "fields": {
+        "value": { "check": { "kind": "string" } }
+      }
+    }
+  ]
+}')
+good <- list(value = "x")
+bad <- list(value = 1L)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload failed all branches of `any`: [1] payload: Must be of type 'string', not 'list' | [2] payload$value: Must be of type 'string', not 'integer'"
+```
+
 ### `$defs` and `$ref`
 
 The DSL supports a minimal, local-reference reuse mechanism inspired by
@@ -483,6 +660,29 @@ Example:
   },
   "rest": { "$ref": "#/$defs/scalar_text" }
 }
+```
+
+``` r
+
+schema <- schema_read('{
+  "$defs": {
+    "scalar_text": {
+      "check": { "kind": "string" }
+    }
+  },
+  "check": { "kind": "list" },
+  "fields": {
+    "name": { "$ref": "#/$defs/scalar_text" }
+  },
+  "rest": { "$ref": "#/$defs/scalar_text" }
+}')
+good <- list(name = "alice", label = "admin")
+bad <- list(name = "alice", label = 1L)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload$label: Must be of type 'string', not 'integer'"
 ```
 
 #### `$ref`
@@ -515,6 +715,27 @@ Example:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "fields": {
+    "field1": { "check": { "kind": "string" } },
+    "field2": { "check": { "kind": "int" } }
+  }
+}')
+good <- list(field1 = "x", field2 = 1L)
+bad <- list(field1 = "x", field2 = "1")
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload$field2: Must be of type 'single integerish value', not 'character'"
+```
+
+`fields` does not make fields required. A missing field is simply not
+validated; use `keys.must.include` when a field must be present.
+
 #### Pattern fields
 
 `patterns` maps regular expressions to schema nodes. Patterns are
@@ -533,6 +754,24 @@ Example:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "patterns": {
+    "^meta_": { "check": { "kind": "string" } },
+    "_count$": { "check": { "kind": "int" } }
+  }
+}')
+good <- list(meta_title = "report", row_count = 3L)
+bad <- list(meta_title = 1L, row_count = 3L)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload$meta_title: Must be of type 'string', not 'integer'"
+```
+
 If a field matches multiple patterns, it must satisfy every matching
 schema.
 
@@ -549,14 +788,68 @@ Example:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "rest": { "check": { "kind": "string" } }
+}')
+good <- list(a = "x", b = "y")
+bad <- list(a = "x", b = 1L)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload$b: Must be of type 'string', not 'integer'"
+```
+
 This means that any field not covered by `fields`, `groups`, or
 `patterns` must satisfy the `rest` schema.
 
-#### Closed schema rule
+#### Closed field sets with `keys`
 
-If a container-check node has `fields`, `groups`, or `patterns` but no
-`rest`, then the node is treated as a closed schema: unspecified fields
-are not allowed.
+`fields`, `groups`, and `patterns` validate matching fields, but they do
+not close the set of allowed names by themselves. Use `keys.subset.of`
+to reject unknown names, and `keys.must.include` when fields are
+required.
+
+``` json
+{
+  "check": { "kind": "list" },
+  "keys": {
+    "type": "unique",
+    "must.include": ["field1", "field2"],
+    "subset.of": ["field1", "field2"]
+  },
+  "fields": {
+    "field1": { "check": { "kind": "string" } },
+    "field2": { "check": { "kind": "int" } }
+  }
+}
+```
+
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "keys": {
+    "type": "unique",
+    "must.include": ["field1", "field2"],
+    "subset.of": ["field1", "field2"]
+  },
+  "fields": {
+    "field1": { "check": { "kind": "string" } },
+    "field2": { "check": { "kind": "int" } }
+  }
+}')
+good <- list(field1 = "x", field2 = 1L)
+bad <- list(field1 = "x", field2 = 1L, extra = "y")
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload: Names must be a subset of {'field1','field2'}, but has additional elements {'extra'}"
+```
 
 #### Precedence rule
 
@@ -594,6 +887,26 @@ Example, similar to a CrossRef `date-parts` item:
 }
 ```
 
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list", "min.len": 1, "max.len": 3 },
+  "keys": { "type": "unnamed" },
+  "positions": [
+    { "check": { "kind": "int", "lower": 0 } },
+    { "check": { "kind": "int", "lower": 1, "upper": 12 } },
+    { "check": { "kind": "int", "lower": 1, "upper": 31 } }
+  ]
+}')
+good <- list(2024L, 6L, 14L)
+bad <- list(2024L, 13L, 14L)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload[[2]]: Element 1 is not <= 12"
+```
+
 When `positions` is combined with `rest`, declared positions are
 validated first and all remaining positions are validated with `rest`:
 
@@ -607,6 +920,26 @@ validated first and all remaining positions are validated with `rest`:
   ],
   "rest": { "check": { "kind": "number" } }
 }
+```
+
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "keys": { "type": "unnamed" },
+  "positions": [
+    { "check": { "kind": "string" } },
+    { "check": { "kind": "int" } }
+  ],
+  "rest": { "check": { "kind": "number" } }
+}')
+good <- list("run", 1L, 2.5, 3)
+bad <- list("run", 1L, "extra")
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload[[3]]: Must be of type 'number', not 'character'"
 ```
 
 With `keys.type = "unnamed"`, `positions` and `rest` are allowed.
@@ -706,7 +1039,7 @@ Example:
 {
   "$defs": {
     "flag_param": {
-      "check": { "kind": "list" }
+      "check": { "kind": "flag", "null.ok": true }
     }
   },
   "check": { "kind": "list" },
@@ -717,8 +1050,35 @@ Example:
       "description": "boolean control parameters"
     }
   ],
-  "rest": { "$ref": "#/$defs/flag_param" }
+  "rest": { "check": { "kind": "string" } }
 }
+```
+
+``` r
+
+schema <- schema_read('{
+  "$defs": {
+    "flag_param": {
+      "check": { "kind": "flag", "null.ok": true }
+    }
+  },
+  "check": { "kind": "list" },
+  "groups": [
+    {
+      "names": ["latest", "distrib", "replica"],
+      "$ref": "#/$defs/flag_param",
+      "description": "boolean control parameters"
+    }
+  ],
+  "rest": { "check": { "kind": "string" } }
+}')
+good <- list(latest = TRUE, distrib = FALSE, replica = NULL, project = "CMIP6")
+bad <- list(latest = "yes", distrib = FALSE, replica = NULL, project = "CMIP6")
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload$latest: Must be of type 'logical flag' (or 'NULL'), not 'character'"
 ```
 
 ### `keys`
@@ -732,24 +1092,40 @@ Example:
 checkmate::check_names(names(x), ...)
 ```
 
-#### Scalar form
+#### Minimal object form
 
-If `keys` is a scalar value, it is shorthand for:
+Even when only the name-check type is needed, `keys` is written as an
+object:
 
 ``` json
 { "type": "..." }
 ```
 
-That scalar value is therefore interpreted as the `type` argument of
-[`checkmate::check_names()`](https://mllg.github.io/checkmate/reference/checkNames.html).
+The `type` value is passed to the `type` argument of
+`checkmate::check_names(names(x), ...)`.
 
 Example:
 
 ``` json
 {
   "check": { "kind": "list" },
-  "keys": "unique"
+  "keys": { "type": "unique" }
 }
+```
+
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "keys": { "type": "unique" }
+}')
+good <- list(a = 1, b = 2)
+bad <- list(a = 1, a = 2)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload: Must have unique names, but element 2 is duplicated"
 ```
 
 #### Object form
@@ -783,6 +1159,25 @@ checkmate::check_names(
   must.include = c("kind", "value"),
   subset.of = c("kind", "value", "negate")
 )
+```
+
+``` r
+
+schema <- schema_read('{
+  "check": { "kind": "list" },
+  "keys": {
+    "type": "unique",
+    "must.include": ["kind", "value"],
+    "subset.of": ["kind", "value", "negate"]
+  }
+}')
+good <- list(kind = "facet", value = "tas", negate = FALSE)
+bad <- list(kind = "facet", value = "tas", extra = TRUE)
+
+schema_validate(schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(schema, bad, mode = "check", name = "payload")
+#> [1] "payload: Names must be a subset of {'kind','value','negate'}, but has additional elements {'extra'}"
 ```
 
 ### `description`
@@ -879,8 +1274,8 @@ When parsing the JSON DSL itself, the following should be enforced:
 19. If `keys.type = "unnamed"`, `fields`, `groups`, and `patterns` must
     not be present.
 20. `keys` is only allowed on container `check` nodes.
-21. `keys` must be either a scalar or an object.
-22. If `keys` is an object, all of its arguments are forwarded to
+21. `keys` must be an object.
+22. All `keys` arguments are forwarded to
     [`checkmate::check_names()`](https://mllg.github.io/checkmate/reference/checkNames.html).
 23. `keys.check` is invalid.
 24. Each `groups[]` item must contain `names` plus a complete schema
@@ -900,54 +1295,6 @@ When parsing the JSON DSL itself, the following should be enforced:
 34. `description` must be a non-empty string when present.
 
 ### Additional examples
-
-#### Simple scalar schema
-
-``` json
-{
-  "check": {
-    "kind": "string",
-    "pattern": "^[0-9]+$"
-  }
-}
-```
-
-#### `any` with shorthand checks
-
-``` json
-{
-  "any": [
-    { "kind": "int", "lower": 0 },
-    { "kind": "string", "pattern": "^[0-9]+$" },
-    { "kind": "list" }
-  ]
-}
-```
-
-#### Closed list schema
-
-``` json
-{
-  "check": { "kind": "list" },
-  "keys": {
-    "type": "unique",
-    "must.include": ["field1", "field2"]
-  },
-  "fields": {
-    "field1": { "check": { "kind": "string" } },
-    "field2": { "check": { "kind": "int" } }
-  }
-}
-```
-
-#### Rest list schema
-
-``` json
-{
-  "check": { "kind": "list" },
-  "rest": { "check": { "kind": "string" } }
-}
-```
 
 #### Parameter-like schema
 
@@ -987,6 +1334,58 @@ When parsing the JSON DSL itself, the following should be enforced:
     }
   }
 }
+```
+
+``` r
+
+param_schema <- schema_read('{
+  "check": { "kind": "list" },
+  "keys": {
+    "type": "unique",
+    "subset.of": ["project", "activity_id", "experiment_id"]
+  },
+  "rest": {
+    "check": { "kind": "list" },
+    "keys": {
+      "type": "unique",
+      "must.include": ["kind", "value"],
+      "subset.of": ["kind", "value", "negate"]
+    },
+    "fields": {
+      "kind": {
+        "check": {
+          "kind": "choice",
+          "choices": ["facet", "datetime_start", "datetime_stop"]
+        }
+      },
+      "value": {
+        "check": {
+          "kind": "atomic",
+          "any.missing": false
+        }
+      },
+      "negate": {
+        "check": {
+          "kind": "flag",
+          "null.ok": true
+        }
+      }
+    }
+  }
+}')
+good <- list(
+    project = list(kind = "facet", value = "CMIP6", negate = FALSE),
+    activity_id = list(kind = "facet", value = "ScenarioMIP")
+)
+bad <- list(
+    project = list(kind = "unknown", value = "CMIP6"),
+    activity_id = list(kind = "facet", value = "ScenarioMIP")
+)
+
+schema_validate(param_schema, good, mode = "test", name = "payload")
+#> [1] TRUE
+schema_validate(param_schema, bad, mode = "check", name = "payload")
+#> [1] "payload$project$kind: Must be element of set {'facet','datetime_start','datetime_stop'}, but is 'unknown'"
 ```
 
 ### Common mistakes
