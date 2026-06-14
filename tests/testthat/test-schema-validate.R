@@ -78,18 +78,31 @@ test_that("schema_validate()", {
         )
     )))
     not_schema <- schema_flat__compile(schema_doc(list(not = list(kind = "null"))))
+    nested_schema <- schema_flat__compile(schema_doc(list(
+        any = list(
+            list(any = list(
+                list(kind = "string"),
+                list(kind = "int")
+            )),
+            list(kind = "null")
+        )
+    )))
 
     expect_true(isTRUE(schema_validate(all_schema, "a", mode = "check", name = "payload")))
-    expect_match(schema_validate(all_schema, "z", mode = "check", name = "payload"), "payload")
+    expect_match(
+        schema_validate(all_schema, "z", mode = "check", name = "payload"),
+        "payload failed branch \\[2:choice\\] of `all`"
+    )
     expect_true(isTRUE(schema_validate(any_schema, 1L, mode = "check", name = "payload")))
     expect_true(isTRUE(schema_validate(any_schema, "123", mode = "check", name = "payload")))
-    expect_match(schema_validate(any_schema, TRUE, mode = "check", name = "payload"), "all branches of `any`")
-    expect_match(schema_validate(any_schema, TRUE, mode = "check", name = "payload"), "\\[1\\].*\\[2\\]")
-    expect_match(schema_validate(one_schema, TRUE, mode = "check", name = "payload"), "no branches of `one`")
-    expect_match(schema_validate(one_schema, TRUE, mode = "check", name = "payload"), "\\[1\\].*\\[2\\]")
-    expect_match(schema_validate(one_schema, "123", mode = "check", name = "payload"), "multiple branches of `one` \\(2\\)")
+    expect_match(schema_validate(any_schema, TRUE, mode = "check", name = "payload"), "failed `any` \\(0/2 branches matched\\)")
+    expect_match(schema_validate(any_schema, TRUE, mode = "check", name = "payload"), "\\[1:int\\].*\\[2:string\\]")
+    expect_match(schema_validate(one_schema, TRUE, mode = "check", name = "payload"), "failed `one` \\(0/2 branches matched; expected exactly 1\\)")
+    expect_match(schema_validate(one_schema, TRUE, mode = "check", name = "payload"), "\\[1:string\\].*\\[2:string\\]")
+    expect_match(schema_validate(one_schema, "123", mode = "check", name = "payload"), "failed `one` \\(2/2 branches matched; expected exactly 1\\): matched \\[1:string\\], \\[2:string\\]")
     expect_true(isTRUE(schema_validate(not_schema, "x", mode = "check", name = "payload")))
-    expect_match(schema_validate(not_schema, NULL, mode = "check", name = "payload"), "`not` branch matched")
+    expect_match(schema_validate(not_schema, NULL, mode = "check", name = "payload"), "matched forbidden branch \\[1:null\\] of `not`")
+    expect_match(schema_validate(nested_schema, TRUE, mode = "check", name = "payload"), "\\[1:any\\].*\\[2:null\\]")
 
     doc <- schema_doc(list(
         `$defs` = list(
