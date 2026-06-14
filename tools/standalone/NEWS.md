@@ -2,6 +2,8 @@
 
 ## 2026-06-14
 - Add file-level copyright and SPDX license metadata to the generated bundle.
+- Improve validation diagnostics for `all`, `any`, `one`, and `not`
+  combinators.
 
 ## 2026-06-13
 - Match S7 base classes in checkmate rules.

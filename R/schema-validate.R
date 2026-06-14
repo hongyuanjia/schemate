@@ -91,6 +91,37 @@ schema_validate__container_has_keyed_children <- function(schema) {
         !is.null(schema@rest)
 }
 
+schema_validate__branch_kind <- function(branch) {
+    if (
+        S7::S7_inherits(branch, SchemaNodeLeaf) ||
+            S7::S7_inherits(branch, SchemaNodeContainerFlat)
+    ) {
+        return(branch@value@kind)
+    }
+    if (S7::S7_inherits(branch, SchemaNodeAllFlat)) {
+        return("all")
+    }
+    if (S7::S7_inherits(branch, SchemaNodeAnyFlat)) {
+        return("any")
+    }
+    if (S7::S7_inherits(branch, SchemaNodeOneFlat)) {
+        return("one")
+    }
+    if (S7::S7_inherits(branch, SchemaNodeNotFlat)) {
+        return("not")
+    }
+
+    "schema"
+}
+
+schema_validate__branch_label <- function(branch, i) {
+    sprintf("[%d:%s]", i, schema_validate__branch_kind(branch))
+}
+
+schema_validate__branch_result <- function(branch, i, result) {
+    sprintf("%s %s", schema_validate__branch_label(branch, i), result)
+}
+
 schema_validate__rule <- function(value, x, path) {
     schema_validate__prefix_message(
         schema_validate__call_check(
@@ -242,10 +273,16 @@ S7::method(schema_validate__impl, SchemaNodeContainerFlat) <- function(schema, x
 }
 
 S7::method(schema_validate__impl, SchemaNodeAllFlat) <- function(schema, x, path) {
-    for (branch in schema@branches) {
+    for (i in seq_along(schema@branches)) {
+        branch <- schema@branches[[i]]
         res <- schema_validate__impl(branch, x, path)
         if (!isTRUE(res)) {
-            return(res)
+            return(sprintf(
+                "%s failed branch %s of `all`: %s",
+                path,
+                schema_validate__branch_label(branch, i),
+                res
+            ))
         }
     }
 
@@ -260,22 +297,29 @@ S7::method(schema_validate__impl, SchemaNodeAnyFlat) <- function(schema, x, path
         if (isTRUE(res)) {
             return(TRUE)
         }
-        msgs <- c(msgs, sprintf("[%d] %s", i, res))
+        msgs <- c(msgs, schema_validate__branch_result(branch, i, res))
     }
 
-    sprintf("%s failed all branches of `any`: %s", path, paste(msgs, collapse = " | "))
+    sprintf(
+        "%s failed `any` (0/%d branches matched): %s",
+        path,
+        length(schema@branches),
+        paste(msgs, collapse = " | ")
+    )
 }
 
 S7::method(schema_validate__impl, SchemaNodeOneFlat) <- function(schema, x, path) {
     ok <- 0L
+    matched <- character()
     msgs <- character()
     for (i in seq_along(schema@branches)) {
         branch <- schema@branches[[i]]
         res <- schema_validate__impl(branch, x, path)
         if (isTRUE(res)) {
             ok <- ok + 1L
+            matched <- c(matched, schema_validate__branch_label(branch, i))
         } else {
-            msgs <- c(msgs, sprintf("[%d] %s", i, res))
+            msgs <- c(msgs, schema_validate__branch_result(branch, i, res))
         }
     }
 
@@ -283,16 +327,31 @@ S7::method(schema_validate__impl, SchemaNodeOneFlat) <- function(schema, x, path
         return(TRUE)
     }
     if (ok == 0L) {
-        return(sprintf("%s matched no branches of `one`: %s", path, paste(msgs, collapse = " | ")))
+        return(sprintf(
+            "%s failed `one` (0/%d branches matched; expected exactly 1): %s",
+            path,
+            length(schema@branches),
+            paste(msgs, collapse = " | ")
+        ))
     }
 
-    sprintf("%s matched multiple branches of `one` (%d).", path, ok)
+    sprintf(
+        "%s failed `one` (%d/%d branches matched; expected exactly 1): matched %s",
+        path,
+        ok,
+        length(schema@branches),
+        paste(matched, collapse = ", ")
+    )
 }
 
 S7::method(schema_validate__impl, SchemaNodeNotFlat) <- function(schema, x, path) {
     res <- schema_validate__impl(schema@branch, x, path)
     if (isTRUE(res)) {
-        return(sprintf("%s: `not` branch matched.", path))
+        return(sprintf(
+            "%s matched forbidden branch %s of `not`.",
+            path,
+            schema_validate__branch_label(schema@branch, 1L)
+        ))
     }
 
     TRUE
