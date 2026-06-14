@@ -40,6 +40,8 @@ header <- c(
     "# repo: hongyuanjia/schemate",
     "# file: standalone-schema.R",
     paste0("# last-updated: ", Sys.Date()),
+    "# copyright: Copyright (c) 2026 Hongyuan Jia",
+    "# SPDX-License-Identifier: MIT",
     "# license: MIT",
     sprintf("# imports: [%s]", standalone_description_field_inline(description, "Imports")),
     sprintf("# optional: [%s]", standalone_description_field_inline(description, "Suggests")),
