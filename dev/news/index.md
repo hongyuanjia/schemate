@@ -4,7 +4,9 @@
 
 ### Improvements
 
-- Match S7 base classes in checkmate rules.
+1.  Improve validation diagnostics for `all`, `any`, `one`, and `not`
+    combinators, [\#2](https://github.com/hongyuanjia/schemate/pull/2).
+2.  Match S7 base classes in checkmate rules.
 
 ## schemate 0.1.1
 

@@ -1171,7 +1171,7 @@ crossref_schema |>
 #> [1] TRUE
 crossref_schema |>
     schema_validate(bad_crossref, mode = "check", name = "crossref")
-#> [1] "crossref$message$items[[1]]$published-online$date-parts[[1]] failed all branches of `any`: [1] crossref$message$items[[1]]$published-online$date-parts[[1]]: Must be of type 'single integerish value', not 'list' | [2] crossref$message$items[[1]]$published-online$date-parts[[1]][[2]]: Element 1 is not <= 12"
+#> [1] "crossref$message$items[[1]]$published-online$date-parts[[1]] failed `any` (0/2 branches matched): [1:int] crossref$message$items[[1]]$published-online$date-parts[[1]]: Must be of type 'single integerish value', not 'list' | [2:list] crossref$message$items[[1]]$published-online$date-parts[[1]][[2]]: Element 1 is not <= 12"
 ```
 
 When a reusable component has a clear domain name, author it explicitly

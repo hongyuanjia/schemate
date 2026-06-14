@@ -1217,7 +1217,7 @@ first <code>rest</code> means “the schema for each item”; the final
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="va">crossref_schema</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">bad_crossref</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"crossref"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "crossref$message$items[[1]]$published-online$date-parts[[1]] failed all branches of `any`: [1] crossref$message$items[[1]]$published-online$date-parts[[1]]: Must be of type 'single integerish value', not 'list' | [2] crossref$message$items[[1]]$published-online$date-parts[[1]][[2]]: Element 1 is not &lt;= 12"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "crossref$message$items[[1]]$published-online$date-parts[[1]] failed `any` (0/2 branches matched): [1:int] crossref$message$items[[1]]$published-online$date-parts[[1]]: Must be of type 'single integerish value', not 'list' | [2:list] crossref$message$items[[1]]$published-online$date-parts[[1]][[2]]: Element 1 is not &lt;= 12"</span></span></code></pre></div>
 <p>When a reusable component has a clear domain name, author it
 explicitly with <code>$defs</code> and <code>$ref</code>, then use
 <code><a href="../reference/schema_modify_where.html">schema_replace_where()</a></code> to replace repeated logical paths

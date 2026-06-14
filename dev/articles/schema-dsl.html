@@ -534,7 +534,7 @@ successfully.</p>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "payload: Must be element of set {'a','b','c'}, but is 'z'"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "payload failed branch [2:choice] of `all`: payload: Must be element of set {'a','b','c'}, but is 'z'"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="any">
@@ -563,7 +563,7 @@ validates successfully.</p>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "payload failed all branches of `any`: [1] payload: Must be of type 'single integerish value', not 'logical' | [2] payload: Must be of type 'string', not 'logical'"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "payload failed `any` (0/2 branches matched): [1:int] payload: Must be of type 'single integerish value', not 'logical' | [2:string] payload: Must be of type 'string', not 'logical'"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="one">
@@ -592,11 +592,11 @@ validates successfully.</p>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "payload matched no branches of `one`: [1] payload: Must be of type 'string', not 'logical' | [2] payload: Must be of type 'string', not 'logical'"</span></span>
+<span><span class="co">#&gt; [1] "payload failed `one` (0/2 branches matched; expected exactly 1): [1:string] payload: Must be of type 'string', not 'logical' | [2:string] payload: Must be of type 'string', not 'logical'"</span></span>
 <span></span>
 <span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="st">"123"</span></span>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "payload matched multiple branches of `one` (2)."</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "payload failed `one` (2/2 branches matched; expected exactly 1): matched [1:string], [2:string]"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="not">
@@ -619,7 +619,7 @@ validate successfully.</p>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "payload: `not` branch matched."</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "payload matched forbidden branch [1:null] of `not`."</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="ref">
@@ -731,7 +731,7 @@ features, write it as a full node instead of shorthand.</p>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">good</span>, mode <span class="op">=</span> <span class="st">"test"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="fu"><a href="../reference/schema_validate.html">schema_validate</a></span><span class="op">(</span><span class="va">schema</span>, <span class="va">bad</span>, mode <span class="op">=</span> <span class="st">"check"</span>, name <span class="op">=</span> <span class="st">"payload"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "payload failed all branches of `any`: [1] payload: Must be of type 'string', not 'list' | [2] payload$value: Must be of type 'string', not 'integer'"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "payload failed `any` (0/2 branches matched): [1:string] payload: Must be of type 'string', not 'list' | [2:list] payload$value: Must be of type 'string', not 'integer'"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="defs-and-ref">

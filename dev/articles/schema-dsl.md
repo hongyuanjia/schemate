@@ -388,7 +388,7 @@ bad <- "z"
 schema_validate(schema, good, mode = "test", name = "payload")
 #> [1] TRUE
 schema_validate(schema, bad, mode = "check", name = "payload")
-#> [1] "payload: Must be element of set {'a','b','c'}, but is 'z'"
+#> [1] "payload failed branch [2:choice] of `all`: payload: Must be element of set {'a','b','c'}, but is 'z'"
 ```
 
 #### `any`
@@ -423,7 +423,7 @@ bad <- TRUE
 schema_validate(schema, good, mode = "test", name = "payload")
 #> [1] TRUE
 schema_validate(schema, bad, mode = "check", name = "payload")
-#> [1] "payload failed all branches of `any`: [1] payload: Must be of type 'single integerish value', not 'logical' | [2] payload: Must be of type 'string', not 'logical'"
+#> [1] "payload failed `any` (0/2 branches matched): [1:int] payload: Must be of type 'single integerish value', not 'logical' | [2:string] payload: Must be of type 'string', not 'logical'"
 ```
 
 #### `one`
@@ -458,11 +458,11 @@ bad <- TRUE
 schema_validate(schema, good, mode = "test", name = "payload")
 #> [1] TRUE
 schema_validate(schema, bad, mode = "check", name = "payload")
-#> [1] "payload matched no branches of `one`: [1] payload: Must be of type 'string', not 'logical' | [2] payload: Must be of type 'string', not 'logical'"
+#> [1] "payload failed `one` (0/2 branches matched; expected exactly 1): [1:string] payload: Must be of type 'string', not 'logical' | [2:string] payload: Must be of type 'string', not 'logical'"
 
 bad <- "123"
 schema_validate(schema, bad, mode = "check", name = "payload")
-#> [1] "payload matched multiple branches of `one` (2)."
+#> [1] "payload failed `one` (2/2 branches matched; expected exactly 1): matched [1:string], [2:string]"
 ```
 
 #### `not`
@@ -491,7 +491,7 @@ bad <- NULL
 schema_validate(schema, good, mode = "test", name = "payload")
 #> [1] TRUE
 schema_validate(schema, bad, mode = "check", name = "payload")
-#> [1] "payload: `not` branch matched."
+#> [1] "payload matched forbidden branch [1:null] of `not`."
 ```
 
 #### `$ref`
@@ -630,7 +630,7 @@ bad <- list(value = 1L)
 schema_validate(schema, good, mode = "test", name = "payload")
 #> [1] TRUE
 schema_validate(schema, bad, mode = "check", name = "payload")
-#> [1] "payload failed all branches of `any`: [1] payload: Must be of type 'string', not 'list' | [2] payload$value: Must be of type 'string', not 'integer'"
+#> [1] "payload failed `any` (0/2 branches matched): [1:string] payload: Must be of type 'string', not 'list' | [2:list] payload$value: Must be of type 'string', not 'integer'"
 ```
 
 ### `$defs` and `$ref`
